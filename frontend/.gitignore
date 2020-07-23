@@ -1,22 +1,13 @@
 # See https://help.github.com/ignore-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
-/src/coreui-new
-/src/coreui-icons
-/src/coreui-charts
+gui/node_modules
 
 # testing
-/coverage
-/src/coreui-new
-/src/coreui-icons
-/src/coreui-charts
+gui/coverage
 
 # production
-/build
-/src/coreui-new
-/src/coreui-icons
-/src/coreui-charts
+gui/build
 
 # misc
 .DS_Store
