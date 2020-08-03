@@ -10,6 +10,16 @@ export default [
     }
   },
   {
+    _tag: 'CSidebarNavItem',
+    name: 'Starter',
+    to: '/starter',
+    icon: 'cil-speedometer',
+    badge: {
+      color: 'info',
+      //text: 'NEW',
+    }
+  },
+  {
     _tag: 'CSidebarNavTitle',
     _children: ['Theme']
   },
