@@ -1,4 +1,2 @@
-# neurodata
-Alta rama
-
-Alto proyecto
+# CConsciente
+## Rama personal de chris
