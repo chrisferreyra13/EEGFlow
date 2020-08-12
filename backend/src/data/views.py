@@ -1,6 +1,6 @@
 
-####IMPORTS####
-
+#----IMPORTS----#
+'''
 from django.shortcuts import render
 from django.http import HttpResponse
 
@@ -20,3 +20,5 @@ class EEGViewSet(viewsets.ModelViewSet):
         upload=request.data['upload']
         EEG.objects.create(upload=upload)
         return HttpResponse({'message':'EEG uploaded'}, status=200)
+
+'''

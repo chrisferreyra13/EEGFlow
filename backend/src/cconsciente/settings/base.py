@@ -29,7 +29,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     
-    'todos',
+    'filemanager',
     'data',
 ]
 
@@ -104,6 +104,9 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
+
+FILEMANAGER_UPLOAD_TMP=os.path.join(BASE_DIR, 'media-temp')
+FILEMANAGER_FILE_STORE_PATH=os.path.join(BASE_DIR, 'media-stored')
 
 STATIC_URL = '/static/'
 
