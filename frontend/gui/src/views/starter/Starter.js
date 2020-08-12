@@ -10,8 +10,28 @@ import {
   CRow,
 } from '@coreui/react'
 
+import { FilePond, File, registerPlugin } from 'react-filepond'
+
+import 'filepond/dist/filepond.min.css'
 
 function Starter() {
+  const [files, setFiles] = useState([])
+  return (
+    <div className="Starter">
+      <FilePond
+        files={files}
+        onupdatefiles={setFiles}
+        allowMultiple={true}
+        maxFiles={3}
+        server="http://127.0.0.1:8000/fm/process/"
+        name="filemanager"
+        labelIdle='Drag & Drop your files or <span class="filepond--label-action">Browse</span>'
+      />
+    </div>
+  )
+}
+
+/*function Starter() {
   
   const [upload, setUpload]=useState();
 
@@ -40,6 +60,6 @@ function Starter() {
       </div>
     </>
   )
-}
+}*/
   
 export default Starter

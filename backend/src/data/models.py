@@ -1,8 +1,8 @@
 
-####IMPORTS####
+#----IMPORTS----#
 
 from django.db import models
-
+'''
 ####FUNCTIONS####
 
 def upload_path(instance, filename):
@@ -12,5 +12,5 @@ def upload_path(instance, filename):
 
 class EEG(models.Model):
     upload=models.FileField(upload_to=upload_path)
-
+'''
 
