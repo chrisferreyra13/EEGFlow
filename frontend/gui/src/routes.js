@@ -40,13 +40,17 @@ const Users = React.lazy(() => import('./views/users/Users'));
 const User = React.lazy(() => import('./views/users/User'));
 
 const routes = [
-  { path: '/', exact: true, name: 'App' },
-  { path: '/dashboard', name: 'Dashboard', component: Dashboard },
-  { path: '/starter', name: 'Starter', component: Starter },
-  { path: '/theme', name: 'Theme', component: Colors, exact: true },
-  { path: '/theme/colors', name: 'Colors', component: Colors },
-  { path: '/theme/typography', name: 'Typography', component: Typography },
-  { path: '/base', name: 'Base', component: Cards, exact: true },
+  { path: '/', exact: 'App', name: 'App' },
+  { path: '/Home', name: 'Home', component: Dashboard },
+  { path: '/MiEEG', name: 'MiEEG', component: Starter },
+  { path: '/Miperfil', name: 'Miperfil', component: Colors },
+  { path: '/Dashboard', name: 'Dashboard', component: Colors, exact: true },
+  { path: '/Dashboard/MisPlantillas', name: 'MisPlantillas', component: Colors },
+  { path: '/Dashboard/Explorar', name: 'Explorar', component: Typography },
+  { path: '/Editando', name: 'Editando', component: Cards, exact: true },
+  { path: '/Configuraciones', name: 'Configuración', component: Cards, exact: true },
+  { path: '/QuienesSomos', name: 'QuienesSomos', component: Cards, exact: true },
+  /*{ path: '/base', name: 'Base', component: Cards, exact: true },
   { path: '/base/breadcrumbs', name: 'Breadcrumbs', component: Breadcrumbs },
   { path: '/base/cards', name: 'Cards', component: Cards },
   { path: '/base/carousels', name: 'Carousel', component: Carousels },
@@ -80,7 +84,7 @@ const routes = [
   { path: '/notifications/toaster', name: 'Toaster', component: Toaster },
   { path: '/widgets', name: 'Widgets', component: Widgets },
   { path: '/users', exact: true,  name: 'Users', component: Users },
-  { path: '/users/:id', exact: true, name: 'User Details', component: User }
+  { path: '/users/:id', exact: true, name: 'User Details', component: User }*/
 ];
 
 export default routes;

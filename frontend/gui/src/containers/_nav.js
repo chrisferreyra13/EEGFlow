@@ -1,8 +1,8 @@
 export default [
   {
     _tag: 'CSidebarNavItem',
-    name: 'Dashboard',
-    to: '/dashboard',
+    name: 'Home', // lo lleva a la pag que me muestra un poco de mis plantillas, un poco de descubrir, etc. 
+    to: '/Home',
     icon: 'cil-speedometer',
     badge: {
       color: 'info',
@@ -11,37 +11,51 @@ export default [
   },
   {
     _tag: 'CSidebarNavItem',
-    name: 'Starter',
-    to: '/starter',
+    name: 'Mi EEG',
+    to: '/miEEG',
     icon: 'cil-speedometer',
     badge: {
       color: 'info',
       //text: 'NEW',
     }
   },
+
+
+  {
+    _tag: 'CSidebarNavItem',
+    name: 'Mi perfil',
+    to: '/miperfil',
+    icon: 'cil-speedometer',
+    badge: {
+      color: 'info',
+      //text: 'NEW',
+    }
+  },
+
   {
     _tag: 'CSidebarNavTitle',
-    _children: ['Theme']
+    _children: ['Dashboard']
   },
   {
     _tag: 'CSidebarNavItem',
-    name: 'Colors',
-    to: '/theme/colors',
+    name: 'Mis Plantillas',
+    to: '/Dashboard/MisPlantillas',
     icon: 'cil-drop',
   },
   {
     _tag: 'CSidebarNavItem',
-    name: 'Typography',
-    to: '/theme/typography',
+    name: 'Explorar',
+    to: '/Dashboard/Explorar',
     icon: 'cil-pencil',
   },
+  /*
   {
     _tag: 'CSidebarNavTitle',
-    _children: ['Components']
+    _children: ['Editando']
   },
   {
     _tag: 'CSidebarNavDropdown',
-    name: 'Base',
+    name: 'Mi Nueva Plantilla',
     route: '/base',
     icon: 'cil-puzzle',
     _children: [
@@ -229,39 +243,24 @@ export default [
   {
     _tag: 'CSidebarNavDivider'
   },
+  */
   {
     _tag: 'CSidebarNavTitle',
     _children: ['Extras'],
   },
   {
-    _tag: 'CSidebarNavDropdown',
-    name: 'Pages',
-    route: '/pages',
+    _tag: 'CSidebarNavItem',
+    name: 'Configuraciones',
+    to: '/Configuraciones',
     icon: 'cil-star',
-    _children: [
-      {
-        _tag: 'CSidebarNavItem',
-        name: 'Login',
-        to: '/login',
-      },
-      {
-        _tag: 'CSidebarNavItem',
-        name: 'Register',
-        to: '/register',
-      },
-      {
-        _tag: 'CSidebarNavItem',
-        name: 'Error 404',
-        to: '/404',
-      },
-      {
-        _tag: 'CSidebarNavItem',
-        name: 'Error 500',
-        to: '/500',
-      },
-    ],
   },
   {
+    _tag: 'CSidebarNavItem',
+    name: 'Quienes Somos',
+    to: '/QuienesSomos', //lo lleva al landing page
+    icon: 'cil-star',
+  },
+ /* {
     _tag: 'CSidebarNavItem',
     name: 'Disabled',
     icon: 'cil-ban',
@@ -313,6 +312,6 @@ export default [
   {
     _tag: 'CSidebarNavDivider',
     className: 'm-2'
-  }
+  }*/
 ]
 
