@@ -4,10 +4,7 @@ export default [
     name: 'Home', // lo lleva a la pag que me muestra un poco de mis plantillas, un poco de descubrir, etc. 
     to: '/Home',
     icon: 'cil-speedometer',
-    badge: {
-      color: 'info',
-      text: 'NEW',
-    }
+   
   },
   {
     _tag: 'CSidebarNavItem',
