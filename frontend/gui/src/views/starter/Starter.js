@@ -1,4 +1,4 @@
-import React, { lazy, useState } from 'react'
+import React, { lazy, useState, Component } from 'react'
 import {
   CButton,
   CCard,
@@ -14,21 +14,51 @@ import { FilePond, File, registerPlugin } from 'react-filepond'
 
 import 'filepond/dist/filepond.min.css'
 
-function Starter() {
-  const [files, setFiles] = useState([])
-  return (
-    <div className="Starter">
-      <FilePond
-        files={files}
-        onupdatefiles={setFiles}
-        allowMultiple={true}
-        maxFiles={3}
-        server="http://127.0.0.1:8000/fm/process/"
-        name="filemanager"
-        labelIdle='Drag & Drop your files or <span class="filepond--label-action">Browse</span>'
-      />
-    </div>
-  )
+class Starter extends Component{
+  constructor(props){
+    super(props);
+    this.state={
+      files: []
+       
+    }
+    
+
+    this.setFiles=this.setFiles.bind(this);
+  }
+  setFiles(fileItems){
+    this.setState({
+      files: fileItems.map(fileItem => fileItem.file)
+    });
+  }
+
+  render(){
+    const serverConf= {
+      url: 'http://127.0.0.1:8000/fm',
+      process: {
+          url: '/process/',
+          method: 'POST'
+      },
+      load: {
+        url: '/load/',
+        method: 'GET'
+      }
+    }
+    return (
+      <div className="Starter">
+        <FilePond
+          ref={ref => this.pond=ref}
+          files={this.state.files}
+          onupdatefiles={this.setFiles}
+          processFile={this.state.files}
+          allowMultiple={true}
+          maxFiles={3}
+          server={serverConf}
+          name="filemanager"
+          labelIdle='Drag & Drop your files or <span class="filepond--label-action">Browse</span>'
+        />
+      </div>
+    )
+  }
 }
 
 /*function Starter() {

@@ -3,8 +3,8 @@
 # dependencies
 
 # static files
-#src/cconsciente/media-temp/
-#src/cconsciente/media-stored/
+src/cconsciente/media-temp/
+src/cconsciente/media-stored/
 
 # testing
 #gui/coverage
