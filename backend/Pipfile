@@ -17,5 +17,6 @@ requests = "*"
 mne = "*"
 matplotlib = "*"
 
+
 [requires]
 python_version = "3.6"
