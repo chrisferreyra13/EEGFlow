@@ -41,9 +41,9 @@ const User = React.lazy(() => import('./views/users/User'));
 
 const routes = [
   { path: '/', exact: 'App', name: 'App' },
-  { path: '/Home', name: 'Home', component: Dashboard },
-  { path: '/MiEEG', name: 'MiEEG', component: Starter },
-  { path: '/Miperfil', name: 'Miperfil', component: Colors },
+  { path: '/home', name: 'Home', component: Dashboard },
+  { path: '/upload', name: 'Upload', component: Starter },
+  { path: '/profile', name: 'Profile', component: Colors },
   { path: '/Dashboard', name: 'Dashboard', component: Colors, exact: true },
   { path: '/Dashboard/MisPlantillas', name: 'MisPlantillas', component: Colors },
   { path: '/Dashboard/Explorar', name: 'Explorar', component: Typography },
