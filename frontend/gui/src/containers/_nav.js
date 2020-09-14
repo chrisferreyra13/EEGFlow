@@ -1,15 +1,15 @@
 export default [
   {
     _tag: 'CSidebarNavItem',
-    name: 'Home', // lo lleva a la pag que me muestra un poco de mis plantillas, un poco de descubrir, etc. 
-    to: '/Home',
+    name: 'Inicio', // lo lleva a la pag que me muestra un poco de mis plantillas, un poco de descubrir, etc. 
+    to: '/dashboard/home',
     icon: 'cil-speedometer',
    
   },
   {
     _tag: 'CSidebarNavItem',
     name: 'Mi EEG',
-    to: '/miEEG',
+    to: '/dashboard/data-preview',
     icon: 'cil-speedometer',
     badge: {
       color: 'info',
@@ -306,9 +306,10 @@ export default [
     },
     label: true
   },
+  */
   {
     _tag: 'CSidebarNavDivider',
     className: 'm-2'
-  }*/
+  }
 ]
 

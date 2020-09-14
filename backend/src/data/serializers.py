@@ -18,11 +18,11 @@ class EEGInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model=EEGInfo
         fields=[
-            'nchan',
-            'experimenter',
-            'proj_name',
             'proj_id',
+            'proj_name',
+            'experimenter',
             'meas_date',
+            'nchan',
             'ch_names',
             'custom_ref_applied',
         ]

@@ -18,7 +18,7 @@ from django.core.validators import URLValidator
 from django.http.response import HttpResponse, HttpResponseNotFound, \
     HttpResponseServerError
 from filemanager.storage_manager import get_stored_upload, \
-    get_stored_upload_file_data
+    get_stored_upload_file_data, store_upload
 from filemanager.exceptions import ConfigurationError
 from filemanager.models import TemporaryUpload, storage, StoredUpload
 from filemanager.parsers import PlainTextParser, UploadChunkParser
@@ -132,6 +132,11 @@ class ProcessView(APIView):
             response = uploader.handle_upload(request, file_id, upload_id)
         except ParseError as e:
             # Re-raise the ParseError to trigger a 400 response via DRF.
+            raise e
+        
+        try:
+            store_upload(upload_id,'eeg')
+        except ParseError as e:
             raise e
 
         return response

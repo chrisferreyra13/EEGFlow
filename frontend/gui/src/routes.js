@@ -1,5 +1,6 @@
 import React from 'react';
 
+
 const Toaster = React.lazy(() => import('./views/notifications/toaster/Toaster'));
 const Tables = React.lazy(() => import('./views/base/tables/Tables'));
 
@@ -25,8 +26,8 @@ const ButtonDropdowns = React.lazy(() => import('./views/buttons/button-dropdown
 const ButtonGroups = React.lazy(() => import('./views/buttons/button-groups/ButtonGroups'));
 const Buttons = React.lazy(() => import('./views/buttons/buttons/Buttons'));
 const Charts = React.lazy(() => import('./views/charts/Charts'));
-const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'));
-const Starter = React.lazy(() => import('./views/starter/Starter'));
+const DashboardHome = React.lazy(() => import('./views/dashboard/DashboardHome'));
+const DashboardDataPreview = React.lazy(() => import('./views/dashboard/DashboardDataPreview'));
 const CoreUIIcons = React.lazy(() => import('./views/icons/coreui-icons/CoreUIIcons'));
 const Flags = React.lazy(() => import('./views/icons/flags/Flags'));
 const Brands = React.lazy(() => import('./views/icons/brands/Brands'));
@@ -40,17 +41,18 @@ const Users = React.lazy(() => import('./views/users/Users'));
 const User = React.lazy(() => import('./views/users/User'));
 
 const routes = [
-  { path: '/', exact: 'App', name: 'App' },
-  { path: '/home', name: 'Home', component: Dashboard },
-  { path: '/upload', name: 'Upload', component: Starter },
-  { path: '/profile', name: 'Profile', component: Colors },
-  { path: '/Dashboard', name: 'Dashboard', component: Colors, exact: true },
+  { path: '/app', exact: 'App', name: 'App' },
+  { path: '/dashboard/home', name: 'Home', component: DashboardHome },
+  { path: '/dashboard/data-preview', name: 'DataPreview', component: DashboardDataPreview },
+  { path: '/dashboard/profile', name: 'Profile', component: Colors },
   { path: '/Dashboard/MisPlantillas', name: 'MisPlantillas', component: Colors },
   { path: '/Dashboard/Explorar', name: 'Explorar', component: Typography },
   { path: '/Editando', name: 'Editando', component: Cards, exact: true },
   { path: '/Configuraciones', name: 'Configuración', component: Cards, exact: true },
   { path: '/QuienesSomos', name: 'QuienesSomos', component: Cards, exact: true },
-  /*{ path: '/base', name: 'Base', component: Cards, exact: true },
+  /*
+  { path: '/Dashboard', name: 'Dashboard', component: Colors, exact: true },
+  { path: '/base', name: 'Base', component: Cards, exact: true },
   { path: '/base/breadcrumbs', name: 'Breadcrumbs', component: Breadcrumbs },
   { path: '/base/cards', name: 'Cards', component: Cards },
   { path: '/base/carousels', name: 'Carousel', component: Carousels },
@@ -84,7 +86,8 @@ const routes = [
   { path: '/notifications/toaster', name: 'Toaster', component: Toaster },
   { path: '/widgets', name: 'Widgets', component: Widgets },
   { path: '/users', exact: true,  name: 'Users', component: Users },
-  { path: '/users/:id', exact: true, name: 'User Details', component: User }*/
+  { path: '/users/:id', exact: true, name: 'User Details', component: User }
+  */
 ];
 
 export default routes;
