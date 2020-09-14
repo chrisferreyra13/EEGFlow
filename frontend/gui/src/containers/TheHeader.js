@@ -55,7 +55,7 @@ const TheHeader = () => {
 
       <CHeaderNav className="d-md-down-none mr-auto">
         <CHeaderNavItem className="px-3" >
-          <CHeaderNavLink to="/dashboard">DashboardPrueba</CHeaderNavLink>
+          <CHeaderNavLink to="/dashboard">Dashboard</CHeaderNavLink>
         </CHeaderNavItem>
         <CHeaderNavItem  className="px-3">
           <CHeaderNavLink to="/users">Users</CHeaderNavLink>
@@ -66,12 +66,12 @@ const TheHeader = () => {
       </CHeaderNav>
 
       <CHeaderNav className="px-3">
-        <TheHeaderDropdownNotif/>
+        {/*<TheHeaderDropdownNotif/>
         <TheHeaderDropdownTasks/>
-        <TheHeaderDropdownMssg/>
+        <TheHeaderDropdownMssg/>*/}
         <TheHeaderDropdown/>
-      </CHeaderNav>
-
+        </CHeaderNav>
+      {/*
       <CSubheader className="px-3 justify-content-between">
         <CBreadcrumbRouter 
           className="border-0 c-subheader-nav m-0 px-0 px-md-3" 
@@ -93,6 +93,7 @@ const TheHeader = () => {
             </CLink>
           </div>
       </CSubheader>
+      */}
     </CHeader>
   )
 }

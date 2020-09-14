@@ -30,6 +30,7 @@ class EEGInfoView(APIView):
 
     def get(self, request, format=None):
         #TODO: Esto se va a repetir en otras vistas, podria ser una funcion
+        
         if LOAD_RESTORE_PARAM_NAME not in request.GET:
             return Response('A required parameter is missing.',
                             status=status.HTTP_400_BAD_REQUEST)
@@ -49,6 +50,7 @@ class EEGInfoView(APIView):
 
         return Response(str(su.upload_id))
         #if no existe, crealo por primera vez
+        #upload_id='sample_audvis_filt-0-40_raw.fif'
         upload_id='eeglab_data.set'
         raw=get_raw(upload_id)
         #Dict=DictionaryAdapter(raw.info)

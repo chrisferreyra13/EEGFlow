@@ -92,9 +92,11 @@ def store_upload(upload_id, destination_file_path):
 
     if not destination_file_path or destination_file_path == '':
         raise ValueError('No destination file path provided.')
-
+    
+    print('---'str(upload_id))
+    print(x.upload_id for x in TemporaryUpload.objects.all() if x.upload_id==upload_id)
     try:
-        tu = TemporaryUpload.objects.get(upload_id=upload_id)
+        tu = TemporaryUpload.objects.get(pk=upload_id)
     except TemporaryUpload.DoesNotExist:
         raise ValueError('Record for the specified upload_id doesn\'t exist')
 

@@ -148,7 +148,9 @@ class FileManagerStandardFileUploader(FileManagerFileUploader):
                              file=file_obj, upload_name=upload_filename,
                              upload_type=TemporaryUpload.FILE_DATA,
                              uploaded_by=_get_user(request))
+            
         tu.save()
+        
 
         response = Response(upload_id, status=status.HTTP_200_OK,
                             content_type='text/plain')
