@@ -61,7 +61,7 @@ export default [
           },
           {
             _tag: 'CSidebarNavItem',
-            name: 'Badges',
+            name: 'Alfa',
             to: '/notifications/badges',
           },
           {
