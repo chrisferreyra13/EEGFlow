@@ -129,16 +129,18 @@ class ProcessView(APIView):
 
         try:
             uploader = FileManagerFileUploader.get_uploader(request)
-            response = uploader.handle_upload(request, file_id, upload_id)
+            response = uploader.handle_upload(request, upload_id, file_id)
         except ParseError as e:
             # Re-raise the ParseError to trigger a 400 response via DRF.
             raise e
         
+        '''
         try:
-            store_upload(upload_id,'eeg')
+            store_upload(upload_id,'eeg/')
         except ParseError as e:
             raise e
-
+        '''
+        
         return response
 
 
@@ -187,6 +189,7 @@ class RevertView(APIView):
     def delete(self, request):
         # If we've received the incoming data as bytes, we need to decode
         # it to a string
+        print(request.data)
         if isinstance(request.data, bytes):
             request_data = request.data.decode('utf-8')
         else:
@@ -195,8 +198,9 @@ class RevertView(APIView):
         # Expecting a 22-character unique ID telling us which temporary
         # upload to remove.
         LOG.debug('FileManager API: Revert view DELETE called...')
+        
         upload_id = request_data.strip()
-
+        print(upload_id)
         if len(upload_id) != 22:
             raise ParseError('The provided data is invalid.')
 

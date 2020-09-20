@@ -6,7 +6,7 @@ import {
   TheHeader
 } from './index'
 
-const TheLayout = () => {
+const EditLayout = () => {
 
   return (
     <div className="c-app c-default-layout">
@@ -22,4 +22,4 @@ const TheLayout = () => {
   )
 }
 
-export default TheLayout
+export default EditLayout
