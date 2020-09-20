@@ -1,49 +1,82 @@
 export default [
   {
     _tag: 'CSidebarNavItem',
-    name: 'Inicio', // lo lleva a la pag que me muestra un poco de mis plantillas, un poco de descubrir, etc. 
-    to: '/dashboard/home',
-    icon: 'cil-speedometer',
-   
-  },
-  {
-    _tag: 'CSidebarNavItem',
-    name: 'Mi EEG',
-    to: '/dashboard/data-preview',
+    name: 'Mi estudio',
+    to: '/app/dashboard/data-preview',
     icon: 'cil-speedometer',
     badge: {
       color: 'info',
       //text: 'NEW',
     }
   },
-
-
   {
-    _tag: 'CSidebarNavItem',
-    name: 'Mi perfil',
-    to: '/miperfil',
-    icon: 'cil-speedometer',
-    badge: {
-      color: 'info',
-      //text: 'NEW',
-    }
+    _tag: 'CSidebarNavDropdown',
+    name: 'Graficos',
+    route: '/base',
+    icon: 'cil-star',
+    _children: [
+      {
+        _tag: 'CSidebarNavItem',
+        name: 'Temporal',
+        to: '/base/breadcrumbs',
+      },
+      {
+        _tag: 'CSidebarNavItem',
+        name: 'Fourier',
+        to: '/base/cards',
+      },
+      {
+        _tag: 'CSidebarNavItem',
+        name: 'Topografico',
+        to: '/base/carousels',
+      },
+      {
+        _tag: 'CSidebarNavItem',
+        name: 'Tiempo - Frecuencia',
+        to: '/base/collapses',
+      },
+    ],
   },
-
   {
-    _tag: 'CSidebarNavTitle',
-    _children: ['Dashboard']
-  },
-  {
-    _tag: 'CSidebarNavItem',
-    name: 'Mis Plantillas',
-    to: '/Dashboard/MisPlantillas',
-    icon: 'cil-drop',
-  },
-  {
-    _tag: 'CSidebarNavItem',
-    name: 'Explorar',
-    to: '/Dashboard/Explorar',
-    icon: 'cil-pencil',
+    _tag: 'CSidebarNavDropdown',
+    name: 'Filtros',
+    route: '/notifications',
+    icon: 'cil-bell',
+    _children: [
+      {
+        _tag: 'CSidebarNavItem',
+        name: 'Seleccionar frecuencias',
+        to: '/notifications/alerts',
+      },
+      {
+        _tag: 'CSidebarNavDropdown',
+        name: 'Filtros',
+        route: '/notifications',
+        icon: 'cil-bell',
+        _children: [
+          {
+            _tag: 'CSidebarNavItem',
+            name: 'Seleccionar frecuencias',
+            to: '/notifications/alerts',
+          },
+          {
+            _tag: 'CSidebarNavItem',
+            name: 'Badges',
+            to: '/notifications/badges',
+          },
+          {
+            _tag: 'CSidebarNavItem',
+            name: 'Modal',
+            to: '/notifications/modals',
+          },
+          {
+            _tag: 'CSidebarNavItem',
+            name: 'Toaster',
+            to: '/notifications/toaster'
+          }
+        ]
+      },     
+    ]
   },
   /*
   {

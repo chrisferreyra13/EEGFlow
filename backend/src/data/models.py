@@ -27,12 +27,12 @@ class EEGInfo(models.Model):
     -Tamaño del dataset
     '''
 
-    #upload_id=models.CharField(max_length=22) # TODO: UUIDField?
+    #file_id=models.CharField(max_length=22) # TODO: UUIDField?
     nchan=models.IntegerField()
-    experimenter=models.CharField(max_length=50)
-    proj_name=models.CharField(max_length=50)
-    proj_id=models.CharField(max_length=50)
-    meas_date=models.DateTimeField()
+    experimenter=models.CharField(max_length=50, null=True)
+    proj_name=models.CharField(max_length=50, null=True)
+    proj_id=models.CharField(max_length=50, null=True)
+    meas_date=models.DateTimeField(null=True)
     ch_names=models.CharField(max_length=100)
     custom_ref_applied=models.BooleanField()
     #n_times=models.IntegerField()

@@ -127,8 +127,10 @@ class FileManagerStandardFileUploader(FileManagerFileUploader):
             raise ParseError('Invalid data type has been parsed.')
 
         # Save original file name and set name of saved file to the unique ID
+        # Modifico esto, el nombre del archivo ya no tiene un unique ID,
+        # si no que el nombre original. TODO: hay que pulir esto
         upload_filename = file_obj.name
-        file_obj.name = file_id
+        #file_obj.name = file_id
 
         # Before we attempt to save the file, make sure that the upload
         # directory we're going to save to exists.
@@ -151,7 +153,6 @@ class FileManagerStandardFileUploader(FileManagerFileUploader):
             
         tu.save()
         
-
         response = Response(upload_id, status=status.HTTP_200_OK,
                             content_type='text/plain')
 

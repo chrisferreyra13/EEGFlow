@@ -8,14 +8,17 @@ import {
   CListGroup,
   CListGroupItem,
   CRow,
+  CLink,
 } from '@coreui/react'
 
 import { FilePond, File, registerPlugin } from 'react-filepond'
 
 import 'filepond/dist/filepond.min.css'
 
-// sidebar nav config
-import serverConf from './_server'
+// Server conf
+//import serverConf from './_server'
+
+
 
 class DashboardDataPreview extends Component{
   constructor(props){
@@ -29,8 +32,10 @@ class DashboardDataPreview extends Component{
     
 
     this.setFiles=this.setFiles.bind(this);
-    this.handlePondFile= this.handlePondFile.bind(this);
+    
+    //this.revertFile=this.revertFile.bind(this);
     this.setInfo=this.setInfo.bind(this);
+    this.setFileId=this.setFileId.bind(this);
   }
   setFiles(fileItems){
     this.setState({
@@ -42,12 +47,26 @@ class DashboardDataPreview extends Component{
       info: info
     });
   }
+  setFileId(ids){ // TODO: MEJORAR ESTO, MUY CABEZA
+    if (this.state.files.length==1){
+      this.state.files[0].serverId=ids;
+    }
+    else{
+      for(let i=0;i<this.state.files.length;i++){
+        this.state.files[i].serverId=ids[i];
+      }
+    }
+  }
+  revertFile(error,file){
+    console.log('holaaaa') //ESTO NO SE SI AL FINAL SE VA A USAR
+  }
 
-
-  fetchFileData(file){
-    var url = 'http://127.0.0.1:8000/data/info/?' + new URLSearchParams({
-      id: file.id,
+  fetchFileData(response){
+    this.setFileId(response);
+    var url = 'http://127.0.0.1:8000/data/eeg/info/?' + new URLSearchParams({
+      id: this.state.files[0].serverId,
     })
+    
     var header= new Headers()
     var initFetch={
       method: 'GET',
@@ -67,61 +86,95 @@ class DashboardDataPreview extends Component{
     
   }
 
-  handlePondFile(error,file){
-    if (error) {
-      console.log('Oh no');
-      return;
-    }
-    console.log('File added', file);
-    this.fetchFileData(file)
-
-  }
-
+  
   render(){
+    const serverConf= {
+      url: 'http://127.0.0.1:8000/fm',
+      process: {
+          url: '/process/',
+          method: 'POST',
+          withCredentials: false,
+          onload: (response) => this.fetchFileData(response),
+          onerror: (response) => response.data,
+      },
+      load: {
+        url: '/load/',
+        method: 'GET'
+      },
+      revert:{
+        url: '/revert/',
+        methos: 'DELETE'
+      }
+    }
+
+    let listGroup;
+    if (this.state.listGroupDisable){
+      listGroup=null;
+    }
+    else {
+      listGroup= <CListGroup>
+                        <CListGroupItem>ID de proyecto: {this.state.info['proj_id']}</CListGroupItem>
+                        <CListGroupItem>Nombre de proyecto: {this.state.info['proj_name']}</CListGroupItem>
+                        <CListGroupItem>Experimentador: {this.state.info['proj_experimenter']}</CListGroupItem>
+                        <CListGroupItem>Fecha de medicion: {this.state.info['meas_date']}</CListGroupItem>
+                        <CListGroupItem>Numero de canales: {this.state.info['nchan']}</CListGroupItem>
+                        <CListGroupItem>Referencia: {this.state.info['custom_ref_applied'] ? 'Verdadero' : 'Falso'}</CListGroupItem>
+                      </CListGroup>;
+    }
+
     return (
       <div>
-        <cRow>
-          <div className="Filepond-Button">
-            <FilePond
-              ref={ref => this.pond=ref}
-              files={this.state.files}
-              onupdatefiles={this.setFiles}
-              processFile={this.state.files}
-              onprocessfile={this.handlePondFile}
-              allowMultiple={true}
-              maxFiles={3}
-              server={serverConf}
-              name="filemanager"
-              labelIdle='Drag & Drop your files or <span class="filepond--label-action">Browse</span>'
-            />
-          </div>
-        </cRow>
-        <cRow>
+        <CRow>
+          <CCol sm="12" className="d-none d-md-block">
+            <div className="Filepond-Button">
+              <FilePond
+                ref={ref => this.pond=ref}
+                files={this.state.files}
+                onupdatefiles={this.setFiles} 
+                processFile={this.state.files}
+                removeFile={this.state.files[0]}
+                onremovefile={() => {this.state.listGroupDisable=true}}
+                allowMultiple={true}
+                maxFiles={3}
+                server={serverConf}
+                name="filemanager"
+                labelIdle='Arrastra & Suelta tu archivo o <span class="filepond--label-action">Buscar</span>'
+              />
+            </div>
+          </CCol>
+        </CRow>
+        <CRow>
           <CCol sm="12" xl="6">
 
             <CCard>
               <CCardHeader>
                 Estudio
-                {/*<div className="card-header-actions"> ACA PODRIA IR EL BOTON DE "EDIT"
-                  <a href="https://coreui.github.io/components/listgroup/" rel="noreferrer noopener" target="_blank" className="card-header-action">
-                    <small className="text-muted">docs</small>
-                  </a>
-                </div>*/}
+                { this.state.listGroupDisable ?
+                null :
+                <div className="card-header-actions">
+                  <CLink 
+                    aria-current="page" 
+                    to="/app/edit/plot"
+                  >
+                  {/*<a href="https://coreui.github.io/components/listgroup/" rel="noreferrer noopener" target="_blank" className="card-header-action">*/}
+                    <CButton block color="info">Visualizar</CButton>
+                  {/*</a>}*/}
+                  </CLink>
+                </div>
+                }
               </CCardHeader>
               <CCardBody>
+                {this.state.listGroupDisable ? 
                 <CListGroup>
-                  <CListGroupItem>ID de proyecto: {this.state.info['proj_id']}</CListGroupItem>
-                  <CListGroupItem>Nombre de proyecto: {this.state.info['proj_name']}</CListGroupItem>
-                  <CListGroupItem>Experimentador: {this.state.info['proj_experimenter']}</CListGroupItem>
-                  <CListGroupItem>Fecha de medicion: {this.state.info['meas_date']}</CListGroupItem>
-                  <CListGroupItem>Numero de canales: {this.state.info['nchan']}</CListGroupItem>
-                  <CListGroupItem>Referencia: {this.state.info['custom_ref_applied']}</CListGroupItem>
-                </CListGroup>
+                <CListGroupItem>No tiene ningun estudio cargado</CListGroupItem>
+              </CListGroup> : 
+                listGroup
+                }
               </CCardBody>
             </CCard>
 
           </CCol>
-        </cRow>
+        </CRow>
       </div>
     )
   }
