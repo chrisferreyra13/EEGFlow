@@ -14,22 +14,18 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 
-import MainChartExample from '../charts/MainChartExample.js'
-import {Line} from 'react-chartjs-2'
+const ChartTemporal = lazy(() => import('../charts/ChartTemporal.js'))
 
-const WidgetsDropdown = lazy(() => import('../widgets/WidgetsDropdown.js'))
-const WidgetsBrand = lazy(() => import('../widgets/WidgetsBrand.js'))
 
 class EditPlot extends Component {
   constructor(props){
     super(props);
     this.state={
       temporalSignal:[],
-      disablePlot:true //Enable
+      EnablePlot:false 
     }
 
     this.fetchTemporalSignal=this.fetchTemporalSignal.bind(this);
-    this.chartData=this.chartData.bind(this);
   }
 
   fetchTemporalSignal(){
@@ -50,27 +46,10 @@ class EditPlot extends Component {
     }).then(temporalSignal =>{
       this.setState({
         temporalSignal: temporalSignal,
-        disablePlot: false
+        EnablePlot: true
       })
     })
     
-  }
-
-  chartData() {
-    return {
-      labels: [],
-      datasets: [
-        {
-          label: 'C4',
-          strokeColor: 'rgba(220,220,220,1)',
-          pointColor: 'rgba(220,220,220,1)',
-          pointStrokeColor: '#fff',
-          pointHighlightFill: '#fff',
-          pointHighlightStroke: 'rgba(220,220,220,1)',
-          data: this.state.temporalSignal['signal'],
-        },
-      ]
-    }
   }
 
   render(){
@@ -78,9 +57,9 @@ class EditPlot extends Component {
     <>
       <CRow>
           <CCol sm="12" className="d-none d-md-block">
-            {this.state.disablePlot ?
-            <medium> No hay grafico </medium> : 
-            <Line data={this.chartData}/>
+            {this.state.EnablePlot ?
+            <ChartTemporal  signals={this.state.temporalSignal}/> :
+            <medium> No hay grafico </medium>
             }
           </CCol>
           <CCol sm="12" xl="6">

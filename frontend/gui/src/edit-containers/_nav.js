@@ -50,34 +50,63 @@ export default [
       },
       {
         _tag: 'CSidebarNavDropdown',
-        name: 'Filtros',
+        name: 'Seleccionar onda',
         route: '/notifications',
         icon: 'cil-bell',
         _children: [
           {
             _tag: 'CSidebarNavItem',
-            name: 'Seleccionar frecuencias',
-            to: '/notifications/alerts',
-          },
-          {
-            _tag: 'CSidebarNavItem',
-            name: 'Badges',
+            name: 'Alfa',
             to: '/notifications/badges',
           },
           {
             _tag: 'CSidebarNavItem',
-            name: 'Modal',
+            name: 'Beta',
             to: '/notifications/modals',
           },
           {
             _tag: 'CSidebarNavItem',
-            name: 'Toaster',
+            name: 'Theta',
+            to: '/notifications/toaster'
+          },
+          {
+            _tag: 'CSidebarNavItem',
+            name: 'Delta',
+            to: '/notifications/toaster'
+          },
+          {
+            _tag: 'CSidebarNavItem',
+            name: 'Gamma',
             to: '/notifications/toaster'
           }
         ]
       },     
     ]
   },
+  {
+    _tag: 'CSidebarNavDropdown',
+    name: 'Metodos Frecuentes',
+    route: '/base',
+    icon: 'cil-star',
+    _children: [
+      {
+        _tag: 'CSidebarNavItem',
+        name: 'ICA',
+        to: '/base/breadcrumbs',
+      },
+      {
+        _tag: 'CSidebarNavItem',
+        name: 'Periodicidad',
+        to: '/base/cards',
+      },
+      {
+        _tag: 'CSidebarNavItem',
+        name: 'Pico maximo',
+        to: '/base/cards',
+      },
+    ],
+  },
+  
   /*
   {
     _tag: 'CSidebarNavTitle',
