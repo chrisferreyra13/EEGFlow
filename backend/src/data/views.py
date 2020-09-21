@@ -123,7 +123,7 @@ class EEGTemporalSignal(APIView):
             return Response('Invalid file data.',
                         status=status.HTTP_406_NOT_ACCEPTABLE)'''
         
-        response=Response({'signal':temporalSignal[1,0:100]})
+        response=Response({'signal':(10e6)*temporalSignal[1,0:1000]})
         return response
 
         

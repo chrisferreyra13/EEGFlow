@@ -31,7 +31,7 @@ class App extends Component {
               <Route exact path="/500" name="Page 500" render={props => <Page500 {...props}/>} />
               <Route path="/app/dashboard/" name="Dashboard" render={props => <DashboardLayout {...props}/>} />
               <Route path="/app/edit/" name="Edit" render={props => <EditLayout {...props}/>} />
-              {/*<Redirect from="/" to="/app/dashboard/home" />*/}
+              <Redirect from="/" to="/app/dashboard/home" />
             </Switch>
           </React.Suspense>
       </HashRouter>
