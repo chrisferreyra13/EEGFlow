@@ -26,7 +26,7 @@ class DashboardDataPreview extends Component{
     this.state={
       files: [],
       info: [],
-      listGroupDisable: true
+      listGroupEnable: false
        
     }
     
@@ -80,7 +80,7 @@ class DashboardDataPreview extends Component{
     }).then(info =>{
       this.setState({
         info: info,
-        listGroupDisable: false
+        listGroupEnable: true
       })
     })
     
@@ -108,7 +108,7 @@ class DashboardDataPreview extends Component{
     }
 
     let listGroup;
-    if (this.state.listGroupDisable){
+    if (!this.state.listGroupEnable){
       listGroup=null;
     }
     else {
@@ -133,7 +133,7 @@ class DashboardDataPreview extends Component{
                 onupdatefiles={this.setFiles} 
                 processFile={this.state.files}
                 removeFile={this.state.files[0]}
-                onremovefile={() => {this.state.listGroupDisable=true}}
+                onremovefile={() => {this.state.listGroupEnable=false}}
                 allowMultiple={true}
                 maxFiles={3}
                 server={serverConf}
@@ -149,8 +149,7 @@ class DashboardDataPreview extends Component{
             <CCard>
               <CCardHeader>
                 Estudio
-                { this.state.listGroupDisable ?
-                null :
+                { this.state.listGroupEnable ?
                 <div className="card-header-actions">
                   <CLink 
                     aria-current="page" 
@@ -160,15 +159,16 @@ class DashboardDataPreview extends Component{
                     <CButton block color="info">Visualizar</CButton>
                   {/*</a>}*/}
                   </CLink>
-                </div>
+                </div> :
+                null
                 }
               </CCardHeader>
               <CCardBody>
-                {this.state.listGroupDisable ? 
+                {this.state.listGroupEnable ? 
+                listGroup :
                 <CListGroup>
                 <CListGroupItem>No tiene ningun estudio cargado</CListGroupItem>
-              </CListGroup> : 
-                listGroup
+              </CListGroup>
                 }
               </CCardBody>
             </CCard>
