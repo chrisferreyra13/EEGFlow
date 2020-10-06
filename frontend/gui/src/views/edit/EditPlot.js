@@ -13,6 +13,7 @@ import {
   CCallout
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
+import {Col, Row} from "reactstrap"
 
 const ChartTemporal = lazy(() => import('../charts/ChartTemporal.js'))
 
@@ -55,17 +56,23 @@ class EditPlot extends Component {
   render(){
   return (
     <>
-      <CRow>
-          <CCol sm="12" className="d-none d-md-block">
+      <Row>
+        <div>
+          <Col sm="12" className="d-none d-md-block">
             {this.state.EnablePlot ?
             <ChartTemporal  signals={this.state.temporalSignal}/> :
             <medium> No hay grafico </medium>
             }
-          </CCol>
-          <CCol sm="12" xl="6">
+          </Col>
+        </div>
+        <div>
+          <Col sm="12" xl="40">
             <CButton block color="info" onClick={this.fetchTemporalSignal}>Buscar señal</CButton>
-          </CCol>
-      </CRow>
+          </Col>
+          </div>        
+      </Row>
+
+
     </>
   )
               }
