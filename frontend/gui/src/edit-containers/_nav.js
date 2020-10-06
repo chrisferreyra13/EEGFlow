@@ -3,7 +3,7 @@ export default [
     _tag: 'CSidebarNavItem',
     name: 'Mi estudio',
     to: '/app/dashboard/data-preview',
-    icon: 'cil-speedometer',
+    icon: 'cil-spreadsheet',
     badge: {
       color: 'info',
       //text: 'NEW',
@@ -13,7 +13,7 @@ export default [
     _tag: 'CSidebarNavDropdown',
     name: 'Graficos',
     route: '/base',
-    icon: 'cil-star',
+    icon: 'cil-graph',
     _children: [
       {
         _tag: 'CSidebarNavItem',
@@ -35,13 +35,47 @@ export default [
         name: 'Tiempo - Frecuencia',
         to: '/base/collapses',
       },
+      
     ],
+  },
+  {
+    _tag: 'CSidebarNavDropdown',
+    name: 'Herramientas',
+    to: '/app/dashboard/data-preview',
+    icon: 'cil-pencil',
+    _children: [
+      {
+        _tag: 'CSidebarNavItem',
+        name: 'Epocas',
+        to: '/notifications/badges',
+      },
+      {
+        _tag: 'CSidebarNavItem',
+        name: 'Ventana temporal',
+        to: '/notifications/modals',
+      },
+      {
+        _tag: 'CSidebarNavItem',
+        name: 'Theta',
+        to: '/notifications/toaster'
+      },
+      {
+        _tag: 'CSidebarNavItem',
+        name: 'Delta',
+        to: '/notifications/toaster'
+      },
+      {
+        _tag: 'CSidebarNavItem',
+        name: 'Gamma',
+        to: '/notifications/toaster'
+      }
+    ]
   },
   {
     _tag: 'CSidebarNavDropdown',
     name: 'Filtros',
     route: '/notifications',
-    icon: 'cil-bell',
+    icon: 'cil-map',
     _children: [
       {
         _tag: 'CSidebarNavItem',
@@ -311,13 +345,7 @@ export default [
     _tag: 'CSidebarNavItem',
     name: 'Configuraciones',
     to: '/Configuraciones',
-    icon: 'cil-star',
-  },
-  {
-    _tag: 'CSidebarNavItem',
-    name: 'Quienes Somos',
-    to: '/QuienesSomos', //lo lleva al landing page
-    icon: 'cil-star',
+    icon: 'cil-settings',
   },
  /* {
     _tag: 'CSidebarNavItem',

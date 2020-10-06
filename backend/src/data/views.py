@@ -126,8 +126,7 @@ class EEGTemporalSignal(APIView):
         response=Response({'signal':(10e6)*temporalSignal[1,0:1000]})
         return response
 
-        
 
-        #aca tengo q guardar el modelo       
+       
         
 

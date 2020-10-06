@@ -3,14 +3,14 @@ export default [
     _tag: 'CSidebarNavItem',
     name: 'Inicio', // lo lleva a la pag que me muestra un poco de mis plantillas, un poco de descubrir, etc. 
     to: '/app/dashboard/home',
-    icon: 'cil-speedometer',
+    icon: 'cil-home',
    
   },
   {
     _tag: 'CSidebarNavItem',
     name: 'Mi estudio',
     to: '/app/dashboard/data-preview',
-    icon: 'cil-speedometer',
+    icon: 'cil-spreadsheet',
     badge: {
       color: 'info',
       //text: 'NEW',
@@ -22,7 +22,7 @@ export default [
     _tag: 'CSidebarNavItem',
     name: 'Mi perfil',
     to: '/app/dashboard/profile',
-    icon: 'cil-speedometer',
+    icon: 'cil-user',
     badge: {
       color: 'info',
       //text: 'NEW',
@@ -37,13 +37,13 @@ export default [
     _tag: 'CSidebarNavItem',
     name: 'Mis Plantillas',
     to: '/app/dashboard/boards',
-    icon: 'cil-drop',
+    icon: 'cil-layers',
   },
   {
     _tag: 'CSidebarNavItem',
     name: 'Explorar',
     to: '/app/dashboard/explorer',
-    icon: 'cil-pencil',
+    icon: 'cil-magnifying-glass',
   },
   /*
   {
@@ -249,13 +249,7 @@ export default [
     _tag: 'CSidebarNavItem',
     name: 'Configuraciones',
     to: '/Configuraciones',
-    icon: 'cil-star',
-  },
-  {
-    _tag: 'CSidebarNavItem',
-    name: 'Quienes Somos',
-    to: '/QuienesSomos', //lo lleva al landing page
-    icon: 'cil-star',
+    icon: 'cil-settings',
   },
  /* {
     _tag: 'CSidebarNavItem',

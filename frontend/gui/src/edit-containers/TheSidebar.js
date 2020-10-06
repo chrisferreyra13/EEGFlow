@@ -10,6 +10,7 @@ import {
   CSidebarMinimizer,
   CSidebarNavDropdown,
   CSidebarNavItem,
+  CButton
 } from '@coreui/react'
 
 import CIcon from '@coreui/icons-react'
@@ -41,6 +42,8 @@ const TheSidebar = () => {
             CSidebarNavTitle
           }}
         />
+        <CButton color="sidebar">Temporal</CButton>
+        
       </CSidebarNav>
       {/*<CSidebarMinimizer className="c-d-md-down-none"/>*/}
     </CSidebar>
