@@ -16,7 +16,7 @@ django-storages = "*"
 requests = "*"
 mne = "*"
 matplotlib = "*"
-
+"manage.py" = "*"
 
 [requires]
 python_version = "3.6"
