@@ -1,1 +1,13 @@
 // Here you can add other styles
+.btn-sidebar {
+    color: #fff;
+    background-color: rgba(0,0,21,0.1);
+    
+}
+
+.btn-sidebar:focus, .btn-sidebar.focus {
+    color: #fff;
+    background-color: #0d86ff;
+    border-color: #0080ff;
+    box-shadow: 0 0 0 0.2rem rgba(82, 168, 255, 0.5);
+}
