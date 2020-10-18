@@ -1,4 +1,5 @@
 import React, { Component, lazy } from 'react'
+import {connect} from 'react-redux'
 import {
   CBadge,
   CButton,
@@ -13,69 +14,55 @@ import {
   CCallout
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import {Col, Row} from "reactstrap"
+
+import {getTemporalSignal} from '../../redux/actions/index'
 
 const ChartTemporal = lazy(() => import('../charts/ChartTemporal.js'))
 
+const idPrueba='EMDxhaCPMCdioH3LBnuF6A'
 
 class EditPlot extends Component {
   constructor(props){
     super(props);
-    this.state={
-      temporalSignal:[],
-      EnablePlot:false 
-    }
-
-    this.fetchTemporalSignal=this.fetchTemporalSignal.bind(this);
-  }
-
-  fetchTemporalSignal(){
-    var url = 'http://127.0.0.1:8000/data/eeg/temporal-signal/?' + new URLSearchParams({
-      id: 'EMDxhaCPMCdioH3LBnuF6A',
-    })
-    
-    var header= new Headers()
-    var initFetch={
-      method: 'GET',
-      headers: header,
-      mode: 'cors',
-      cache: 'default'
-    };
-
-    fetch(url,initFetch).then(res =>{
-        return res.json();
-    }).then(temporalSignal =>{
-      this.setState({
-        temporalSignal: temporalSignal,
-        EnablePlot: true
-      })
-    })
-    
   }
 
   render(){
   return (
     <>
-      <Row>
+      <CRow>
         <div>
-          <Col sm="12" className="d-none d-md-block">
-            {this.state.EnablePlot ?
-            <ChartTemporal  signals={this.state.temporalSignal}/> :
-            <medium> No hay grafico </medium>
+          <CCol sm="12" className="d-none d-md-block">
+            {this.props.enablePlot ?
+            <ChartTemporal  signals={this.props.temporalSignal}/> :
+            <h6> No hay grafico </h6>
             }
-          </Col>
+          </CCol>
         </div>
         <div>
-          <Col sm="12" xl="40">
-            <CButton block color="info" onClick={this.fetchTemporalSignal}>Buscar señal</CButton>
-          </Col>
+          <CCol sm="12" xl="40">
+            <CButton block color="info" onClick={() => this.props.getTemporalSignal(idPrueba)}>Buscar señal</CButton>
+          </CCol>
           </div>        
-      </Row>
+      </CRow>
 
 
     </>
   )
-              }
+  }
 }
 
-export default EditPlot
+const mapStateToProps = (state) => {
+  return{
+    temporalSignal: state.temporalSignal.temporalSignal,
+    enablePlot: state.temporalSignal.chartTemporal,
+  };
+}
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    getTemporalSignal: (id) => dispatch(getTemporalSignal(id)),
+  
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(EditPlot)

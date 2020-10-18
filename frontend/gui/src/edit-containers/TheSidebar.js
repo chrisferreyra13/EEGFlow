@@ -1,5 +1,5 @@
 import React from 'react'
-import { useSelector, useDispatch } from 'react-redux'
+import { useSelector, useDispatch, connect } from 'react-redux'
 import {
   CCreateElement,
   CSidebar,
@@ -18,19 +18,16 @@ import CIcon from '@coreui/icons-react'
 // sidebar nav config
 import navigation from './_nav'
 
-const TheSidebar = () => {
+const TheSidebar = ({show}) => {
   const dispatch = useDispatch()
-  const show = useSelector(state => state.sidebarShow)
-
+  //const show = useSelector(state => state.sidebarShow)
+  console.log(show)
   return (
-    <CSidebar
-      show={show}
-      onShowChange={(val) => dispatch({type: 'set', sidebarShow: val })}
-    >
-      <td className="text-center">
-                      <h6>  </h6>
-                      <h1> Cconsciente. </h1>
-                    </td>
+    <CSidebar show={show} onShowChange={(val) => dispatch({type: 'set', sidebarShow: val })}>
+      <div className="text-center"> {/* Aca antes habia un <td> pero no le gustaba del todo*/}
+          <h6>  </h6>
+          <h1> Cconsciente. </h1>
+      </div>
       <CSidebarNav>
 
         <CCreateElement
@@ -50,4 +47,10 @@ const TheSidebar = () => {
   )
 }
 
-export default React.memo(TheSidebar)
+const mapStateToProps = (state) => {
+  return {
+    show:state.changeStateSidebar.sidebarShow,
+  };
+}
+
+export default React.memo(connect(mapStateToProps)(TheSidebar))
