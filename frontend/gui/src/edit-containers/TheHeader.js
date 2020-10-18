@@ -1,5 +1,5 @@
 import React from 'react'
-import { useSelector, useDispatch } from 'react-redux'
+import { useSelector, useDispatch, connect } from 'react-redux'
 import {
   CHeader,
   CToggler,
@@ -23,9 +23,9 @@ import {
   TheHeaderDropdownTasks
 }  from './index'
 
-const TheHeader = () => {
+const TheHeader = ({sidebarShow}) => {
   const dispatch = useDispatch()
-  const sidebarShow = useSelector(state => state.sidebarShow)
+  //const sidebarShow = useSelector(state => state.sidebarShow)
 
   const toggleSidebar = () => {
     const val = [true, 'responsive'].includes(sidebarShow) ? false : 'responsive'
@@ -98,4 +98,10 @@ const TheHeader = () => {
   )
 }
 
-export default TheHeader
+const mapStateToProps = (state) => {
+  return{
+    sidebarShow: state.changeStateSidebar.sidebarShow,
+  };
+}
+
+export default connect(mapStateToProps)(TheHeader)
