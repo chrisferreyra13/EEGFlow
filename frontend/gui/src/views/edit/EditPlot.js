@@ -32,7 +32,7 @@ class EditPlot extends Component {
       <CRow>
         <div>
           <CCol sm="12" className="d-none d-md-block">
-            {this.props.enablePlot ?
+            {this.props.enableChartTemporal ?
             <ChartTemporal  signals={this.props.temporalSignal}/> :
             <h6> No hay grafico </h6>
             }
@@ -54,7 +54,7 @@ class EditPlot extends Component {
 const mapStateToProps = (state) => {
   return{
     temporalSignal: state.temporalSignal.temporalSignal,
-    enablePlot: state.temporalSignal.chartTemporal,
+    enableChartTemporal: state.plots.chartTemporal,
   };
 }
 

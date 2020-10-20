@@ -8,7 +8,6 @@ const initialState={
     id: '',
     temporalSignal: [],
     isFetching: false,
-    chartTemporal: false,
 }
 
 //export const signal = (state = initialState, { type, ...rest }) => {}
@@ -24,7 +23,6 @@ export const temporalSignal = (state = initialState, { type, ...rest }) => {
           return Object.assign({},state, {
               isFetching: false,
               temporalSignal: rest.temporalSignal,
-              chartTemporal: true
           })
         case FETCH_TEMPORAL_SIGNAL_FAILURE:
             return {...state, ...rest}
