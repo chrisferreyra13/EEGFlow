@@ -15,15 +15,20 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 
-import {getTemporalSignal} from '../../redux/actions/index'
+import {getTemporalSignal} from '../../redux/actions/Signal'
 
 const ChartTemporal = lazy(() => import('../charts/ChartTemporal.js'))
-
-const idPrueba='EMDxhaCPMCdioH3LBnuF6A'
 
 class EditPlot extends Component {
   constructor(props){
     super(props);
+  }
+
+  componentDidMount(){ //Esto vamos a usar en vez del boton, por ahora mejor usar el boton
+    if(this.props.temporalSignal){
+      this.props.getTemporalSignal(this.props.fileId);
+      console.log(this.props.temporalSignal)
+    }
   }
 
   render(){
@@ -40,7 +45,7 @@ class EditPlot extends Component {
         </div>
         <div>
           <CCol sm="12" xl="40">
-            <CButton block color="info" onClick={() => this.props.getTemporalSignal(idPrueba)}>Buscar señal</CButton>
+            <CButton block color="info" onClick={() => this.props.getTemporalSignal(this.props.fileId)}>Buscar señal</CButton>
           </CCol>
           </div>        
       </CRow>
@@ -53,6 +58,7 @@ class EditPlot extends Component {
 
 const mapStateToProps = (state) => {
   return{
+    fileId: state.file.fileId,
     temporalSignal: state.temporalSignal.temporalSignal,
     enableChartTemporal: state.plots.chartTemporal,
   };
@@ -60,7 +66,7 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    getTemporalSignal: (id) => dispatch(getTemporalSignal(id)),
+    getTemporalSignal: (fileId) => dispatch(getTemporalSignal(fileId)),
   
   };
 };
