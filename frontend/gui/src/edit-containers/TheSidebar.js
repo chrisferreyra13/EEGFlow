@@ -45,7 +45,7 @@ const TheSidebar = ({show, enableChartTemporal}) => {
           Graficos
         </CDropdownToggle>
           <CDropdownMenu
-            placement="bottom"
+            placement="right-start"
             modifiers={[{name: 'flip', enabled: false }]}
           >
             <CDropdownItem onClick={()=>enableChartTemporal()}>Temporal</CDropdownItem>
@@ -54,21 +54,54 @@ const TheSidebar = ({show, enableChartTemporal}) => {
             <CDropdownItem disable>Topografico</CDropdownItem>
           </CDropdownMenu>
         </CDropdown>
-        {/*<CDropdownDivider />*/}
+
         <CDropdown className="m-1 d-inline-block">
         <CDropdownToggle color="secondary">
           Herramientas
         </CDropdownToggle>
           <CDropdownMenu
-            placement="bottom"
+            placement="right-start"
             modifiers={[{name: 'flip', enabled: false }]}
           >
-            <CDropdownItem disabled>Epocas</CDropdownItem>
-            <CDropdownItem>Ventanan Temporal</CDropdownItem>
-            <CDropdownItem>Alpha</CDropdownItem>
+            <CDropdownItem>Seleccionar</CDropdownItem>
+            <CDropdownItem>Eventos</CDropdownItem>
+            <CDropdownItem>Epocas</CDropdownItem>
+            <CDropdownItem>Ventana Temporal</CDropdownItem>
+            <CDropdownItem>Eliminar</CDropdownItem>
+          </CDropdownMenu>
+        </CDropdown>
+
+        <CDropdown className="m-1 d-inline-block">
+        <CDropdownToggle color="secondary">
+          Filtros
+        </CDropdownToggle>
+          <CDropdownMenu
+            placement="right-start"
+            modifiers={[{name: 'flip', enabled: false }]}
+          >
+            <CDropdownItem>Seleccionar frecuencias</CDropdownItem>
+            <CDropdownDivider/>
+            {/*<CDropdownHeader>Frecuentes</CDropdownHeader>*/}
             <CDropdownItem>Beta</CDropdownItem>
+            <CDropdownItem>Alpha</CDropdownItem>
             <CDropdownItem>Theta</CDropdownItem>
             <CDropdownItem>Delta</CDropdownItem>
+          </CDropdownMenu>
+        </CDropdown>
+
+        <CDropdown className="m-1 d-inline-block">
+        <CDropdownToggle color="secondary">
+          Metodos
+        </CDropdownToggle>
+          <CDropdownMenu
+            placement="right-start"
+            modifiers={[{name: 'flip', enabled: false }]}
+          >
+            <CDropdownItem>Buscar</CDropdownItem>
+            <CDropdownDivider/>
+            {/*<CDropdownHeader>Frecuentes</CDropdownHeader>*/}
+            <CDropdownItem>ICA</CDropdownItem>
+            <CDropdownItem>Pico maximo</CDropdownItem>
           </CDropdownMenu>
         </CDropdown>
 

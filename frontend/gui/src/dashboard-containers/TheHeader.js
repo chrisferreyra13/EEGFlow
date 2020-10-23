@@ -6,21 +6,21 @@ import {
   CHeaderBrand,
   CHeaderNav,
   CHeaderNavItem,
-  CHeaderNavLink,
-  CSubheader,
-  CBreadcrumbRouter,
-  CLink
+  CHeaderNavLink
+  //CSubheader,
+  //CBreadcrumbRouter,
+  //CLink
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 
 // routes config
-import routes from '../routes'
+//import routes from '../routes'
 
 import { 
-  TheHeaderDropdown,
-  TheHeaderDropdownMssg,
-  TheHeaderDropdownNotif,
-  TheHeaderDropdownTasks
+  TheHeaderDropdown
+  //TheHeaderDropdownMssg,
+  //TheHeaderDropdownNotif,
+  //TheHeaderDropdownTasks
 }  from './index'
 
 const TheHeader = () => {

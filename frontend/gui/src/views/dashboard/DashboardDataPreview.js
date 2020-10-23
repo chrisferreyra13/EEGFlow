@@ -1,4 +1,5 @@
 import React, { lazy, useState, Component } from 'react'
+import {connect} from 'react-redux'
 import {
   CButton,
   CCard,
@@ -12,8 +13,10 @@ import {
 } from '@coreui/react'
 
 import { FilePond, File, registerPlugin } from 'react-filepond'
-
 import 'filepond/dist/filepond.min.css'
+
+import {getFileInfo} from '../../redux/actions/File'
+import {enableListGroupFileInfo, disableListGroupFileInfo} from '../../redux/actions/Dashboard'
 
 // Server conf
 //import serverConf from './_server'
@@ -24,10 +27,7 @@ class DashboardDataPreview extends Component{
   constructor(props){
     super(props);
     this.state={
-      files: [],
-      info: [],
-      listGroupEnable: false
-       
+      files: [],      
     }
     
 
@@ -61,29 +61,11 @@ class DashboardDataPreview extends Component{
     console.log('holaaaa') //ESTO NO SE SI AL FINAL SE VA A USAR
   }
 
-  fetchFileData(response){
+  fetchFileInfo(response){
     this.setFileId(response);
-    var url = 'http://127.0.0.1:8000/data/eeg/info/?' + new URLSearchParams({
-      id: this.state.files[0].serverId,
-    })
-    
-    var header= new Headers()
-    var initFetch={
-      method: 'GET',
-      headers: header,
-      mode: 'cors',
-      cache: 'default'
-    };
-
-    fetch(url,initFetch).then(res =>{
-        return res.json();
-    }).then(info =>{
-      this.setState({
-        info: info,
-        listGroupEnable: true
-      })
-    })
-    
+    this.props.getFileInfo(this.state.files[0].serverId)
+    this.props.enableListGroupFileInfo() //Esto ya tiene una falla, si no busca bien el archivo
+                                        // no hay info, pero se activa el list group --> MODIFICAR
   }
 
   
@@ -94,7 +76,7 @@ class DashboardDataPreview extends Component{
           url: '/process/',
           method: 'POST',
           withCredentials: false,
-          onload: (response) => this.fetchFileData(response),
+          onload: (response) => this.fetchFileInfo(response),
           onerror: (response) => response.data,
       },
       load: {
@@ -108,17 +90,17 @@ class DashboardDataPreview extends Component{
     }
 
     let listGroup;
-    if (!this.state.listGroupEnable){
+    if (!this.props.enableListGroup){
       listGroup=null;
     }
     else {
       listGroup= <CListGroup>
-                        <CListGroupItem>ID de proyecto: {this.state.info['proj_id']}</CListGroupItem>
-                        <CListGroupItem>Nombre de proyecto: {this.state.info['proj_name']}</CListGroupItem>
-                        <CListGroupItem>Experimentador: {this.state.info['proj_experimenter']}</CListGroupItem>
-                        <CListGroupItem>Fecha de medicion: {this.state.info['meas_date']}</CListGroupItem>
-                        <CListGroupItem>Numero de canales: {this.state.info['nchan']}</CListGroupItem>
-                        <CListGroupItem>Referencia: {this.state.info['custom_ref_applied'] ? 'Verdadero' : 'Falso'}</CListGroupItem>
+                        <CListGroupItem>ID de proyecto: {this.props.fileInfo['proj_id']}</CListGroupItem>
+                        <CListGroupItem>Nombre de proyecto: {this.props.fileInfo['proj_name']}</CListGroupItem>
+                        <CListGroupItem>Experimentador: {this.props.fileInfo['proj_experimenter']}</CListGroupItem>
+                        <CListGroupItem>Fecha de medicion: {this.props.fileInfo['meas_date']}</CListGroupItem>
+                        <CListGroupItem>Numero de canales: {this.props.fileInfo['nchan']}</CListGroupItem>
+                        <CListGroupItem>Referencia: {this.props.fileInfo['custom_ref_applied'] ? 'Verdadero' : 'Falso'}</CListGroupItem>
                       </CListGroup>;
     }
 
@@ -133,7 +115,7 @@ class DashboardDataPreview extends Component{
                 onupdatefiles={this.setFiles} 
                 processFile={this.state.files}
                 removeFile={this.state.files[0]}
-                onremovefile={() => {this.state.listGroupEnable=false}}
+                onremovefile={() => this.props.disableListGroupFileInfo()}
                 allowMultiple={true}
                 maxFiles={3}
                 server={serverConf}
@@ -149,7 +131,7 @@ class DashboardDataPreview extends Component{
             <CCard>
               <CCardHeader>
                 Estudio
-                { this.state.listGroupEnable ?
+                { this.props.enableListGroup ?
                 <div className="card-header-actions">
                   <CLink 
                     aria-current="page" 
@@ -164,7 +146,7 @@ class DashboardDataPreview extends Component{
                 }
               </CCardHeader>
               <CCardBody>
-                {this.state.listGroupEnable ? 
+                {this.props.enableListGroup ? 
                 listGroup :
                 <CListGroup>
                 <CListGroupItem>No tiene ningun estudio cargado</CListGroupItem>
@@ -180,4 +162,20 @@ class DashboardDataPreview extends Component{
   }
 }
   
-export default DashboardDataPreview
+const mapStateToProps = (state) => {
+  return{
+    fileInfo: state.file.fileInfo,
+    enableListGroup: state.dashboardDataPreview.enableListGroupFileInfo,
+  };
+}
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    getFileInfo: (fileId) => dispatch(getFileInfo(fileId)),
+    enableListGroupFileInfo: () => dispatch(enableListGroupFileInfo()),
+    disableListGroupFileInfo: () => dispatch(disableListGroupFileInfo())
+  
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(DashboardDataPreview)

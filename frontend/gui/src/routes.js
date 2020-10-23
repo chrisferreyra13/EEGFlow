@@ -7,7 +7,7 @@ const DashboardDataPreview = React.lazy(() => import('./views/dashboard/Dashboar
 
 //EDIT//
 const EditPlot = React.lazy(() => import('./views/edit/EditPlot'));
-
+/*
 const Toaster = React.lazy(() => import('./views/notifications/toaster/Toaster'));
 const Tables = React.lazy(() => import('./views/base/tables/Tables'));
 
@@ -45,17 +45,17 @@ const Typography = React.lazy(() => import('./views/theme/typography/Typography'
 const Widgets = React.lazy(() => import('./views/widgets/Widgets'));
 const Users = React.lazy(() => import('./views/users/Users'));
 const User = React.lazy(() => import('./views/users/User'));
-
+*/
 const routes = [
   //{ path: '/app/dashboard', exact: 'Dashboard', name: 'Dashboard' },
   { path: '/app/dashboard/home', name:'Home', component: DashboardHome },
   { path: '/app/dashboard/data-preview', name: 'DataPreview', component: DashboardDataPreview },
-  { path: '/app/dashboard/profile', name: 'Profile', component: Colors },
-  { path: '/app/dashboard/boards', name: 'Boards', component: Colors },
-  { path: '/app/dashboard/explorer', name: 'Explorer', component: Typography },
+  { path: '/app/dashboard/profile', name: 'Profile', component: DashboardHome },
+  { path: '/app/dashboard/boards', name: 'Boards', component: DashboardHome },
+  { path: '/app/dashboard/explorer', name: 'Explorer', component: DashboardHome },
   { path: '/app/edit/plot', name: 'Plot', component: EditPlot, exact: true },
-  { path: '/Configuraciones', name: 'Configuración', component: Cards, exact: true },
-  { path: '/QuienesSomos', name: 'QuienesSomos', component: Cards, exact: true },
+  { path: '/configuration', name: 'Configuration', component: DashboardHome, exact: true },
+  { path: '/aboutus', name: 'AboutUs', component: DashboardHome, exact: true },
   /*
   { path: '/Dashboard', name: 'Dashboard', component: Colors, exact: true },
   { path: '/base', name: 'Base', component: Cards, exact: true },
