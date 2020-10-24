@@ -5,7 +5,7 @@ import {
 } from '../actions/Signal'
 
 const initialState={
-    temporalSignal: [],
+    signal: [],
     isFetching: false,
 }
 
@@ -20,7 +20,7 @@ export const temporalSignal = (state = initialState, { type, ...rest }) => {
         case FETCH_TEMPORAL_SIGNAL_RECEIVE:
           return Object.assign({},state, {
               isFetching: false,
-              temporalSignal: rest.temporalSignal,
+              signal: rest.temporalSignal,
             })
         case FETCH_TEMPORAL_SIGNAL_FAILURE:
             return {...state, ...rest}

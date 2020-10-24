@@ -11,14 +11,12 @@ import {
 } from '@coreui/react'
 
 import {enableChartTemporal} from '../redux/actions/SideBar'
+import {enableEventForm} from '../redux/actions/Form'
 
-import CIcon from '@coreui/icons-react'
+//import CIcon from '@coreui/icons-react'
 
 
-// sidebar nav config
-import navigation from './_nav'
-
-const TheSidebar = ({show, enableChartTemporal}) => {
+const TheSidebar = ({show, enableChartTemporal, enableEventForm}) => {
   const dispatch = useDispatch()
   //const show = useSelector(state => state.sidebarShow)
   return (
@@ -64,7 +62,7 @@ const TheSidebar = ({show, enableChartTemporal}) => {
             modifiers={[{name: 'flip', enabled: false }]}
           >
             <CDropdownItem>Seleccionar</CDropdownItem>
-            <CDropdownItem>Eventos</CDropdownItem>
+            <CDropdownItem onClick={()=>enableEventForm()}>Eventos</CDropdownItem>
             <CDropdownItem>Epocas</CDropdownItem>
             <CDropdownItem>Ventana Temporal</CDropdownItem>
             <CDropdownItem>Eliminar</CDropdownItem>
@@ -119,6 +117,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
   return {
     enableChartTemporal: () => dispatch(enableChartTemporal()),
+    enableEventForm: () => dispatch(enableEventForm()),
   
   };
 };
