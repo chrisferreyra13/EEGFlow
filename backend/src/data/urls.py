@@ -1,7 +1,7 @@
-from django.urls import path
-
-from . import views
+from django.conf.urls import url
+from data.views import EEGInfoView, EEGTimeSeries
 
 urlpatterns = [
-    path('eeg/', views.EEGViewSet),
+    url(r'^eeg/info/$', EEGInfoView.as_view(), name='EEGInfo'),
+    url(r'^eeg/time-series/$', EEGTimeSeries.as_view(), name='EEGTimeSeries'),
 ]

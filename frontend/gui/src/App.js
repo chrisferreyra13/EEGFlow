@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { HashRouter, Route, Switch } from 'react-router-dom';
+import { HashRouter, Route, Switch, Redirect } from 'react-router-dom';
 import './scss/style.scss';
 
 const loading = (
@@ -9,7 +9,8 @@ const loading = (
 )
 
 // Containers
-const TheLayout = React.lazy(() => import('./containers/TheLayout'));
+const DashboardLayout = React.lazy(() => import('./dashboard-containers/DashboardLayout'));
+const EditLayout = React.lazy(() => import('./edit-containers/EditLayout'));
 
 // Pages
 const Login = React.lazy(() => import('./views/pages/login/Login'));
@@ -18,10 +19,7 @@ const Page404 = React.lazy(() => import('./views/pages/page404/Page404'));
 const Page500 = React.lazy(() => import('./views/pages/page500/Page500'));
 
 class App extends Component {
-// cconsciente.ai/app/home/...
-// cconsciente.ai/app/dashboard/mi-plantilla/graficos/...
-// cconsciente.ai/app/dashboard/mi-plantilla/
-// 
+
   render() {
     return (
       <HashRouter>
@@ -31,7 +29,9 @@ class App extends Component {
               <Route exact path="/register" name="Register Page" render={props => <Register {...props}/>} />
               <Route exact path="/404" name="Page 404" render={props => <Page404 {...props}/>} />
               <Route exact path="/500" name="Page 500" render={props => <Page500 {...props}/>} />
-              <Route path="/" name="Home" render={props => <TheLayout {...props}/>} />
+              <Route path="/app/dashboard/" name="Dashboard" render={props => <DashboardLayout {...props}/>} />
+              <Route path="/app/edit/" name="Edit" render={props => <EditLayout {...props}/>} />
+              <Redirect from="/" to="/app/dashboard/home" />
             </Switch>
           </React.Suspense>
       </HashRouter>
