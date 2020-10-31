@@ -92,7 +92,8 @@ def store_upload(upload_id, destination_file_path):
 
     if not destination_file_path or destination_file_path == '':
         raise ValueError('No destination file path provided.')
-
+    
+    
     try:
         tu = TemporaryUpload.objects.get(upload_id=upload_id)
     except TemporaryUpload.DoesNotExist:
@@ -114,6 +115,7 @@ def store_upload(upload_id, destination_file_path):
         # already end in a '/' so check before updating
         if not destination_path.endswith('/'):
             destination_path += os.sep
+
 
     if storage_backend:
         return _store_upload_remote(destination_path, destination_name, tu)
@@ -145,18 +147,33 @@ def _store_upload_local(destination_file_path, destination_file_name,
     target_filename = destination_file_name
     # If not filename provided, assume a directory was provided, get the
     # file name from temp_upload and use this
+
     if not target_filename:
         target_filename = temp_upload.upload_name
+    
     destination_file_path = os.path.join(destination_file_path,
                                          target_filename)
+    
 
     # Check we're not about to overwrite anything
+    # TODO: Esto hay que mejorarlo, nombrar a los archivos en base a la fecha o algo del estilo
     target_file_path = os.path.join(target_dir, target_filename)
     if os.path.exists(target_file_path):
+        split_name=target_filename.split('.')
+        target_filename=(split_name[0] +
+        '_'+ 
+        str(len([name for name in os.listdir(target_dir) if os.path.isfile(os.path.join(target_dir, name))]))
+        +'.'+split_name[1])
+
+        destination_file_path = os.path.join(destination_file_path,
+                                         target_filename)
+
+        target_file_path = os.path.join(target_dir, target_filename)
+        '''
         LOG.error('File with specified name and path <%s> already exists'
                   % target_file_path)
         raise FileExistsError('The specified temporary file cannot be stored'
-                              ' to the specified location - file exists.')
+                              ' to the specified location - file exists.')'''
 
     su = StoredUpload(upload_id=temp_upload.upload_id,
                       file=destination_file_path,
@@ -247,6 +264,52 @@ def get_stored_upload(upload_id):
             raise e
 
     return su
+
+def get_temporary_upload(upload_id):
+    """
+    Get an upload that has previously been stored using the store_upload
+    function.
+
+    upload_id: This function takes a 22-character unique ID assigned to the
+    original upload of the requested file.
+    """
+    # If the parameter matched the upload ID format, we assume that it
+    # must be an upload ID and proceed accordingly. If the lookup of the
+    # record fails, then we have another go assuming a filename was
+    # instead provided.
+
+    # NOTE: The API doesn't officially provide support for requesting stored
+    # uploads by filename. This is retained here for backward compatibility
+    # but it is DEPRECATED and will be removed in a future release.
+    param_filename = False
+
+    upload_id_fmt = re.compile('^([%s]){22}$'
+                               % (shortuuid.get_alphabet()))
+
+    if not upload_id_fmt.match(upload_id):
+        param_filename = True
+        LOG.debug('The provided string doesn\'t seem to be an '
+                  'upload ID. Assuming it is a filename/path.')
+
+    if not param_filename:
+        try:
+            tu = TemporaryUpload.objects.get(upload_id=upload_id)
+        except TemporaryUpload.DoesNotExist:
+            LOG.debug('A TemporaryUpload with the provided ID doesn\'t '
+                      'exist. Assuming this could be a filename.')
+            param_filename = True
+
+    if param_filename:
+        # Try and lookup a TemporaryUpload record with the specified id
+        # as the file path
+        try:
+            tu = TemporaryUpload.objects.get(file=upload_id)
+        except TemporaryUpload.DoesNotExist as e:
+            LOG.debug('A TemporaryUpload with the provided file path '
+                      'doesn\'t exist. Re-raising error')
+            raise e
+
+    return tu    
 
 
 def get_stored_upload_file_data(stored_upload):

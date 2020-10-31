@@ -371,7 +371,7 @@ const ButtonDropdowns = () => {
               </CDropdownToggle>
               <CDropdownMenu>
                 <CDropdownItem>Action</CDropdownItem>
-                <CDropdownDivider />
+                {<CDropdownDivider />}
                 <CDropdownItem>Another Action</CDropdownItem>
               </CDropdownMenu>
             </CDropdown>
