@@ -1,7 +1,7 @@
 from django.conf.urls import url
-from data.views import EEGInfoView, EEGTemporalSignal
+from data.views import EEGInfoView, EEGTimeSeries
 
 urlpatterns = [
     url(r'^eeg/info/$', EEGInfoView.as_view(), name='EEGInfo'),
-    url(r'^eeg/temporal-signal/$', EEGTemporalSignal.as_view(), name='EEGTemporalSignal'),
+    url(r'^eeg/time-series/$', EEGTimeSeries.as_view(), name='EEGTimeSeries'),
 ]

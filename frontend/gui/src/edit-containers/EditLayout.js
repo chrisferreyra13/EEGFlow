@@ -3,10 +3,10 @@ import {
   TheContent,
   TheSidebar,
   TheFooter,
-  TheHeader
+  TheHeader,
+  FormContainer
 } from './index'
 
-import navigation from './_nav'
 
 const EditLayout = () => {
 
@@ -17,6 +17,7 @@ const EditLayout = () => {
         <TheHeader/>
         <div className="c-body">
           <TheContent/>
+          <FormContainer/>
         </div>
         <TheFooter/>
       </div>

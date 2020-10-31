@@ -1,4 +1,3 @@
-import EventForm from "../../components/forms/EventForm"
 
 export const ENABLE_EVENT_FORM = 'ENABLE_EVENT_FORM'
 export function enableEventForm(){
