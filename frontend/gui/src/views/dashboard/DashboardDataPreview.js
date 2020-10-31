@@ -49,13 +49,26 @@ class DashboardDataPreview extends Component{
   }
   setFileId(ids){ // TODO: MEJORAR ESTO, MUY CABEZA
     if (this.state.files.length==1){
-      this.state.files[0].serverId=ids;
+      //this.state.files[0].serverId=ids;
+      this.setState({
+        files: Object.assign({},this.state.files,{
+          serverId:ids
+        }) 
+      })
     }
-    else{
-      for(let i=0;i<this.state.files.length;i++){
+    /*else{
+      /*for(let i=0;i<this.state.files.length;i++){
         this.state.files[i].serverId=ids[i];
-      }
-    }
+      }*/
+      /*
+      this.setState({
+        files: this.props.files.map((file) =>{ 
+          return Object.assign({},file,{
+            serverId:ids
+          })
+        }
+      })
+    }*/
   }
   revertFile(error,file){
     console.log('holaaaa') //ESTO NO SE SI AL FINAL SE VA A USAR

@@ -1,32 +1,32 @@
 const API_ROOT= 'http://127.0.0.1:8000/data/eeg/'
 
-export const FETCH_TEMPORAL_SIGNAL_REQUEST = 'FETCH_TEMPORAL_SIGNAL_REQUEST'
-function requestTemporalSignal() {
+export const FETCH_TIME_SERIES_REQUEST = 'FETCH_TIME_SERIES_REQUEST'
+function requestTimeSeries() {
   return {
-    type: FETCH_TEMPORAL_SIGNAL_REQUEST,
+    type: FETCH_TIME_SERIES_REQUEST,
   }
 }
 
-export const FETCH_TEMPORAL_SIGNAL_RECEIVE = 'FETCH_TEMPORAL_SIGNAL_RECEIVE'
-function receiveTemporalSignal(json) {
+export const FETCH_TIME_SERIES_RECEIVE = 'FETCH_TIME_SERIES_RECEIVE'
+function receiveTimeSeries(json) {
   return {
-    type: FETCH_TEMPORAL_SIGNAL_RECEIVE,
+    type: FETCH_TIME_SERIES_RECEIVE,
     temporalSignal: json,
     
   }
 }
 
-export const FETCH_TEMPORAL_SIGNAL_FAILURE = 'FETCH_TEMPORAL_SIGNAL_FAILURE'
-function errorFetchingTemporalSignal(error){
+export const FETCH_TIME_SERIES_FAILURE = 'FETCH_TIME_SERIES_FAILURE'
+function errorFetchingTimeSeries(error){
     return {
-        type: FETCH_TEMPORAL_SIGNAL_FAILURE,
+        type: FETCH_TIME_SERIES_FAILURE,
         error
     }
 }
 
 
-export const getTemporalSignal = (fileId) => async (dispatch) =>{
-    var url = API_ROOT+'temporal-signal/?' + new URLSearchParams({
+export const getTimeSeries = (fileId) => async (dispatch) =>{
+    var url = API_ROOT+'time-series/?' + new URLSearchParams({
       id: fileId,
     })
     
@@ -38,14 +38,14 @@ export const getTemporalSignal = (fileId) => async (dispatch) =>{
       cache: 'default'
     };
 
-    dispatch(requestTemporalSignal())
+    dispatch(requestTimeSeries())
     try {
         fetch(url,initFetch)
         .then(res => res.json())
-        .then(json => dispatch(receiveTemporalSignal(json)))
+        .then(json => dispatch(receiveTimeSeries(json)))
     }
     catch (error){
-        dispatch(errorFetchingTemporalSignal(error))
+        dispatch(errorFetchingTimeSeries(error))
     }
 }
 

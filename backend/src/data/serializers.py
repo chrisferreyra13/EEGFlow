@@ -51,7 +51,7 @@ class EEGInfoSerializer(serializers.ModelSerializer):
     '''
 
 
-class EEGTemporalSignalSerializer(serializers.ModelSerializer):
+class EEGTimeSeriesSerializer(serializers.ModelSerializer):
     #dictionary = serializers.DictField(child = serializers.CharField())
     class Meta:
         model=EEGInfo

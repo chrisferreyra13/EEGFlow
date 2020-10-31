@@ -15,7 +15,7 @@ from rest_framework.renderers import JSONRenderer
 
 from .models import EEGInfo
 from .eeg_functions import get_raw
-from .serializers import EEGInfoSerializer, DictionaryAdapter, EEGTemporalSignalSerializer
+from .serializers import EEGInfoSerializer, DictionaryAdapter, EEGTimeSeriesSerializer
 
 from filemanager.storage_manager import get_stored_upload, get_temporary_upload
 from filemanager.models import StoredUpload, TemporaryUpload
@@ -80,7 +80,7 @@ class EEGInfoView(APIView):
         #aca tengo q guardar el modelo     
 
  
-class EEGTemporalSignal(APIView):
+class EEGTimeSeries(APIView):
     #queryset = EEGInfo.objects.all()
     serializer_class = EEGInfoSerializer
 
@@ -113,8 +113,8 @@ class EEGTemporalSignal(APIView):
         
         #print(raw.info['ch_names'])
         #temporalSignal = raw[0, 0:1]
-        temporalSignal=raw.get_data(picks=['eeg']) #agarro el canal 3, no se cual es
-        print(temporalSignal.shape)
+        timeSeries=raw.get_data(picks=['eeg']) #agarro el canal 3, no se cual es
+        print(timeSeries.shape)
 
 
         '''try: # TODO: Esto habria q reemplazarlo con is_valid() pero no logro que funcione
@@ -123,7 +123,7 @@ class EEGTemporalSignal(APIView):
             return Response('Invalid file data.',
                         status=status.HTTP_406_NOT_ACCEPTABLE)'''
         
-        response=Response({'signal':(10e6)*temporalSignal[1,0:1000]})
+        response=Response({'signal':(10e6)*timeSeries[1,0:1000]})
         return response
 
 

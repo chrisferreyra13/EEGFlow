@@ -7,6 +7,7 @@ import TheHeaderDropdownNotif from './TheHeaderDropdownNotif'
 import TheHeaderDropdownTasks from './TheHeaderDropdownTasks'
 import EditLayout from './EditLayout'
 import TheSidebar from './TheSidebar'
+import FormContainer from './FormContainer'
 
 export {
   TheContent,
@@ -17,5 +18,6 @@ export {
   TheHeaderDropdownNotif,
   TheHeaderDropdownTasks,
   EditLayout,
-  TheSidebar
+  TheSidebar,
+  FormContainer
 }
