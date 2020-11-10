@@ -11,7 +11,7 @@ export const FETCH_TIME_SERIES_RECEIVE = 'FETCH_TIME_SERIES_RECEIVE'
 function receiveTimeSeries(json) {
   return {
     type: FETCH_TIME_SERIES_RECEIVE,
-    temporalSignal: json,
+    timeSeries: json,
     
   }
 }
