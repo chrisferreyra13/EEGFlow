@@ -1,11 +1,4 @@
 
-export const ENABLE_EVENT_FORM = 'ENABLE_EVENT_FORM'
-export function enableEventForm(){
-    return{
-        type: ENABLE_EVENT_FORM
-    }
-}
-
 export const OK_FORM = 'OK_FORM'
 export function okForm(){
     return{
@@ -19,3 +12,28 @@ export function cancelForm(){
         type: CANCEL_FORM
     }
 }
+
+export const FETCH_DATA_FORM_REQUEST = 'FETCH_DATA_FORM_REQUEST'
+export function requestDataForm(formType){
+    return{
+        type: FETCH_DATA_FORM_REQUEST,
+        formType
+    }
+}
+
+export const FETCH_DATA_FORM_RECEIVE = 'FETCH_DATA_FORM_RECEIVE'
+export function receiveDataForm(){
+    return{
+        type: FETCH_DATA_FORM_RECEIVE,
+        
+    }
+}
+
+export const FETCH_DATA_FORM_FAILURE = 'FETCH_DATA_FORM_FAILURE'
+export function errorFetchingDataForm(error){
+    return{
+        type: FETCH_DATA_FORM_FAILURE,
+        error
+    }
+}
+
