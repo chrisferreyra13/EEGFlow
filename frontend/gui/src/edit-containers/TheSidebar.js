@@ -11,7 +11,7 @@ import {
 } from '@coreui/react'
 
 import {enableChartTemporal} from '../redux/actions/SideBar'
-import {enableEventForm} from '../redux/actions/Events'
+import {enableEventForm} from '../redux/actions/Form'
 
 //import CIcon from '@coreui/icons-react'
 

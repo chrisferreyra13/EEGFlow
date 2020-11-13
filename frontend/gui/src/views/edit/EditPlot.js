@@ -5,9 +5,8 @@ import {
   CCol,
   CRow,
 } from '@coreui/react'
-import CIcon from '@coreui/icons-react'
 
-import {getTimeSeries} from '../../redux/actions/Signal'
+import {fetchTimeSeries} from '../../redux/actions/Signal'
 
 const ChartTemporal = lazy(() => import('../charts/ChartTemporal.js'))
 //const FormContainer = lazy(() => import('../../components/forms/FormContainer.js'))
@@ -19,7 +18,7 @@ class EditPlot extends Component {
 
   componentDidMount(){ //Esto vamos a usar en vez del boton, por ahora mejor usar el boton
     if(this.props.timeSeries){
-      this.props.getTimeSeries(this.props.fileId);
+      this.props.fetchTimeSeries(this.props.fileId);
       //console.log(this.props.temporalSignal)
     }
   }
@@ -59,7 +58,7 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    getTimeSeries: (fileId) => dispatch(getTimeSeries(fileId)),
+    fetchTimeSeries: (fileId) => dispatch(fetchTimeSeries(fileId)),
   
   };
 };
