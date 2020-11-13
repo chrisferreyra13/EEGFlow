@@ -25,7 +25,7 @@ function errorFetchingTimeSeries(error){
 }
 
 
-export const getTimeSeries = (fileId) => async (dispatch) =>{
+export const fetchTimeSeries = (fileId) => async (dispatch) =>{
     var url = API_ROOT+'time-series/?' + new URLSearchParams({
       id: fileId,
     })

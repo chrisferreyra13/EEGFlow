@@ -1,4 +1,4 @@
-import React, { lazy, useState, Component } from 'react'
+import React, { Component } from 'react'
 import {connect} from 'react-redux'
 import {
   CButton,
