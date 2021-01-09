@@ -4,7 +4,7 @@ import {
   TheSidebar,
   TheFooter,
   TheHeader,
-  FormContainer
+  Form
 } from './index'
 
 
@@ -17,7 +17,7 @@ const EditLayout = () => {
         <TheHeader/>
         <div className="c-body">
           <TheContent/>
-          <FormContainer/>
+          <Form/>
         </div>
         <TheFooter/>
       </div>

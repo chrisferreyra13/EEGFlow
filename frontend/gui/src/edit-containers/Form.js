@@ -18,7 +18,7 @@ import {okForm, cancelForm} from '../redux/actions/Form'
 
 const EventsForm = lazy(()=>import('../components/forms/EventsForm.js'))
 
-const FormContainer = ({formType, okForm, cancelForm}) => {
+const Form = ({formType, okForm, cancelForm}) => {
   
   let form=formSelection(formType);
   if (form===null) return null;
@@ -61,7 +61,7 @@ const mapDispatchToProps = (dispatch) => {
   }
 }
 
-export default connect(mapStateToProps,mapDispatchToProps)(FormContainer)
+export default connect(mapStateToProps,mapDispatchToProps)(Form)
 
 const formSelection = (formType) => {
 

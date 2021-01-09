@@ -34,7 +34,7 @@ export const form = (state=initialState, {type, ...rest}) => {
             return Object.assign({},state,{
                 isFetching: false
             })
-        case FETCH_DATA_FORM_FAILURE:
+        case FETCH_DATA_FORM_FAILURE: //TODO: terminar
             return {...state, ...rest}
         default:
             return state
