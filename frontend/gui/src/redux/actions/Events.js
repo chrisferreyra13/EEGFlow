@@ -25,14 +25,29 @@ export function errorFetchingEvents(error){
     }
 }
 
-export const fetchEvents = () => async (dispatch) =>{
+export const fetchEvents = (fileId) => async (dispatch) =>{
     const jsonPrueba={
         eventType: ['rt','square','rt'],
         eventLatency: [1.002,2.05,5.43]
     }
+
+    var url = API_ROOT+'events/?' + new URLSearchParams({
+        id: fileId,
+      })
+      
+      var header= new Headers()
+      var initFetch={
+        method: 'GET',
+        headers: header,
+        mode: 'cors',
+        cache: 'default'
+      };
+
     dispatch(requestEvents())
     try{
-        dispatch(receiveEvents(jsonPrueba))
+        fetch(url,initFetch).
+        then(res => res.json()).
+        then(json => dispatch(receiveEvents(json)))
     }catch(error){
         dispatch(errorFetchingEvents(error))
     }

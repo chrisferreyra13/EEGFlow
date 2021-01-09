@@ -38,7 +38,7 @@ class EditPlot extends Component {
           </div>
           <div>
             {/*<CCol sm="12" xl="40">*/}
-              <CButton block color="info" onClick={() => this.props.getTimeSeries(this.props.fileId)}>Buscar señal</CButton>
+              <CButton block color="info" onClick={() => this.props.fetchTimeSeries(this.props.fileId)}>Buscar señal</CButton>
             {/*</CCol>*/}
             </div>        
         </CRow>
