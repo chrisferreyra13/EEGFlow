@@ -1,6 +1,7 @@
 import{
     CANCEL_FORM,
     OK_FORM,
+    ENABLE_FORM,
     FETCH_DATA_FORM_REQUEST,
     FETCH_DATA_FORM_RECEIVE,
     FETCH_DATA_FORM_FAILURE
@@ -8,7 +9,6 @@ import{
 
 const initialState={
     formType: null,
-    isFetching: false
 }
 
 export const form = (state=initialState, {type, ...rest}) => {
@@ -21,6 +21,10 @@ export const form = (state=initialState, {type, ...rest}) => {
             return Object.assign({},state,{
                 formType: null
             })
+        case ENABLE_FORM:
+            return Object.assign({},state,{
+                formType:rest.formType,
+            })
         case FETCH_DATA_FORM_REQUEST:
             return Object.assign({},state,{
                 formType:rest.formType,
@@ -30,7 +34,7 @@ export const form = (state=initialState, {type, ...rest}) => {
             return Object.assign({},state,{
                 isFetching: false
             })
-        case FETCH_DATA_FORM_FAILURE:
+        case FETCH_DATA_FORM_FAILURE: //TODO: terminar
             return {...state, ...rest}
         default:
             return state

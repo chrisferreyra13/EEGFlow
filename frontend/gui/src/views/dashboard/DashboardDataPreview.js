@@ -1,4 +1,4 @@
-import React, { lazy, useState, Component } from 'react'
+import React, { Component } from 'react'
 import {connect} from 'react-redux'
 import {
   CButton,
@@ -50,12 +50,18 @@ class DashboardDataPreview extends Component{
   setFileId(ids){ // TODO: MEJORAR ESTO, MUY CABEZA
     if (this.state.files.length==1){
       //this.state.files[0].serverId=ids;
-      this.setState({
+      console.log(ids)
+      /*this.setState({ PROBE ESTO PERO NO FUNCO, PERO POR ACA VAN LOS TIROS
         files: Object.assign({},this.state.files,{
-          serverId:ids
+          '0': Object.assign({},this.state.files[0],{
+            serverId:ids
+          }),
         }) 
-      })
+      })*/
+      this.state.files[0].serverId=ids;
+      console.log(this.state.files)
     }
+    
     /*else{
       /*for(let i=0;i<this.state.files.length;i++){
         this.state.files[i].serverId=ids[i];
