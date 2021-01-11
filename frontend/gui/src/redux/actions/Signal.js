@@ -11,7 +11,8 @@ export const FETCH_TIME_SERIES_RECEIVE = 'FETCH_TIME_SERIES_RECEIVE'
 function receiveTimeSeries(json) {
   return {
     type: FETCH_TIME_SERIES_RECEIVE,
-    timeSeries: json,
+    signal: json.signal,
+    samplingFreq:json.samplingFreq
     
   }
 }
@@ -25,7 +26,7 @@ function errorFetchingTimeSeries(error){
 }
 
 
-export const getTimeSeries = (fileId) => async (dispatch) =>{
+export const fetchTimeSeries = (fileId) => async (dispatch) =>{
     var url = API_ROOT+'time-series/?' + new URLSearchParams({
       id: fileId,
     })

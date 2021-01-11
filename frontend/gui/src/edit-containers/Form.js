@@ -14,11 +14,11 @@ import CIcon from '@coreui/icons-react'
 import {okForm, cancelForm} from '../redux/actions/Form'
 
 
-const ENABLE_EVENT_FORM = 'ENABLE_EVENT_FORM'
+//const ENABLE_EVENT_FORM = 'ENABLE_EVENT_FORM'
 
-const EventForm = lazy(()=>import('../components/forms/EventForm.js'))
+const EventsForm = lazy(()=>import('../components/forms/EventsForm.js'))
 
-const FormContainer = ({formType, isFetchingFormContent, okForm, cancelForm}) => {
+const Form = ({formType, okForm, cancelForm}) => {
   
   let form=formSelection(formType);
   if (form===null) return null;
@@ -30,22 +30,7 @@ const FormContainer = ({formType, isFetchingFormContent, okForm, cancelForm}) =>
           {form.title}
         </CCardHeader>
         <CCardBody>
-          {isFetchingFormContent?
-          <div>
-            <CRow>
-              <CCol xs="12" md="12">
-                <h4>Cargando...</h4>
-              </CCol>
-            </CRow>
-            <CRow>
-              <CCol xs="12" md="12">
-                <CIcon size= "xl" name="cil-cloud-download" />
-              </CCol>
-            </CRow>
-          </div>:
-          <div>
-            <form.content/>
-          </div>}
+          <form.content/>
         </CCardBody>
         <CCardFooter>
           <CRow>
@@ -66,7 +51,6 @@ const FormContainer = ({formType, isFetchingFormContent, okForm, cancelForm}) =>
 const mapStateToProps = (state) => {
   return{
     formType: state.form.formType,
-    isFetchingFormContent: state.form.isFetching
   };
 }
 
@@ -77,14 +61,14 @@ const mapDispatchToProps = (dispatch) => {
   }
 }
 
-export default connect(mapStateToProps,mapDispatchToProps)(FormContainer)
+export default connect(mapStateToProps,mapDispatchToProps)(Form)
 
 const formSelection = (formType) => {
 
   if(formType===null) return null;
 
   const forms = {
-    ENABLE_EVENT_FORM: {title:'Editar Eventos',content:EventForm},
+    ENABLE_EVENT_FORM: {title:'Editar Eventos',content:EventsForm},
   };
 
   return forms[formType];

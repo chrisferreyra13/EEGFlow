@@ -13,6 +13,14 @@ export function cancelForm(){
     }
 }
 
+export const ENABLE_FORM = 'ENABLE_FORM'
+export function enableEventForm(){
+    return{
+        type: ENABLE_FORM,
+        formType: 'ENABLE_EVENT_FORM'
+    }
+}
+
 export const FETCH_DATA_FORM_REQUEST = 'FETCH_DATA_FORM_REQUEST'
 export function requestDataForm(formType){
     return{

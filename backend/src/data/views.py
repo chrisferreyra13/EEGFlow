@@ -14,7 +14,7 @@ from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 
 from .models import EEGInfo
-from .eeg_functions import get_raw
+from .eeg_functions import get_raw, get_events
 from .serializers import EEGInfoSerializer, DictionaryAdapter, EEGTimeSeriesSerializer
 
 from filemanager.storage_manager import get_stored_upload, get_temporary_upload
@@ -24,6 +24,30 @@ from filemanager.models import StoredUpload, TemporaryUpload
 LOAD_RESTORE_PARAM_NAME = 'id'
 LOG = logging.getLogger(__name__)
 
+
+####FUNCTIONS####
+
+def getTemporalUpload(request):
+    if LOAD_RESTORE_PARAM_NAME not in request.GET:
+            return Response('A required parameter is missing.',
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    upload_id = request.GET[LOAD_RESTORE_PARAM_NAME]
+    
+    if (not upload_id) or (upload_id == ''):
+        return Response('An invalid ID has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        tu = get_temporary_upload(upload_id)
+    except TemporaryUpload.DoesNotExist as e:
+        LOG.error('TemporaryUpload with ID [%s] not found: [%s]'
+                    % (upload_id, str(e)))
+        return Response('Not found', status=status.HTTP_404_NOT_FOUND)
+    
+    return tu
+
+
 ####VIEWS####
 
 class EEGInfoView(APIView):
@@ -31,24 +55,9 @@ class EEGInfoView(APIView):
     serializer_class = EEGInfoSerializer
 
     def get(self, request, format=None):
-        #TODO: Esto se va a repetir en otras vistas, podria ser una funcion
-        
-        if LOAD_RESTORE_PARAM_NAME not in request.GET:
-            return Response('A required parameter is missing.',
-                            status=status.HTTP_400_BAD_REQUEST)
-
-        upload_id = request.GET[LOAD_RESTORE_PARAM_NAME]
-        
-        if (not upload_id) or (upload_id == ''):
-            return Response('An invalid ID has been provided.',
-                            status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            tu = get_temporary_upload(upload_id)
-        except TemporaryUpload.DoesNotExist as e:
-            LOG.error('TemporaryUpload with ID [%s] not found: [%s]'
-                      % (upload_id, str(e)))
-            return Response('Not found', status=status.HTTP_404_NOT_FOUND)
+        tu = getTemporalUpload(request)
+        if type(tu).__name__ != 'TemporaryUpload':
+            return tu #TODO:No me convence dejarlo asi, mirar en algun momento
 
         #Siempre presento la informacion del archivo, guardo en caso de que no este en la BD
         try:
@@ -85,24 +94,9 @@ class EEGTimeSeries(APIView):
     serializer_class = EEGInfoSerializer
 
     def get(self, request, format=None):
-        #TODO: Esto se va a repetir en otras vistas, podria ser una funcion
-        
-        if LOAD_RESTORE_PARAM_NAME not in request.GET:
-            return Response('A required parameter is missing.',
-                            status=status.HTTP_400_BAD_REQUEST)
-
-        upload_id = request.GET[LOAD_RESTORE_PARAM_NAME]
-        
-        if (not upload_id) or (upload_id == ''):
-            return Response('An invalid ID has been provided.',
-                            status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            tu = get_temporary_upload(upload_id)
-        except TemporaryUpload.DoesNotExist as e:
-            LOG.error('TemporaryUpload with ID [%s] not found: [%s]'
-                      % (upload_id, str(e)))
-            return Response('Not found', status=status.HTTP_404_NOT_FOUND)
+        tu = getTemporalUpload(request)
+        if type(tu).__name__ != 'TemporaryUpload':
+            return tu #TODO:No me convence dejarlo asi, mirar en algun momento
 
         #Siempre presento la informacion del archivo, guardo en caso de que no este en la BD
         try:
@@ -115,18 +109,35 @@ class EEGTimeSeries(APIView):
         #temporalSignal = raw[0, 0:1]
         timeSeries=raw.get_data(picks=['eeg']) #agarro el canal 3, no se cual es
         print(timeSeries.shape)
-
-
-        '''try: # TODO: Esto habria q reemplazarlo con is_valid() pero no logro que funcione
-                serializer=EEGInfoSerializer(eeg)
-        except KeyError:
-            return Response('Invalid file data.',
-                        status=status.HTTP_406_NOT_ACCEPTABLE)'''
-        
-        response=Response({'signal':(10e6)*timeSeries[1,0:1000]})
+        response=Response({
+            'signal':(10e6)*timeSeries[1,0:1000],
+            'samplingFreq':raw.info['sfreq'],
+        })
         return response
 
+class EEGGetEvents(APIView):
+    #queryset = EEGInfo.objects.all()
+    serializer_class = EEGInfoSerializer
 
+    def get(self, request, format=None):
+        
+        tu = getTemporalUpload(request)
+        if type(tu).__name__ != 'TemporaryUpload':
+            return tu #TODO:No me convence dejarlo asi, mirar en algun momento
+
+        try:
+            events=get_events(os.path.join(tu.upload_id,tu.upload_name))
+        except TypeError:
+            return Response('Invalid file extension',
+                        status=status.HTTP_406_NOT_ACCEPTABLE)
+        
+        
+        response=Response({
+            'eventSamples':events[:,0],
+            'eventId':events[:,2],
+            'eventDescription': ''
+        })
+        return response
        
         
 
