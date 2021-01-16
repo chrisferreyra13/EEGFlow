@@ -1,24 +1,30 @@
 import React from 'react'
-import { useSelector, useDispatch, connect } from 'react-redux'
+import { useDispatch, connect } from 'react-redux'
 import {
   CSidebar,
   CDropdown,
   CDropdownDivider,
-  CDropdownHeader,
+ // CDropdownHeader,
   CDropdownItem,
   CDropdownMenu,
   CDropdownToggle,
 } from '@coreui/react'
 
-import {enableChartTemporal} from '../redux/actions/SideBar'
-import {enableEventForm} from '../redux/actions/Form'
+import { enableChartTemporal } from '../redux/actions/SideBar'
+import { enableEventForm } from '../redux/actions/Form'
+import { addNode } from '../redux/actions/Diagram'
 
 //import CIcon from '@coreui/icons-react'
 
 
-const TheSidebar = ({show, enableChartTemporal, enableEventForm}) => {
+const TheSidebar = ({show, addNode, enableChartTemporal, enableEventForm}) => {
   const dispatch = useDispatch()
   //const show = useSelector(state => state.sidebarShow)
+  const onDragStart = (event, nodeType) => {
+    event.dataTransfer.setData('application/reactflow', nodeType);
+    event.dataTransfer.effectAllowed = 'move';
+    addNode('default')
+  };
   return (
     <CSidebar show={show} onShowChange={(val) => dispatch({type: 'set', sidebarShow: val })}>
       <div className="text-center"> {/* Aca antes habia un <td> pero no le gustaba del todo*/}
@@ -49,7 +55,7 @@ const TheSidebar = ({show, enableChartTemporal, enableEventForm}) => {
             <CDropdownItem onClick={()=>enableChartTemporal()}>Temporal</CDropdownItem>
             <CDropdownItem>Fourier</CDropdownItem>
             <CDropdownItem>Tiempo - Frecuencia</CDropdownItem>
-            <CDropdownItem disable>Topografico</CDropdownItem>
+            <CDropdownItem disable="true">Topografico</CDropdownItem>
           </CDropdownMenu>
         </CDropdown>
 
@@ -80,7 +86,7 @@ const TheSidebar = ({show, enableChartTemporal, enableEventForm}) => {
             <CDropdownItem>Seleccionar frecuencias</CDropdownItem>
             <CDropdownDivider/>
             {/*<CDropdownHeader>Frecuentes</CDropdownHeader>*/}
-            <CDropdownItem>Beta</CDropdownItem>
+            <CDropdownItem onClick={() => addNode('default')} onDragStart={(event) => onDragStart(event, 'default')} draggable>Beta</CDropdownItem>
             <CDropdownItem>Alpha</CDropdownItem>
             <CDropdownItem>Theta</CDropdownItem>
             <CDropdownItem>Delta</CDropdownItem>
@@ -118,6 +124,7 @@ const mapDispatchToProps = (dispatch) => {
   return {
     enableChartTemporal: () => dispatch(enableChartTemporal()),
     enableEventForm: () => dispatch(enableEventForm()),
+    addNode: (nodeType) => dispatch(addNode(nodeType)),
   
   };
 };
