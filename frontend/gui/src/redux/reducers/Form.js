@@ -1,27 +1,41 @@
 import{
     CANCEL_FORM,
-    ENABLE_EVENT_FORM,
     OK_FORM,
+    ENABLE_FORM,
+    FETCH_DATA_FORM_REQUEST,
+    FETCH_DATA_FORM_RECEIVE,
+    FETCH_DATA_FORM_FAILURE
 } from '../actions/Form'
 
 const initialState={
-    formType: ''
+    formType: null,
 }
 
 export const form = (state=initialState, {type, ...rest}) => {
     switch(type){
-        case ENABLE_EVENT_FORM:
-            return Object.assign({},state,{
-                formType:ENABLE_EVENT_FORM
-            })
         case OK_FORM:    
             return Object.assign({},state,{
-                formType: ''
+                formType: null
             })
         case CANCEL_FORM:    
             return Object.assign({},state,{
-                formType: ''
-            })    
+                formType: null
+            })
+        case ENABLE_FORM:
+            return Object.assign({},state,{
+                formType:rest.formType,
+            })
+        case FETCH_DATA_FORM_REQUEST:
+            return Object.assign({},state,{
+                formType:rest.formType,
+                isFetching: true
+            })
+        case FETCH_DATA_FORM_RECEIVE:
+            return Object.assign({},state,{
+                isFetching: false
+            })
+        case FETCH_DATA_FORM_FAILURE: //TODO: terminar
+            return {...state, ...rest}
         default:
             return state
     }
