@@ -40,7 +40,7 @@ const DashboardHome = () => {
             </Col>
           </Row>
               {/*<MainChartExample style={{height: '300px', marginTop: '40px'}}/>*/}
-              <ChartBarSimple style={{height: '300px', marginTop: '40px'}}/>
+              
 
         </CCardBody>
         <CCardFooter>
