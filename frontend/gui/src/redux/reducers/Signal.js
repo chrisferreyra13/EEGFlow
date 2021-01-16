@@ -6,6 +6,7 @@ import {
 
 const initialState={
     signal: [],
+    sFreq: 0,
     isFetching: false,
 }
 
@@ -20,7 +21,8 @@ export const timeSeries = (state = initialState, { type, ...rest }) => {
         case FETCH_TIME_SERIES_RECEIVE:
           return Object.assign({},state, {
               isFetching: false,
-              signal: rest.temporalSignal,
+              signal: rest.signal,
+              samplingFreq: rest.samplingFreq
             })
         case FETCH_TIME_SERIES_FAILURE:
             return {...state, ...rest}

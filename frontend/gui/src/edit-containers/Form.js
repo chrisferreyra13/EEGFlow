@@ -1,4 +1,4 @@
-import React, {lazy, useState} from 'react'
+import React, {lazy} from 'react'
 import {connect} from 'react-redux'
 import {
   CCol,
@@ -13,12 +13,12 @@ import CIcon from '@coreui/icons-react'
 
 import {okForm, cancelForm} from '../redux/actions/Form'
 
-const ENABLE_EVENT_FORM = 'ENABLE_EVENT_FORM'
 
-const EventForm = lazy(()=>import('../components/forms/EventForm.js'))
-const PaginationEvent = lazy(()=> import('../components/paginations/PaginationEvent.js'))
+//const ENABLE_EVENT_FORM = 'ENABLE_EVENT_FORM'
 
-const FormContainer = ({formType, okForm, cancelForm}) => {
+const EventsForm = lazy(()=>import('../components/forms/EventsForm.js'))
+
+const Form = ({formType, okForm, cancelForm}) => {
   
   let form=formSelection(formType);
   if (form===null) return null;
@@ -30,8 +30,7 @@ const FormContainer = ({formType, okForm, cancelForm}) => {
           {form.title}
         </CCardHeader>
         <CCardBody>
-          {form.content}
-          {form.pagination}
+          <form.content/>
         </CCardBody>
         <CCardFooter>
           <CRow>
@@ -39,7 +38,7 @@ const FormContainer = ({formType, okForm, cancelForm}) => {
               <CButton type="reset" size="sm" color="danger" onClick={()=> cancelForm()}><CIcon name="cil-ban" /> Cancelar</CButton>
             </CCol>
             <CCol xs="12" md="6">
-              <CButton type="submit" size="sm" color="info" onClick={()=> okForm()}> Ok</CButton>
+              <CButton type="submit" size="sm" color="primary" onClick={()=> okForm()}> Ok</CButton>
             </CCol>
           </CRow>
         </CCardFooter>
@@ -51,7 +50,7 @@ const FormContainer = ({formType, okForm, cancelForm}) => {
 
 const mapStateToProps = (state) => {
   return{
-    formType: state.form.formType
+    formType: state.form.formType,
   };
 }
 
@@ -62,18 +61,16 @@ const mapDispatchToProps = (dispatch) => {
   }
 }
 
-export default connect(mapStateToProps,mapDispatchToProps)(FormContainer)
+export default connect(mapStateToProps,mapDispatchToProps)(Form)
 
 const formSelection = (formType) => {
 
-  switch(formType){
-    case ENABLE_EVENT_FORM:
-      return {
-        title: 'Editar Eventos',
-        content: <EventForm/>,
-        pagination: <PaginationEvent/>
-      }
-    default:
-      return null
-  }
+  if(formType===null) return null;
+
+  const forms = {
+    ENABLE_EVENT_FORM: {title:'Editar Eventos',content:EventsForm},
+  };
+
+  return forms[formType];
+
 }

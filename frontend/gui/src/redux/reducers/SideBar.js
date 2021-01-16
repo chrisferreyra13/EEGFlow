@@ -18,7 +18,7 @@ export const changeStateSidebar = (state = initialStateSideBar, { type, ...rest 
 const initialStatePlots = {
   chartTemporal: false
 }
-
+//CAMBIAR ESTO, NO ES UN BUEN PATRON DE DISEÑO, mejor tener un archivo de cada reducer
 export const plots = (state = initialStatePlots, { type, ...rest }) => {
   switch (type) {
     case ENABLE_CHART_TEMPORAL:
@@ -29,3 +29,4 @@ export const plots = (state = initialStatePlots, { type, ...rest }) => {
       return state
   }
 }
+

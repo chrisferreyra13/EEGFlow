@@ -1,10 +1,10 @@
-import React, { Component } from 'react'
+import React from 'react'
 import {
   TheContent,
   TheSidebar,
   TheFooter,
   TheHeader,
-  FormContainer
+  Form
 } from './index'
 
 
@@ -17,7 +17,7 @@ const EditLayout = () => {
         <TheHeader/>
         <div className="c-body">
           <TheContent/>
-          <FormContainer/>
+          <Form/>
         </div>
         <TheFooter/>
       </div>

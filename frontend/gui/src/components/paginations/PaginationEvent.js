@@ -3,9 +3,8 @@ import {
   CPagination
 } from '@coreui/react'
 
-const PaginationEvent = () => {
+const PaginationEvent = ({numberOfPages}) => {
   const [currentPage, setCurrentPage] = useState(3)
-  let numberOfPages=10;
 
   return (
     <>

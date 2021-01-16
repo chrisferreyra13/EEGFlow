@@ -65,4 +65,8 @@ class EEGTimeSeriesSerializer(serializers.ModelSerializer):
             'custom_ref_applied',
         ]
 
-
+'''class EEGEventsSerializer(serializers.Serializer):
+    eventTime
+    eventId
+    eventDescription
+'''
