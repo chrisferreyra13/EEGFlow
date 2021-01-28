@@ -7,6 +7,7 @@ import {
 } from '@coreui/react'
 
 import {fetchTimeSeries} from '../../redux/actions/Signal'
+import { diagramView } from '../../redux/actions/EditSession'
 
 const ChartTemporal = lazy(() => import('../charts/ChartTemporal.js'))
 //const FormContainer = lazy(() => import('../../components/forms/FormContainer.js'))
@@ -14,6 +15,7 @@ const ChartTemporal = lazy(() => import('../charts/ChartTemporal.js'))
 class EditPlot extends Component {
   constructor(props){
     super(props);
+    this.props.diagramView(false);
   }
 
   componentDidMount(){ //Esto vamos a usar en vez del boton, por ahora mejor usar el boton
@@ -59,7 +61,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
   return {
     fetchTimeSeries: (fileId) => dispatch(fetchTimeSeries(fileId)),
-  
+    diagramView: (activate) => dispatch(diagramView(activate)),
   };
 };
 

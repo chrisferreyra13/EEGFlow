@@ -11,20 +11,30 @@ import {
 } from '@coreui/react'
 
 import { enableChartTemporal } from '../redux/actions/SideBar'
-import { enableEventForm } from '../redux/actions/Form'
+import { enableForm } from '../redux/actions/Form'
 import { addNode } from '../redux/actions/Diagram'
 
 //import CIcon from '@coreui/icons-react'
 
 
-const TheSidebar = ({show, addNode, enableChartTemporal, enableEventForm}) => {
+const TheSidebar = ({show, addNode, enableChartTemporal, enableForm, diagramView}) => {
   const dispatch = useDispatch()
   //const show = useSelector(state => state.sidebarShow)
   const onDragStart = (event, nodeType) => {
     event.dataTransfer.setData('application/reactflow', nodeType);
     event.dataTransfer.effectAllowed = 'move';
-    addNode('default')
   };
+  const onClick = (formType=null, nodeType=null) => {
+    if(diagramView==false){
+      if(nodeType!=null){
+        addNode(nodeType)
+      }
+      if(formType!=null){
+        enableForm(formType)
+      }
+    }
+  }
+
   return (
     <CSidebar show={show} onShowChange={(val) => dispatch({type: 'set', sidebarShow: val })}>
       <div className="text-center"> {/* Aca antes habia un <td> pero no le gustaba del todo*/}
@@ -53,8 +63,8 @@ const TheSidebar = ({show, addNode, enableChartTemporal, enableEventForm}) => {
             modifiers={[{name: 'flip', enabled: false }]}
           >
             <CDropdownItem onClick={()=>enableChartTemporal()}>Temporal</CDropdownItem>
-            <CDropdownItem>Fourier</CDropdownItem>
-            <CDropdownItem>Tiempo - Frecuencia</CDropdownItem>
+            <CDropdownItem onClick={() => onClick(null,'plot fourier')} onDragStart={(event) => onDragStart(event, 'plot fourier')} draggable>Fourier</CDropdownItem>
+            <CDropdownItem onClick={() => onClick(null,'plot time - frequency')} onDragStart={(event) => onDragStart(event, 'plot time - frequency')} draggable>Tiempo - Frecuencia</CDropdownItem>
             <CDropdownItem disable="true">Topografico</CDropdownItem>
           </CDropdownMenu>
         </CDropdown>
@@ -68,7 +78,7 @@ const TheSidebar = ({show, addNode, enableChartTemporal, enableEventForm}) => {
             modifiers={[{name: 'flip', enabled: false }]}
           >
             <CDropdownItem>Seleccionar</CDropdownItem>
-            <CDropdownItem onClick={()=>enableEventForm()}>Eventos</CDropdownItem>
+            <CDropdownItem onClick={() => onClick('ENABLE_EVENT_FORM',null)}>Eventos</CDropdownItem>
             <CDropdownItem>Epocas</CDropdownItem>
             <CDropdownItem>Ventana Temporal</CDropdownItem>
             <CDropdownItem>Eliminar</CDropdownItem>
@@ -83,13 +93,14 @@ const TheSidebar = ({show, addNode, enableChartTemporal, enableEventForm}) => {
             placement="right-start"
             modifiers={[{name: 'flip', enabled: false }]}
           >
-            <CDropdownItem>Seleccionar frecuencias</CDropdownItem>
+            <CDropdownItem onClick={() => onClick(null,'custom filter')} onDragStart={(event) => onDragStart(event, 'custom filter')} draggable>Seleccionar frecuencias</CDropdownItem>
             <CDropdownDivider/>
             {/*<CDropdownHeader>Frecuentes</CDropdownHeader>*/}
-            <CDropdownItem onClick={() => addNode('default')} onDragStart={(event) => onDragStart(event, 'default')} draggable>Beta</CDropdownItem>
-            <CDropdownItem>Alpha</CDropdownItem>
-            <CDropdownItem>Theta</CDropdownItem>
-            <CDropdownItem>Delta</CDropdownItem>
+            {/* ESTO VA EN CDdropdownItem onClick={() => addNode('default')}*/}
+            <CDropdownItem onClick={() => onClick(null,'beta')} onDragStart={(event) => onDragStart(event, 'beta')} draggable>Beta</CDropdownItem>
+            <CDropdownItem onClick={() => onClick(null,'alpha')} onDragStart={(event) => onDragStart(event, 'alpha')} draggable>Alpha</CDropdownItem>
+            <CDropdownItem onClick={() => onClick(null,'theta')} onDragStart={(event) => onDragStart(event, 'theta')} draggable>Theta</CDropdownItem>
+            <CDropdownItem onClick={() => onClick(null,'delta')} onDragStart={(event) => onDragStart(event, 'delta')} draggable>Delta</CDropdownItem>
           </CDropdownMenu>
         </CDropdown>
 
@@ -104,8 +115,8 @@ const TheSidebar = ({show, addNode, enableChartTemporal, enableEventForm}) => {
             <CDropdownItem>Buscar</CDropdownItem>
             <CDropdownDivider/>
             {/*<CDropdownHeader>Frecuentes</CDropdownHeader>*/}
-            <CDropdownItem>ICA</CDropdownItem>
-            <CDropdownItem>Pico maximo</CDropdownItem>
+            <CDropdownItem onClick={() => onClick(null,'ica')} onDragStart={(event) => onDragStart(event, 'ica')} draggable>ICA</CDropdownItem>
+            <CDropdownItem onClick={() => onClick(null,'max peak')} onDragStart={(event) => onDragStart(event, 'max peak')} draggable>Pico maximo</CDropdownItem>
           </CDropdownMenu>
         </CDropdown>
 
@@ -117,13 +128,14 @@ const TheSidebar = ({show, addNode, enableChartTemporal, enableEventForm}) => {
 const mapStateToProps = (state) => {
   return {
     show:state.changeStateSidebar.sidebarShow,
+    diagramView: state.editSession.diagramView,
   };
 }
 
 const mapDispatchToProps = (dispatch) => {
   return {
     enableChartTemporal: () => dispatch(enableChartTemporal()),
-    enableEventForm: () => dispatch(enableEventForm()),
+    enableForm: (formType) => dispatch(enableForm(formType)),
     addNode: (nodeType) => dispatch(addNode(nodeType)),
   
   };
