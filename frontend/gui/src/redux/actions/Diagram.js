@@ -1,8 +1,24 @@
 export const ADD_NODE='ADD_NODE'
-export function addNode(nodeType){
+export function addNode(elementType){
     return{
         type:ADD_NODE,
-        nodeType
+        elementType
+    }
+}
+
+export const ADD_EDGE='ADD_EDGE'
+export function addNewEdge(newElements){
+    return{
+        type:ADD_EDGE,
+        newElements
+    }
+}
+
+export const CHANGE_EDGE='CHANGE_EDGE'
+export function changeEdge(newElements){
+    return{
+        type:CHANGE_EDGE,
+        newElements
     }
 }
 
@@ -14,10 +30,11 @@ export function updateNodePropierties(propierties){
     }
 }
 
-export const DELETE_NODE='DELETE_NODE'
-export function deleteNodes(nodesIds){
+export const UPDATE_AFTER_DELETE_ELEMENTS='UPDATE_AFTER_DELETE_ELEMENTS'
+export function updateAfterDeleteElements(newElements, numOfNodesRemoved){
     return{
-        type:DELETE_NODE,
-        nodesIds
+        type:UPDATE_AFTER_DELETE_ELEMENTS,
+        newElements,
+        numOfNodesRemoved
     }
 }

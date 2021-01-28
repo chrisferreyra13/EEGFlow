@@ -1,72 +1,117 @@
-import React, { useState, useRef } from 'react';
+import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import ReactFlow, {
   ReactFlowProvider,
   addEdge,
   removeElements,
+  updateEdge,
   Controls,
   Background,
 } from 'react-flow-renderer';
 
 import './dnd.css';
-import { deleteNodes, updateNodePropierties } from '../../redux/actions/Diagram'
+import { updateAfterDeleteElements, updateNodePropierties, addNode, addNewEdge, changeEdge} from '../../redux/actions/Diagram'
+import { diagramView } from '../../redux/actions/EditSession';
 
 
 
-const EditDiagram = ({stateElements, updateNodePropierties}) => {
-  const reactFlowWrapper = useRef(null);
-  const [reactFlowInstance, setReactFlowInstance] = useState(null);
-  const [elements, setElements] = useState(stateElements);
-  const onConnect = (params) => setElements((els) => addEdge(params, els));
-  const onElementsRemove = (elementsToRemove) => {
-    //const newNodes = (els) => removeElements(elementsToRemove, els)
-    deleteNodes(elementsToRemove.map(node => node.id))
-    console.log(stateElements)
-    setElements(stateElements);
+
+class EditDiagram extends Component{ //= ({stateElements, updateNodePropierties, deleteNodes}) => {
+  constructor(props){
+    super(props)
+    this.props.diagramView(true);
+    this.state={
+      elements: this.props.stateElements,
+      reactFlowInstance: null,
+      reactFlowWrapper: React.createRef(null) //useRef(null)
+    }
+    this.setReactFlowInstance=this.setReactFlowInstance.bind(this)
+    this.setElements=this.setElements.bind(this)
+    this.onConnect=this.onConnect.bind(this)
+    this.onElementsRemove=this.onElementsRemove.bind(this)
+    this.onDrop=this.onDrop.bind(this)
+    this.onDragOver=this.onDragOver.bind(this)
+    this.onLoad=this.onLoad.bind(this)
+    this.onEdgeUpdate=this.onEdgeUpdate.bind(this);
+
+    //const reactFlowWrapper = useRef(null);
   }
-  const onLoad = (_reactFlowInstance) =>
-    setReactFlowInstance(_reactFlowInstance);
-  const onDragOver = (event) => {
+  setReactFlowInstance(_reactFlowInstance){
+    this.setState({
+      reactFlowInstance:_reactFlowInstance
+    })
+  }
+  setElements(newElements){
+    this.setState({
+      elements:newElements
+    })
+  }
+  onConnect(params){
+    params.animated=true;
+    params.arrowHeadType='arrowclosed'
+    params.style={stroke:'blue'}
+    const newElements=addEdge(params, this.state.elements)
+    this.props.addNewEdge(newElements)
+    this.setElements(newElements)
+  }
+  onEdgeUpdate(oldEdge, newConnection){
+      const newElements=updateEdge(oldEdge, newConnection, this.state.elements)
+      this.props.changeEdge(newElements);
+      this.setElements(newElements);
+  }
+  onElementsRemove(elementsToRemove){
+    const newElements=removeElements(elementsToRemove, this.props.stateElements)
+    this.props.updateAfterDeleteElements(newElements, elementsToRemove.length)
+    this.setElements(newElements)
+  }
+
+  onLoad(_reactFlowInstance){
+    this.setReactFlowInstance(_reactFlowInstance)
+  }
+  onDragOver(event) {
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
   };
-  const onDrop = (event) => {
+  onDrop(event){
     event.preventDefault();
-    const reactFlowBounds = reactFlowWrapper.current.getBoundingClientRect();
+    const reactFlowBounds = this.state.reactFlowWrapper.current.getBoundingClientRect();
     const type = event.dataTransfer.getData('application/reactflow');
-    const position = reactFlowInstance.project({
+    const position = this.state.reactFlowInstance.project({
       x: event.clientX - reactFlowBounds.left,
       y: event.clientY - reactFlowBounds.top,
     });
     const propierties = {
       position,
     };
-    
-    //setElements((es) => es.concat(newNode));
-    updateNodePropierties(propierties);
-    setElements((es) => es.concat(stateElements.lastItem));
+    this.props.addNode(type)
+    this.props.updateNodePropierties(propierties);
+    this.setElements([...this.props.stateElements]);
   };
-  return (
-    <div className="dndflow" style={{height:600}}>
-      <ReactFlowProvider>
-        <div className="reactflow-wrapper" ref={reactFlowWrapper}>
-          <ReactFlow
-            elements={elements}
-            onConnect={onConnect}
-            onElementsRemove={onElementsRemove}
-            onLoad={onLoad}
-            onDrop={onDrop}
-            onDragOver={onDragOver}
-          >
-            <Controls />
-            <Background color="#aaa" gap={16} />
-          </ReactFlow>
-        </div>
-        {/*<Sidebar />*/}
-      </ReactFlowProvider>
-    </div>
-  );
-};
+
+  render(){
+    return (
+      <div className="dndflow" style={{height:600}}>
+        <ReactFlowProvider>
+          <div className="reactflow-wrapper" ref={this.state.reactFlowWrapper}>
+            <ReactFlow
+              elements={this.state.elements}
+              onConnect={(params) => this.onConnect(params)}
+              onEdgeUpdate={(oldEdge, newConnection) => this.onEdgeUpdate(oldEdge, newConnection)}
+              onElementsRemove={(elementsToRemove) => this.onElementsRemove(elementsToRemove)}
+              onLoad={(_reactFlowInstance) => this.onLoad(_reactFlowInstance)}
+              onDrop={(event) => this.onDrop(event)}
+              onDragOver={(event) => this.onDragOver(event)}
+            >
+              <Controls />
+              <Background color="#81818a" gap={16} />
+            </ReactFlow>
+          </div>
+          {/*<Sidebar />*/}
+        </ReactFlowProvider>
+      </div>
+    );
+  };
+}
 const mapStateToProps = (state) => {
   return {
     stateElements:state.diagram.elements,
@@ -75,9 +120,12 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
   return {
+    addNode: (nodeType) => dispatch(addNode(nodeType)),
+    addNewEdge: (newElements) => dispatch(addNewEdge(newElements)),
     updateNodePropierties: (propierties)=> dispatch(updateNodePropierties(propierties)),
-    deleteNodes: (nodesIds) => dispatch(deleteNodes(nodesIds)),
-  
+    updateAfterDeleteElements: (newElements,numOfNodesRemoved) => dispatch(updateAfterDeleteElements(newElements,numOfNodesRemoved)),
+    changeEdge: (newElements) => dispatch(changeEdge(newElements)),
+    diagramView: (activate) => dispatch(diagramView(activate)),
   };
 };
 

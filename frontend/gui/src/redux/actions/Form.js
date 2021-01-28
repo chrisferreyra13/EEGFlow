@@ -14,10 +14,10 @@ export function cancelForm(){
 }
 
 export const ENABLE_FORM = 'ENABLE_FORM'
-export function enableEventForm(){
+export function enableForm(formType){
     return{
         type: ENABLE_FORM,
-        formType: 'ENABLE_EVENT_FORM'
+        formType
     }
 }
 
