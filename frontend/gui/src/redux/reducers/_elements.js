@@ -14,12 +14,24 @@ export default [
   {
     id: null,
     type: 'output',
+    elementType: 'time series plot',
+    targetPosition: 'left',
+    data: {
+      label: 'Grafico en tiempo'
+    },
+    position: { x: 450, y: 80 },
+    params:null,
+  },
+  {
+    id: null,
+    type: 'output',
     elementType: 'plot fourier',
     targetPosition: 'left',
     data: {
       label: 'Espectro'
     },
     position: { x: 450, y: 80 },
+    params:null,
   },
   {
     id: null,
@@ -30,8 +42,48 @@ export default [
       label: 'Tiempo - Frecuencia'
     },
     position: { x: 450, y: 80 },
+    params:null,
   },
   ////////
+  //PREPROCESSING METHODS//
+  {
+    id: null,
+    type: 'default',
+    elementType: 'events',
+    formType:'ENABLE_EVENT_FORM',
+    targetPosition: 'left',
+    sourcePosition: 'right',
+    data: {
+      label: 'Eventos'
+    },
+    position: { x: 450, y: 80 },
+    params:null,
+  },
+  {
+    id: null,
+    type: 'default',
+    elementType: 'time window',
+    targetPosition: 'left',
+    sourcePosition: 'right',
+    data: {
+      label: 'Ventana Temporal'
+    },
+    position: { x: 450, y: 80 },
+    params:null,
+  },
+  {
+    id: null,
+    type: 'default',
+    elementType: 'remove',
+    targetPosition: 'left',
+    sourcePosition: 'right',
+    data: {
+      label: 'Eliminar'
+    },
+    position: { x: 450, y: 80 },
+    params:null,
+  },
+  /////////////////////////
   //FILTERS//
   {
     id: null,
@@ -43,6 +95,7 @@ export default [
       label: 'Filtro Beta'
     },
     position: { x: 450, y: 80 },
+    params:null,
   },
   {
     id: null,
@@ -54,6 +107,7 @@ export default [
       label: 'Filtro Alpha'
     },
     position: { x: 450, y: 80 },
+    params:null,
   },
   {
     id: null,
@@ -65,6 +119,7 @@ export default [
       label: 'Filtro Theta'
     },
     position: { x: 450, y: 80 },
+    params:null,
   },
   {
     id: null,
@@ -76,6 +131,7 @@ export default [
       label: 'Filtro Delta'
     },
     position: { x: 450, y: 80 },
+    params:null,
   },
   {
     id: null,
@@ -83,10 +139,12 @@ export default [
     elementType: 'custom filter',
     targetPosition: 'left',
     sourcePosition: 'right',
+    formType:'ENABLE_FILTER_SELECTOR_FORM',
     data: {
       label: 'Filtro Personalizado'
     },
     position: { x: 450, y: 80 },
+    params:null,
   },
   ////////
   //METHODS//
@@ -100,6 +158,7 @@ export default [
       label: 'ICA'
     },
     position: { x: 450, y: 80 },
+    params:null,
   },
   {
     id: null,
@@ -111,6 +170,7 @@ export default [
       label: 'Pico maximo'
     },
     position: { x: 450, y: 80 },
+    params:null,
   }
   ////////
 ];

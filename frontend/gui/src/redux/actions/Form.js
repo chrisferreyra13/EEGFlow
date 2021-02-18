@@ -1,4 +1,12 @@
 
+export const UPDATE_PARAMS = 'UPDATE_PARAMS'
+export function updateForm(data){
+    return{
+        type: UPDATE_PARAMS,
+        data
+    }
+}
+
 export const OK_FORM = 'OK_FORM'
 export function okForm(){
     return{
@@ -14,10 +22,11 @@ export function cancelForm(){
 }
 
 export const ENABLE_FORM = 'ENABLE_FORM'
-export function enableForm(formType){
+export function enableForm(id,formType){
     return{
         type: ENABLE_FORM,
-        formType
+        formType:formType,
+        id:id
     }
 }
 
