@@ -7,4 +7,5 @@
 **Frontend Packages:** Redux.js
 
 ## Diagrams 
+
 ![alt text](https://github.com/chrisferreyra13/CConsciente/blob/master/frontend/gui/public/images/dashboard_example.png "Diagram example")
