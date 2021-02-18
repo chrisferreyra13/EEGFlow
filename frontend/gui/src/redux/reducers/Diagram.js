@@ -3,7 +3,10 @@ import {
     UPDATE_NODE_PROPIERTIES,
     UPDATE_AFTER_DELETE_ELEMENTS,
     ADD_EDGE,
-    CHANGE_EDGE
+    CHANGE_EDGE,
+    FETCH_RUN_PROCESS_REQUEST,
+    FETCH_RUN_PROCESS_RECEIVE,
+    FETCH_RUN_PROCESS_FAILURE
 } from '../actions/Diagram';
 
 import allowedElements from './_elements';
@@ -16,21 +19,40 @@ const initialState={
         elementType: 'time series',
         sourcePosition:'right',
         data: { label: 'Señal en tiempo' },
-        position: { x: 250, y: 5 },
-        draggable:false
-        },
+        position: { x: 150, y: 50 },
+        draggable:false,
+        params:null
+    },
+    {
+        id: '2',
+        type: 'output',
+        elementType: 'time series plot',
+        targetPosition:'left',
+        data: { label: 'Grafico en tiempo' },
+        position: { x: 500, y: 20 },
+        draggable:true,
+        params:null
+    },
+    {
+        animated:true,
+        arrowHeadType: "arrowclosed",
+        id: "reactflow__edge-1null-2null",
+        source:"1",
+        style:{stroke:"blue"},
+        target:"2",
+    },
     ],
-    nodesCount: 1,
-    lastId: 1
+    nodesCount: 2,
+    lastId: 2
 }
 
 export const diagram= (state=initialState, {type, ...rest})=>{
     switch(type){
-        case ADD_NODE: //TODO: NO ES ROBUSTO USAR NODECOUNT
+        case ADD_NODE: 
             var copyState=Object.assign({},state);
-            var nodeIndex=lastNodeIndex(copyState.elements,copyState.lastId)
+            var nodeIndex=lastNodeIndex(copyState.elements)//,copyState.lastId)
             copyState.elements.push(Object.assign({},allowedElements.find(element => element.elementType===rest.elementType)));
-            copyState.lastId=copyState.lastId+1
+            copyState.lastId=parseInt(copyState.elements[nodeIndex].id)+1;
             copyState.nodesCount=copyState.nodesCount+1
             copyState.elements[copyState.elements.length-1].id=(copyState.lastId).toString();
             var position=copyState.elements[nodeIndex].position
@@ -47,7 +69,16 @@ export const diagram= (state=initialState, {type, ...rest})=>{
 
         case UPDATE_NODE_PROPIERTIES:
             var copyState=Object.assign({},state);
-            copyState.elements[lastNodeIndex(copyState.elements,copyState.lastId)].position=rest.propierties.position;
+            var propierties=Object.getOwnPropertyNames(rest.propierties);
+            let id='0'
+            if(rest.id==''){
+                id=lastNodeIndex(copyState.elements)
+            }else{
+                id=copyState.elements.findIndex(elem => elem.id==rest.id)
+            }
+            for(let prop of propierties){
+                copyState.elements[id][prop]=rest.propierties[prop];
+            }
             return Object.assign({},state,{
                 elements:copyState.elements
             })
@@ -76,11 +107,28 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                 elements: rest.newElements,
             })
 
+        case FETCH_RUN_PROCESS_REQUEST:
+            return state
+        
+        case FETCH_RUN_PROCESS_RECEIVE:
+            return state
+
+        case FETCH_RUN_PROCESS_FAILURE:
+            return state
+
         default:
             return state
     }
 }
 
-const lastNodeIndex = (elements, lastId) => {
-    return elements.findIndex((element)=> element.id===lastId.toString())
+const lastNodeIndex = (elements) => {
+    var i=0
+    var id=0
+    for(i;i<elements.length;i++){
+        if(elements[i].elementType!=undefined){
+            id=i
+        }
+    }
+    return id
+    //return elements.findIndex((element)=> element.id===lastId.toString())
 }

@@ -1,10 +1,12 @@
 import {
-    CHANGE_VIEW
+    CHANGE_VIEW,
+    LINK_DIAGRAM
 } from '../actions/EditSession';
 
 
 const initialState={
     diagramView: false,
+    linkDiagram: true,
 }
 
 export const editSession= (state=initialState, {type, ...rest})=>{
@@ -12,6 +14,11 @@ export const editSession= (state=initialState, {type, ...rest})=>{
         case CHANGE_VIEW:
             return Object.assign({},state,{
                 diagramView:rest.activate
+            })
+
+        case LINK_DIAGRAM:
+            return Object.assign({},state,{
+                linkDiagram:!state.linkDiagram
             })
 
         default:
