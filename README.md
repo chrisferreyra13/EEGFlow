@@ -2,7 +2,7 @@
 * EEG signal processing app.
 * Diagram philosophy.
 
-## Code and Resources Used 
+## Code and Resources Used
 **Backend Packages:** Python 3.6, Pandas, Numpy, MNE, Scipy.
 **Frontend Packages:** Redux.js.
 
