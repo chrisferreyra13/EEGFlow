@@ -26,7 +26,7 @@ const initialState={
     {
         id: '2',
         type: 'output',
-        elementType: 'time series plot',
+        elementType: 'plot time series',
         targetPosition:'left',
         data: { label: 'Grafico en tiempo' },
         position: { x: 500, y: 20 },
