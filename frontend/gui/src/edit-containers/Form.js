@@ -21,7 +21,7 @@ import { runSingleProcess, updateNodePropierties } from '../redux/actions/Diagra
 const EventsForm = lazy(()=>import('../components/forms/EventsForm.js'))
 const FilterSelectorForm = lazy(()=>import('../components/forms/FilterSelectorForm.js'))
 
-class Form extends Component{ //({formType, elements, nodeId, okForm, cancelForm, diagramView, updateForm, runSingleProcess, updateNodePropierties}) => {
+class Form extends Component{ 
   constructor(props){
     super(props)
     this.state={

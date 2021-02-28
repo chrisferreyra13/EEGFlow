@@ -1,50 +1,50 @@
 import React, { Component, lazy } from 'react'
 import {connect} from 'react-redux'
 import {
-  CButton,
   CCol,
   CRow,
 } from '@coreui/react'
-
+import CIcon from '@coreui/icons-react'
 import {fetchTimeSeries} from '../../redux/actions/Signal'
 import { diagramView } from '../../redux/actions/EditSession'
+import { enableChartTemporal } from '../../redux/actions/SideBar'
 
-const ChartTemporal = lazy(() => import('../charts/ChartTemporal.js'))
+const ChartTemporal = lazy(() => import('../../components/charts/ChartTemporal.js'))
 //const FormContainer = lazy(() => import('../../components/forms/FormContainer.js'))
 
 class EditPlot extends Component {
   constructor(props){
     super(props);
     this.props.diagramView(false);
+    const nodes=this.props.elements.map((elem) => elem.elementType!=undefined)
+    this.state={
+      nodeIds:nodes.map((node) => node.elementType.includes('plot')===true)
+    }
   }
 
   componentDidMount(){ //Esto vamos a usar en vez del boton, por ahora mejor usar el boton
-    if(this.props.timeSeries){
+    if(this.props.timeSeries.length==0){
       this.props.fetchTimeSeries(this.props.fileId);
+      this.props.enableChartTemporal()
       //console.log(this.props.temporalSignal)
     }
+    
   }
   
   render(){
   return (
     <>
-      <CCol xs="12" md="6">
-        <CRow>
-          <div>
-            {/*<CCol sm="12" className="d-none d-md-block">*/}
-              {this.props.enableChartTemporal ?
-              <ChartTemporal  signals={this.props.timeSeries}/> :
-              <h6> No hay grafico </h6>
-              }
-            {/*</CCol>*/}
-          </div>
-          <div>
-            {/*<CCol sm="12" xl="40">*/}
-              <CButton block color="info" onClick={() => this.props.fetchTimeSeries(this.props.fileId)}>Buscar señal</CButton>
-            {/*</CCol>*/}
-            </div>        
-        </CRow>
-      </CCol>
+      {this.props.enableChartTemporal && this.props.timeSeries.length!=0 ?
+        <CCol xs="12" md="6">
+          <CRow>
+            <ChartTemporal nodeId={'2'}/> 
+          </CRow>
+        </CCol>:
+        <div style={{alignItems:'center', textAlign:'center', margin:'auto'}}>
+          <h4>Cargando...</h4>
+          <CIcon size= "xl" name="cil-cloud-download" />
+        </div>
+      }
     </>
   )
   }
@@ -55,11 +55,13 @@ const mapStateToProps = (state) => {
     fileId: state.file.fileId,
     timeSeries: state.timeSeries.signal,
     enableChartTemporal: state.plots.chartTemporal,
+    elements: state.diagram.elements
   };
 }
 
 const mapDispatchToProps = (dispatch) => {
   return {
+    enableChartTemporal: () => dispatch(enableChartTemporal()),
     fetchTimeSeries: (fileId) => dispatch(fetchTimeSeries(fileId)),
     diagramView: (activate) => dispatch(diagramView(activate)),
   };

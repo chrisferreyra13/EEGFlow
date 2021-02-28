@@ -14,7 +14,7 @@ export default [
   {
     id: null,
     type: 'output',
-    elementType: 'time series plot',
+    elementType: 'plot time series',
     targetPosition: 'left',
     data: {
       label: 'Grafico en tiempo'

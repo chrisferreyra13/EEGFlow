@@ -67,18 +67,7 @@ class FilterSelectorForm extends Component{
     </div>
     )
   }
-}
 
-const mapStateToProps = (state) => {
-  return{
-    fileId: state.file.fileId,
-  };
-}
-const mapDispatchToProps = (dispatch) => {
-  return {
-    //updateForm: (data) => dispatch(updateForm(data)),
-    
-  };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(FilterSelectorForm)
+export default FilterSelectorForm
