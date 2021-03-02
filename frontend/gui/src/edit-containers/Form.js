@@ -19,7 +19,7 @@ import { runSingleProcess, updateNodePropierties } from '../redux/actions/Diagra
 
 
 const EventsForm = lazy(()=>import('../components/forms/EventsForm.js'))
-const FilterSelectorForm = lazy(()=>import('../components/forms/FilterSelectorForm.js'))
+const CustomFilterForm = lazy(()=>import('../components/forms/CustomFilterForm.js'))
 
 class Form extends Component{ 
   constructor(props){
@@ -120,7 +120,7 @@ const formSelection = (formType) => {
 
   const forms = {
     ENABLE_EVENT_FORM: {title:'Editar Eventos',content:EventsForm},
-    ENABLE_FILTER_SELECTOR_FORM: {title:'Seleccionar Frecuencias',content:FilterSelectorForm},
+    ENABLE_CUSTOM_FILTER_FORM: {title:'Seleccionar Frecuencias',content:CustomFilterForm},
   };
 
   return forms[formType];

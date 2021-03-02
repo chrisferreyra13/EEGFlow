@@ -8,7 +8,7 @@ import {
 } from '@coreui/react'
 
 
-class FilterSelectorForm extends Component{
+class CustomFilterForm extends Component{
   constructor(props){
     super(props);
     this.state={
@@ -70,4 +70,4 @@ class FilterSelectorForm extends Component{
 
 };
 
-export default FilterSelectorForm
+export default CustomFilterForm
