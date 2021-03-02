@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import {connect} from 'react-redux'
 import Chart from './Chart'
+import ChartChannels from './ChartChannels'
 import {SamplesToTimes} from '../../tools/Signal'
 //import  CanvasJSReact from '../../canvasjs/canvasjs.react'
 //import {Line} from 'react-chartjs-2'
@@ -17,17 +18,23 @@ class ChartTemporal extends Component {
 		if(this.props.timeSeries[1]==undefined){
 			return null
 		}else{
-			let limit = this.props.timeSeries[1].length;   
+			let limit = this.props.timeSeries[1].length;
+			let dataChannels=[] 
 			let dataPoints = [];
-			for (var i = 0; i < limit; i += 1) {
-				dataPoints.push({
-				x: SamplesToTimes(i,this.props.samplingFreq,3),
-				y: Math.pow(10,6)*this.props.timeSeries[1][i]
-			});
+			for(var j = 0; j < 6; j += 1){
+				for (var i = 0; i < limit; i += 1) {
+					dataPoints.push({
+					x: SamplesToTimes(i,this.props.samplingFreq,3),
+					y: Math.pow(10,6)*this.props.timeSeries[j][i]
+				});
+				}
+				dataChannels.push(dataPoints)
+				dataPoints=[]
 			}
 			return (
-				<div >
-					<Chart data={dataPoints} />
+				<div>
+					{/*<Chart data={dataPoints} />*/}
+					<ChartChannels data={dataChannels}/>
 				  </div>
 			)
 		}
