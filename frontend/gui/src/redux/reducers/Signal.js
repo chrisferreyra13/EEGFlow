@@ -22,7 +22,7 @@ export const timeSeries = (state = initialState, { type, ...rest }) => {
           return Object.assign({},state, {
               isFetching: false,
               signal: rest.signal,
-              samplingFreq: rest.samplingFreq
+              sFreq: rest.samplingFreq
             })
         case FETCH_TIME_SERIES_FAILURE:
             return {...state, ...rest}
