@@ -110,7 +110,7 @@ class EEGTimeSeries(APIView):
         timeSeries=raw.get_data(picks=['eeg']) #agarro el canal 3, no se cual es
         print(timeSeries.shape)
         response=Response({
-            'signal':(10e6)*timeSeries[1,0:1000],
+            'signal':timeSeries,
             'samplingFreq':raw.info['sfreq'],
         })
         return response
