@@ -20,11 +20,13 @@ from .serializers import EEGInfoSerializer, DictionaryAdapter, EEGTimeSeriesSeri
 from filemanager.storage_manager import get_stored_upload, get_temporary_upload
 from filemanager.models import StoredUpload, TemporaryUpload
 
+import mne
+
 ####VARIABLES####
 LOAD_RESTORE_PARAM_NAME = 'id'
 LOG = logging.getLogger(__name__)
 
-
+print("hola manola")
 ####FUNCTIONS####
 
 def getTemporalUpload(request):
@@ -105,13 +107,15 @@ class EEGTimeSeries(APIView):
             return Response('Invalid file extension',
                         status=status.HTTP_406_NOT_ACCEPTABLE)
         
-        #print(raw.info['ch_names'])
+        chNames=mne.pick_types(raw.info,eeg=True) #Obtengo numeros, no se si es otra forma de nombrar los canales
+        chNames=[str(ch) for ch in chNames]
         #temporalSignal = raw[0, 0:1]
         timeSeries=raw.get_data(picks=['eeg']) #agarro el canal 3, no se cual es
         print(timeSeries.shape)
         response=Response({
             'signal':timeSeries,
             'samplingFreq':raw.info['sfreq'],
+            'chNames': chNames
         })
         return response
 

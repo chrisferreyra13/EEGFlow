@@ -12,7 +12,8 @@ function receiveTimeSeries(json) {
   return {
     type: FETCH_TIME_SERIES_RECEIVE,
     signal: json.signal,
-    samplingFreq:json.samplingFreq
+    samplingFreq:json.samplingFreq,
+    chNames:json.chNames
     
   }
 }
