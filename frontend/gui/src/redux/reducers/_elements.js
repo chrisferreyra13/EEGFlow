@@ -15,6 +15,7 @@ export default [
     id: null,
     type: 'output',
     elementType: 'PLOT_TIME_SERIES',
+    formType:'ENABLE_PLOT_TIME_SERIES_FORM',
     targetPosition: 'left',
     data: {
       label: 'Grafico en tiempo'
