@@ -55,6 +55,9 @@ class EditPlot extends Component {
       PLOT_TIME_SERIES: {content:ChartTemporal},
       //Aca van los otros tipos de charts
     };
+    if(charts[node.plotType]==undefined){
+      return null
+    }
     const chart=charts[node.plotType]
     return <chart.content nodeId={node.id}/> // Cambiar por props cuando se necesiten mas props
   }

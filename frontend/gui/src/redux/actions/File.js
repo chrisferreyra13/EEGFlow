@@ -1,4 +1,4 @@
-const API_ROOT= 'http://127.0.0.1:8000/data/eeg/'
+const API_ROOT= 'http://127.0.0.1:8000/eeg/'
 
 export const FETCH_FILE_INFO_REQUEST = 'FETCH_FILE_INFO_REQUEST'
 function requestFileInfo(fileId) {
