@@ -13,5 +13,5 @@ from rest_framework import routers
 urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^fm/', include('filemanager.urls')),
-    url(r'^data/', include('data.urls')),
+    url(r'^eeg/', include('eeg.urls')),
 ]

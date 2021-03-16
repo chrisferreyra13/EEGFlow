@@ -11,8 +11,9 @@ def upload_path(instance, filename):
 
 ####MODELS####
 
-class EEGInfo(models.Model):
+class FileInfo(models.Model):
     '''
+    ESTO APARECE EN EEGLAB
     -filename
     -Numero de canales
     -Numero de frames por epoca
@@ -27,14 +28,14 @@ class EEGInfo(models.Model):
     -Tamaño del dataset
     '''
 
-    #file_id=models.CharField(max_length=22) # TODO: UUIDField?
-    nchan=models.IntegerField()
+    upload_id=models.CharField(max_length=22)
+    nchan=models.IntegerField(null=True)
     experimenter=models.CharField(max_length=50, null=True)
     proj_name=models.CharField(max_length=50, null=True)
     proj_id=models.CharField(max_length=50, null=True)
     meas_date=models.DateTimeField(null=True)
-    ch_names=models.CharField(max_length=100)
-    custom_ref_applied=models.BooleanField()
+    ch_names=models.CharField(max_length=500,null=True)
+    custom_ref_applied=models.BooleanField(null=True)
     #n_times=models.IntegerField()
 
 

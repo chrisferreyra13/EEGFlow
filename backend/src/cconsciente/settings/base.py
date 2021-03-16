@@ -30,7 +30,7 @@ INSTALLED_APPS = [
     'corsheaders',
     
     'filemanager',
-    'data',
+    'eeg',
 ]
 
 REST_FRAMEWORK = {
