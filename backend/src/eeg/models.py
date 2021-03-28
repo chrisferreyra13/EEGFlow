@@ -28,12 +28,12 @@ class FileInfo(models.Model):
     -Tamaño del dataset
     '''
 
-    upload_id=models.CharField(max_length=22)
-    nchan=models.IntegerField(null=True)
-    experimenter=models.CharField(max_length=50, null=True)
-    proj_name=models.CharField(max_length=50, null=True)
+    upload_id=models.CharField(max_length=22, unique=True)
     proj_id=models.CharField(max_length=50, null=True)
+    proj_name=models.CharField(max_length=50, null=True)
+    experimenter=models.CharField(max_length=50, null=True)
     meas_date=models.DateTimeField(null=True)
+    nchan=models.IntegerField(null=True)
     ch_names=models.CharField(max_length=500,null=True)
     custom_ref_applied=models.BooleanField(null=True)
     #n_times=models.IntegerField()

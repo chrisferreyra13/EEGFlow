@@ -20,7 +20,7 @@ class ChartTemporal extends Component {
 		let params={}
 		if(nodePlot.params==null){
 			params={ //Default params
-				channels:[],
+				channels:['317','316'],
 				minTimeWindow:null,
 				maxTimeWindow:null,
 				largeSize:'on',
