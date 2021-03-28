@@ -5,7 +5,7 @@ chardet==3.0.4
 cycler==0.10.0
 django-cors-headers==3.4.0
 django-storages==1.9.1
-django==3.0.7
+django==3.1.6
 djangorestframework==3.11.2
 httpretty==0.9.6
 idna==2.10
