@@ -18,7 +18,16 @@ class DictionaryAdapter(object):
 class FileInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model=FileInfo
-        fields='__all__'
+        fields=[
+            'upload_id',
+            'proj_id',
+            'proj_name',
+            'experimenter',
+            'meas_date',
+            'nchan',
+            'ch_names',
+            'custom_ref_applied',
+        ]
         
         validators=[
             UniqueTogetherValidator(queryset=FileInfo.objects.all(),
