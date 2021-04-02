@@ -6,6 +6,8 @@ import {file} from './File'
 import {dashboardDataPreview} from './Dashboard'
 import {form} from './Form'
 import {events} from './Events'
+import {diagram} from './Diagram'
+import {editSession} from './EditSession'
 
 const rootReducer = combineReducers({
     changeStateSidebar,
@@ -15,6 +17,8 @@ const rootReducer = combineReducers({
     dashboardDataPreview,
     form,
     events,
+    diagram,
+    editSession,
 });
 
 export default rootReducer

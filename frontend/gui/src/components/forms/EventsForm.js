@@ -17,7 +17,7 @@ class EventsForm extends Component{
   constructor(props){
     super(props);
 
-    if(this.props.eventSamples===null){ // TODO: De esta forma no se busca si hay un cambio en el back
+    if(this.props.eventSamples.length===0){ // TODO: De esta forma no se busca si hay un cambio en el back
       this.props.fetchEvents(this.props.fileId);
     }
     
@@ -25,6 +25,7 @@ class EventsForm extends Component{
       currentPage: 1, 
     }
     this.setCurrentPage=this.setCurrentPage.bind(this)
+
     
   }
 
@@ -37,18 +38,18 @@ class EventsForm extends Component{
   render(){
     return (
       <div>
-        {(this.props.isFetching && this.props.samplingFreq) ? 
+        {(this.props.isFetching || (this.props.samplingFreq==0)) ? 
           <div>
             <CRow>
-                <CCol xs="12" md="12">
-                  <h4>Cargando...</h4>
-                </CCol>
-              </CRow>
-              <CRow>
-                <CCol xs="12" md="12">
-                  <CIcon size= "xl" name="cil-cloud-download" />
-                </CCol>
-              </CRow>
+              <CCol xs="12" md="12">
+                <h4>Cargando...</h4>
+              </CCol>
+            </CRow>
+            <CRow>
+              <CCol xs="12" md="12">
+                <CIcon size= "xl" name="cil-cloud-download" />
+              </CCol>
+            </CRow>
           </div> :
           <div>
             <CForm action="" method="post" encType="multipart/form-data" className="form-horizontal">
@@ -101,7 +102,7 @@ class EventsForm extends Component{
 const mapStateToProps = (state) => {
   return{
     fileId: state.file.fileId,
-    samplingFreq: state.timeSeries.samplingFreq,
+    samplingFreq: state.timeSeries.sFreq,
     eventId: state.events.eventId,
     eventSamples: state.events.eventSamples,
     isFetching: state.events.isFetching

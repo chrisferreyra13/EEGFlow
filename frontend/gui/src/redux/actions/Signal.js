@@ -1,4 +1,4 @@
-const API_ROOT= 'http://127.0.0.1:8000/data/eeg/'
+const API_ROOT= 'http://127.0.0.1:8000/eeg/'
 
 export const FETCH_TIME_SERIES_REQUEST = 'FETCH_TIME_SERIES_REQUEST'
 function requestTimeSeries() {
@@ -11,8 +11,7 @@ export const FETCH_TIME_SERIES_RECEIVE = 'FETCH_TIME_SERIES_RECEIVE'
 function receiveTimeSeries(json) {
   return {
     type: FETCH_TIME_SERIES_RECEIVE,
-    signal: json.signal,
-    samplingFreq:json.samplingFreq
+    timeSeries:json
     
   }
 }
@@ -27,7 +26,7 @@ function errorFetchingTimeSeries(error){
 
 
 export const fetchTimeSeries = (fileId) => async (dispatch) =>{
-    var url = API_ROOT+'time-series/?' + new URLSearchParams({
+    var url = API_ROOT+'time_series/?' + new URLSearchParams({
       id: fileId,
     })
     

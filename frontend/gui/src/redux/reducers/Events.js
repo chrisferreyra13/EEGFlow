@@ -2,7 +2,7 @@ import {FETCH_EVENTS_RECEIVE, FETCH_EVENTS_REQUEST, FETCH_EVENTS_FORM_FAILURE} f
 
 const initialState={
     eventId: [],
-    eventSamples: null,
+    eventSamples: [],
     isFetching: true
 }
 
@@ -14,12 +14,14 @@ export const events = (state=initialState, {type, ...rest}) => {
             })
         case FETCH_EVENTS_RECEIVE:
             return Object.assign({},state,{
-                eventId: rest.events.eventId,
-                eventSamples: rest.events.eventSamples,
+                eventId: rest.events['event_id'],
+                eventSamples: rest.events['event_samples'],
                 isFetching: false
             })
         case FETCH_EVENTS_FORM_FAILURE:
-            return {...state, ...rest}
+            return Object.assign({},state,{
+                isFetching: true
+            })
         default:
             return state
     }

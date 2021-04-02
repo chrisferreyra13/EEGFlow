@@ -2,8 +2,6 @@
 Setup some local application settings with local defaults.
 This approach is based on the one shown in this blog post:
 
-******** DJANGO_DRF_FILEPOND_UPLOAD_TMP in your top level app settings.
-
 '''
 import filemanager
 import os
@@ -22,6 +20,11 @@ if hasattr(settings, 'BASE_DIR'):
 # this must be a subdirectory of settings.BASE_DIR
 UPLOAD_TMP = getattr(settings, _app_prefix+'UPLOAD_TMP',
                      os.path.join(BASE_DIR, 'filemanager_uploads'))
+
+# The location where output of processes are temporarily stored. At present,
+# this must be a subdirectory of settings.BASE_DIR
+UPLOAD_TMP = getattr(settings, _app_prefix+'PROCESS_TMP',
+                     os.path.join(BASE_DIR, 'filemanager_processes'))
 
 # Setting to control whether the temporary directories created for file
 # uploads are removed when an uploaded file is deleted
