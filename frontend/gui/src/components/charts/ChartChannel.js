@@ -8,7 +8,7 @@ import {
     customTheme
 } from '@arction/lcjs'
 
-class Chart extends Component {
+class ChartChannel extends Component {
     constructor(props) {
         super(props)
         // Generate random ID to use as the containerId for the chart and the target div id.
@@ -21,7 +21,7 @@ class Chart extends Component {
         // Create a chartXY, the containerId determines which div the chart will be rendered to.
         this.chart = lightningChart().ChartXY({ container: this.chartId, theme: myTheme  })
         // Set the Title of the chart.
-        this.chart.setTitle('Study 0101')
+        this.chart.setTitle('Canal ' +this.props.channel)
         // Add LineSeries to the chart.
         this.lineSeries = this.chart.addLineSeries()
         // Set the strokeStyle of the lineSeries.
@@ -59,9 +59,9 @@ class Chart extends Component {
     render() {
         // render a component, which includes a div element. The chart will be created inside the div element.
         return (
-            <div id={this.chartId} style={{height:Math.floor(window.innerHeight*0.75), width:Math.floor(window.innerWidth*0.75)}}></div>
+            <div id={this.chartId} style={this.props.chartStyle}></div>
         )
     }
 }
 
-export default Chart
+export default ChartChannel

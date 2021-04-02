@@ -20,6 +20,7 @@ import { runSingleProcess, updateNodePropierties } from '../redux/actions/Diagra
 
 const EventsForm = lazy(()=>import('../components/forms/EventsForm.js'))
 const CustomFilterForm = lazy(()=>import('../components/forms/CustomFilterForm.js'))
+const ChartTemporalForm = lazy(()=>import('../components/forms/ChartTemporalForm.js'))
 
 class Form extends Component{ 
   constructor(props){
@@ -34,7 +35,7 @@ class Form extends Component{
 
   }
   
-  handleFieldChange = (fieldId, value) => {
+  handleFieldChange = (fieldId, value) => { //Cargo los valores que despues se pasan como propiedad al form
     this.setState({
       values:{
         ...this.state.values,
@@ -42,7 +43,7 @@ class Form extends Component{
       }
     });
   };
-  handleMountForm = () =>{
+  handleMountForm = () =>{ //Busco los parametros del nodo
 
     const elem=this.props.elements.find(element => element.id==this.props.nodeId); // Devuelve el valor del primer elemento que cumple
     let params={};
@@ -121,6 +122,7 @@ const formSelection = (formType) => {
   const forms = {
     ENABLE_EVENT_FORM: {title:'Editar Eventos',content:EventsForm},
     ENABLE_CUSTOM_FILTER_FORM: {title:'Seleccionar Frecuencias',content:CustomFilterForm},
+    ENABLE_PLOT_TIME_SERIES_FORM: {title:'Seleccionar Frecuencias',content:ChartTemporalForm},
   };
 
   return forms[formType];
