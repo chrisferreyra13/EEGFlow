@@ -7,6 +7,7 @@ const DashboardDataPreview = React.lazy(() => import('./views/dashboard/Dashboar
 
 //EDIT//
 const EditPlot = React.lazy(() => import('./views/edit/EditPlot'));
+const EditDiagram = React.lazy(() => import('./views/edit/EditDiagram'));
 /*
 const Toaster = React.lazy(() => import('./views/notifications/toaster/Toaster'));
 const Tables = React.lazy(() => import('./views/base/tables/Tables'));
@@ -54,6 +55,7 @@ const routes = [
   { path: '/app/dashboard/boards', name: 'Boards', component: DashboardHome },
   { path: '/app/dashboard/explorer', name: 'Explorer', component: DashboardHome },
   { path: '/app/edit/plot', name: 'Plot', component: EditPlot, exact: true },
+  { path: '/app/edit/diagram', name: 'Diagram', component: EditDiagram, exact: true },
   { path: '/configuration', name: 'Configuration', component: DashboardHome, exact: true },
   { path: '/aboutus', name: 'AboutUs', component: DashboardHome, exact: true },
   /*

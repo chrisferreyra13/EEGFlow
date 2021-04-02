@@ -12,44 +12,52 @@
     box-shadow: 0 0 0 0.2rem rgba(82, 168, 255, 0.5);
 }
 
+.form-container{
+  display: flex;
+  min-width: 0;
+  width: auto;
+  height: $card-height;
+}
+
 .card-form {
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    min-width: 0; // See https://github.com/twbs/bootstrap/pull/22740#issuecomment-305868106
-    height: $card-height;
-    margin-bottom: $card-margin-bottom;
-    word-wrap: break-word;
-    background-clip: border-box;
-    border: $card-border-width solid;
-    @include border-radius($card-border-radius);
-    @include themes($card-theme-map, $create: parent) {
-      background-color: themes-get-value("card-bg");
-      border-color: themes-get-value("card-border-color");
+  z-index: 100;
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  min-width: 0; // See https://github.com/twbs/bootstrap/pull/22740#issuecomment-305868106
+  height: $card-height;
+  margin-bottom: $card-margin-bottom;
+  word-wrap: break-word;
+  background-clip: border-box;
+  border: $card-border-width solid;
+  @include border-radius($card-border-radius);
+  @include themes($card-theme-map, $create: parent) {
+    background-color: themes-get-value("card-bg");
+    border-color: themes-get-value("card-border-color");
+  }
+  
+  > hr {
+    margin-right: 0;
+    margin-left: 0;
+  }
+
+  > .list-group {
+    border-top: inherit;
+    border-bottom: inherit;
+
+    &:first-child {
+      border-top-width: 0;
+      @include border-top-radius($card-inner-border-radius);
     }
-  
-    > hr {
-      margin-right: 0;
-      margin-left: 0;
-    }
-  
-    > .list-group {
-      border-top: inherit;
-      border-bottom: inherit;
-  
-      &:first-child {
-        border-top-width: 0;
-        @include border-top-radius($card-inner-border-radius);
-      }
-  
-      &:last-child  {
-        border-bottom-width: 0;
-        @include border-bottom-radius($card-inner-border-radius);
-      }
-    }
-  
-    &.drag,
-    .drag {
-      cursor: move;
+
+    &:last-child  {
+      border-bottom-width: 0;
+      @include border-bottom-radius($card-inner-border-radius);
     }
   }
+
+  &.drag,
+  .drag {
+    cursor: move;
+  }
+}

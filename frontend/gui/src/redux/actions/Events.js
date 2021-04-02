@@ -1,5 +1,5 @@
 
-const API_ROOT= 'http://127.0.0.1:8000/data/eeg/'
+const API_ROOT= 'http://127.0.0.1:8000/eeg/'
 
 
 export const FETCH_EVENTS_REQUEST = 'FETCH_EVENTS_REQUEST'
@@ -26,10 +26,10 @@ export function errorFetchingEvents(error){
 }
 
 export const fetchEvents = (fileId) => async (dispatch) =>{
-    const jsonPrueba={
+    /*const jsonPrueba={
         eventType: ['rt','square','rt'],
         eventLatency: [1.002,2.05,5.43]
-    }
+    }*/
 
     var url = API_ROOT+'events/?' + new URLSearchParams({
         id: fileId,
