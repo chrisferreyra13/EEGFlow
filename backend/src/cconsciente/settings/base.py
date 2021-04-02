@@ -105,6 +105,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
+FILEMANAGER_PROCESS_TMP=os.path.join(BASE_DIR, 'processes-temp')
 FILEMANAGER_UPLOAD_TMP=os.path.join(BASE_DIR, 'media-temp')
 FILEMANAGER_FILE_STORE_PATH=os.path.join(BASE_DIR, 'media-stored')
 

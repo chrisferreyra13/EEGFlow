@@ -1,6 +1,7 @@
 
 #----IMPORTS----#
 
+from backend.src.filemanager.models import TemporaryOutput
 import logging
 import os
 from sys import getsizeof
@@ -19,7 +20,8 @@ from .eeg_api import *
 from .serializers import FileInfoSerializer
 
 from filemanager.storage_manager import get_stored_upload, get_temporary_upload
-from filemanager.models import StoredUpload, TemporaryUpload
+from filemanager.models import StoredUpload, TemporaryUpload, TemporaryOutput
+from filemanager.utils import _get_file_id, _get_user
 
 import mne
 
@@ -268,7 +270,31 @@ class NotchFilterView(APIView):
                         status=status.HTTP_406_NOT_ACCEPTABLE)
 
 
-        #time_series_notch=raw_notch.get_data(picks=channels) # Obtengo todos los canales
+        if 'save_output' not in request.query_params:
+            save_output=False   # Default: no guardar
+        else:
+            save_output=request.query_params['save_output']
+            if (save_output=='') or (not save_output):
+                save_output=False
+            else:
+                if save_output=='true':
+                    save_output=True
+                elif save_output=='false':
+                    save_output=False
+                else:
+                    return Response('An invalid save field has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+
+        if save_output==True:
+            file_obj='makefile'
+            process_id = _get_file_id()
+            file_id = _get_file_id()
+
+            temp_process_output=TemporaryOutput(process_id=process_id, file_id=file_id,
+                            file=file_obj, upload_type=TemporaryUpload.FILE_DATA,
+                            uploaded_by=_get_user(request))
+
+            temp_process_output.save()
 
         if channels==None:
             channels='all'
