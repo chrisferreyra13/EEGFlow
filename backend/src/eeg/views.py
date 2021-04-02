@@ -269,7 +269,7 @@ class NotchFilterView(APIView):
             return Response('Invalid file extension',
                         status=status.HTTP_406_NOT_ACCEPTABLE)
 
-
+        '''
         if 'save_output' not in request.query_params:
             save_output=False   # Default: no guardar
         else:
@@ -294,7 +294,7 @@ class NotchFilterView(APIView):
                             file=file_obj, upload_type=TemporaryUpload.FILE_DATA,
                             uploaded_by=_get_user(request))
 
-            temp_process_output.save()
+            temp_process_output.save()'''
 
         if channels==None:
             channels='all'
