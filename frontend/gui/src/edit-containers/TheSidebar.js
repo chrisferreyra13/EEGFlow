@@ -70,7 +70,7 @@ const TheSidebar = ({show, addNode, enableChartTemporal, enableForm, diagramView
             placement="right-start"
             modifiers={[{name: 'flip', enabled: false }]}
           >
-            <CDropdownItem onClick={() => onClick(null,'PLOT_TIME_SERIES')} onDragStart={(event) => onDragStart(event, 'PLOT_TIME_SERIES')} draggable>Temporal</CDropdownItem>
+            <CDropdownItem onClick={() => onClick('ENABLE_PLOT_TIME_SERIES_FORM','PLOT_TIME_SERIES')} onDragStart={(event) => onDragStart(event, 'PLOT_TIME_SERIES')} draggable>Temporal</CDropdownItem>
             <CDropdownItem onClick={() => onClick(null,'PLOT_FOURIER')} onDragStart={(event) => onDragStart(event, 'PLOT_FOURIER')} draggable>Fourier</CDropdownItem>
             <CDropdownItem onClick={() => onClick(null,'PLOT_TIME_FREQUENCY')} onDragStart={(event) => onDragStart(event, 'PLOT_TIME_FREQUENCY')} draggable>Tiempo - Frecuencia</CDropdownItem>
             <CDropdownItem disable="true">Topografico</CDropdownItem>

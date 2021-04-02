@@ -25,7 +25,7 @@ import {
     UIElementColumn
 } from "@arction/lcjs"
 
-//import { createProgressiveRandomGenerator } from "@arction/xydata"
+// TODO: Poner los estilos en un css
 
 // Use theme if provided
 class ChartChannels extends Component {
@@ -37,14 +37,7 @@ class ChartChannels extends Component {
     createChart(){
         let theme = Themes.light
         // Define channels.
-        const channels = [
-            'Ch 1',
-            'Ch 2',
-            'Ch 3',
-            'Ch 4',
-            'Ch 5',
-            'Ch 6',
-        ]
+        const channels = this.props.channels
         // This is more like a guideline (streaming uses JS setInterval, which is not precise). Refer to in-chart PPS indicator for actual value.
         //const approxPointsPerSecondChannel = 10000
         const intervalMin=Math.min.apply(Math, this.props.data[1].map(function(o) { return o.y; }))
@@ -97,7 +90,7 @@ class ChartChannels extends Component {
                     .setFont((font) => font
                         .setWeight('bold')
                     )
-                    .setTextFillStyle(new SolidFill())
+                    .setTextFillStyle(new SolidFill({ color: ColorHEX('#3c4b64') })) //Color de los canales
                     .setBackground((background) => background
                         .setFillStyle(emptyFill)
                         .setStrokeStyle(emptyLine)
@@ -105,7 +98,7 @@ class ChartChannels extends Component {
                 )
                 .setGridStrokeStyle(new SolidLine({
                     thickness: 1,
-                    fillStyle: new SolidFill({ color: ColorHEX('#3c4b64') })
+                    fillStyle: new SolidFill({ color: ColorHEX('#3c4b64') }) //Color de las lineas grilla
                 }))
             return series
         })
@@ -159,76 +152,6 @@ class ChartChannels extends Component {
         },
             this.chart.uiScale
         )
-
-        // Create indicators for points-per-second and frames-per-second.
-        /*const indicatorLayout = this.chart.addUIElement(//<UIElementColumn<UIRectangle>>(
-            UILayoutBuilders.Column
-                .setBackground(UIBackgrounds.Rectangle),
-            // Position UIElement with Axis coordinates.
-            this.chart.uiScale
-        )
-        /*const indicatorLayout = chart.addUIElement(UILayoutBuilders.Column
-            .setBackground(UIBackgrounds.Rectangle), 
-        // Position UIElement with Axis coordinates.
-        chart.uiScale)*/
-        
-            /*.setOrigin(UIOrigins.LeftTop)
-            .setPosition(indicatorPos)
-            .setDraggingMode(UIDraggingModes.notDraggable)
-            // Set dark, tinted Background style.
-            .setBackground((background) => background
-                .setFillStyle(new SolidFill({ color: ColorHEX('#000').setA(150) }))
-                .setStrokeStyle(emptyLine)
-            )*/
-        // FPS indicator.
-        /*const fpsPrefix = 'Rendering frames-per-second (FPS)'
-        //const indicatorFPS = indicatorLayout.addElement<UITextBox<UIRectangle>>(UIElementBuilders.TextBox)
-        const indicatorFPS = indicatorLayout.addElement(UIElementBuilders.TextBox)
-            .setText(fpsPrefix)
-            .setFont((font) => font
-                .setWeight('bold')
-            )*/
-
-        // PPS indicator.
-        /*const ppsPrefix = 'Incoming data, at rate of points-per-second (PPS)'
-        //const indicatorPPS = indicatorLayout.addElement<UITextBox<UIRectangle>>(UIElementBuilders.TextBox)
-        const indicatorPPS = indicatorLayout.addElement(UIElementBuilders.TextBox)
-            .setText(ppsPrefix)
-            .setFont((font) => font
-                .setWeight('bold')
-            )*/
-
-        // Measure FPS.
-        /*let frameCount = 0
-        let frameDelaySum = 0
-        let framePrevious= Number | undefined
-        const measureFPS = () => {
-            const now = window.performance.now()
-            frameCount++
-            if (framePrevious)
-                frameDelaySum += now - framePrevious
-            framePrevious = now
-            requestAnimationFrame(measureFPS)
-        }
-        requestAnimationFrame(measureFPS)*/
-
-        // Update displayed FPS and PPS on regular intervals.
-        /*let displayPrevious = window.performance.now()
-        setInterval(() => {
-            const now = window.performance.now()
-            const delta = now - displayPrevious
-            const fps = 1000 / (frameDelaySum / frameCount)
-            const pps = 1000 * pointsAdded / delta
-
-            indicatorFPS.setText(`${fpsPrefix}: ${fps.toFixed(1)}`)
-            indicatorPPS.setText(`${ppsPrefix}: ${pps.toFixed(0)}`)
-
-            // Reset counters.
-            frameDelaySum = 0
-            frameCount = 0
-            pointsAdded = 0
-            displayPrevious = now
-        }, 1000)*/
     }
     componentDidMount() {
         // Chart can only be created when the component has mounted the DOM as 
@@ -242,7 +165,7 @@ class ChartChannels extends Component {
     }
     
     render(){
-        return <div id={this.chartId} style={{height:Math.floor(window.innerHeight*0.75), width:Math.floor(window.innerWidth*0.75)}}></div>
+        return <div id={this.chartId} style={this.props.chartStyle}></div>
     }
     
 }

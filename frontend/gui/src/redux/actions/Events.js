@@ -1,5 +1,5 @@
 
-const API_ROOT= 'http://127.0.0.1:8000/data/eeg/'
+const API_ROOT= 'http://127.0.0.1:8000/eeg/'
 
 
 export const FETCH_EVENTS_REQUEST = 'FETCH_EVENTS_REQUEST'

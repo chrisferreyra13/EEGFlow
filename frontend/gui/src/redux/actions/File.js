@@ -1,4 +1,4 @@
-const API_ROOT= 'http://127.0.0.1:8000/data/eeg/'
+const API_ROOT= 'http://127.0.0.1:8000/eeg/'
 
 export const FETCH_FILE_INFO_REQUEST = 'FETCH_FILE_INFO_REQUEST'
 function requestFileInfo(fileId) {
@@ -28,16 +28,17 @@ function errorFetchingFileInfo(error){
 
 
 export const getFileInfo = (fileId) => async (dispatch) =>{
-    var url = API_ROOT+'info/?' + new URLSearchParams({
-        id: fileId,
-    })
+    var url = API_ROOT+'info/?'
     
     var header= new Headers()
     var initFetch={
-      method: 'GET',
-      headers: header,
-      mode: 'cors',
-      cache: 'default'
+      method: 'POST',
+      body:JSON.stringify({"id": fileId}),
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      /*mode: 'cors',
+      cache: 'default'*/
     };
 
     dispatch(requestFileInfo(fileId))
