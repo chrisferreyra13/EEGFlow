@@ -187,15 +187,17 @@ class TemporaryOutput(models.Model):
         (URL, 'Remote file URL'),
     )
 
-    process_id=models.CharField(max_length=22, validators=[MinLengthValidator(22)])
+    process_id=models.CharField(primary_key=True,max_length=22, validators=[MinLengthValidator(22)])
 
-    file_id = models.CharField(primary_key=True, max_length=22,
-                                 validators=[MinLengthValidator(22)])
+    file_id = models.CharField(max_length=22,
+                                 validators=[MinLengthValidator(22)], default='MNMNMNMNMNMNMNMNMNMN')
 
-    file = models.FileField(storage=storage, upload_to=get_file_path)
+    file = models.FileField(blank=True, storage=processes_storage, upload_to=get_file_path)
     created = models.DateTimeField(auto_now_add=True)
     file_type = models.CharField(max_length=1,
                                    choices=UPLOAD_TYPE_CHOICES)
+
+    process_type=models.CharField(max_length=50, blank=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True,
                                     blank=True, on_delete=models.CASCADE)
 
