@@ -23,7 +23,7 @@ UPLOAD_TMP = getattr(settings, _app_prefix+'UPLOAD_TMP',
 
 # The location where output of processes are temporarily stored. At present,
 # this must be a subdirectory of settings.BASE_DIR
-UPLOAD_TMP = getattr(settings, _app_prefix+'PROCESS_TMP',
+PROCESS_TMP = getattr(settings, _app_prefix+'PROCESS_TMP',
                      os.path.join(BASE_DIR, 'filemanager_processes'))
 
 # Setting to control whether the temporary directories created for file
