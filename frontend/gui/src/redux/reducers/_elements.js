@@ -3,7 +3,7 @@ export default [
   {
     id: null,
     type: 'input',
-    elementType: 'time series',
+    elementType: 'TIME_SERIES',
     sourcePosition: 'right',
     data: {
       label: 'Señal en tiempo'
@@ -14,7 +14,8 @@ export default [
   {
     id: null,
     type: 'output',
-    elementType: 'time series plot',
+    elementType: 'PLOT_TIME_SERIES',
+    formType:'ENABLE_PLOT_TIME_SERIES_FORM',
     targetPosition: 'left',
     data: {
       label: 'Grafico en tiempo'
@@ -25,7 +26,7 @@ export default [
   {
     id: null,
     type: 'output',
-    elementType: 'plot fourier',
+    elementType: 'PLOT_FOURIER',
     targetPosition: 'left',
     data: {
       label: 'Espectro'
@@ -36,7 +37,7 @@ export default [
   {
     id: null,
     type: 'output',
-    elementType: 'plot time - frequency',
+    elementType: 'PLOT_TIME_FREQUENCY',
     targetPosition: 'left',
     data: {
       label: 'Tiempo - Frecuencia'
@@ -49,7 +50,7 @@ export default [
   {
     id: null,
     type: 'default',
-    elementType: 'events',
+    elementType: 'EVENTS',
     formType:'ENABLE_EVENT_FORM',
     targetPosition: 'left',
     sourcePosition: 'right',
@@ -62,7 +63,7 @@ export default [
   {
     id: null,
     type: 'default',
-    elementType: 'time window',
+    elementType: 'TIME_WINDOW',
     targetPosition: 'left',
     sourcePosition: 'right',
     data: {
@@ -74,7 +75,7 @@ export default [
   {
     id: null,
     type: 'default',
-    elementType: 'remove',
+    elementType: 'REMOVE',
     targetPosition: 'left',
     sourcePosition: 'right',
     data: {
@@ -88,7 +89,7 @@ export default [
   {
     id: null,
     type: 'default',
-    elementType: 'beta',
+    elementType: 'BETA',
     targetPosition: 'left',
     sourcePosition: 'right',
     data: {
@@ -100,7 +101,7 @@ export default [
   {
     id: null,
     type: 'default',
-    elementType: 'alpha',
+    elementType: 'ALPHA',
     targetPosition: 'left',
     sourcePosition: 'right',
     data: {
@@ -112,7 +113,7 @@ export default [
   {
     id: null,
     type: 'default',
-    elementType: 'theta',
+    elementType: 'THETA',
     targetPosition: 'left',
     sourcePosition: 'right',
     data: {
@@ -124,7 +125,7 @@ export default [
   {
     id: null,
     type: 'default',
-    elementType: 'delta',
+    elementType: 'DELTA',
     targetPosition: 'left',
     sourcePosition: 'right',
     data: {
@@ -136,10 +137,10 @@ export default [
   {
     id: null,
     type: 'default',
-    elementType: 'custom filter',
+    elementType: 'CUSTOM_FILTER',
     targetPosition: 'left',
     sourcePosition: 'right',
-    formType:'ENABLE_FILTER_SELECTOR_FORM',
+    formType:'ENABLE_CUSTOM_FILTER_FORM',
     data: {
       label: 'Filtro Personalizado'
     },
@@ -151,7 +152,7 @@ export default [
   {
     id: null,
     type: 'default',
-    elementType: 'ica',
+    elementType: 'ICA',
     targetPosition: 'left',
     sourcePosition: 'right',
     data: {
@@ -163,7 +164,7 @@ export default [
   {
     id: null,
     type: 'default',
-    elementType: 'max peak',
+    elementType: 'MAX_PEAK',
     targetPosition: 'left',
     sourcePosition: 'right',
     data: {

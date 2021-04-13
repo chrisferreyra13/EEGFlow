@@ -24,11 +24,18 @@ FILEMANAGER_UPLOAD_TMP = getattr(
     local_settings, 'UPLOAD_TMP',
     os.path.join(local_settings.BASE_DIR, 'filemanager_uploads'))
 
+FILEMANAGER_PROCESS_TMP = getattr(
+    local_settings, 'PROCESS_TMP',
+    os.path.join(local_settings.BASE_DIR, 'filemanager_processes'))
+
 FILEMANAGER_FILE_STORE_PATH = getattr(local_settings, 'FILE_STORE_PATH', None)
 
 #----FUNCTIONS----#
 def get_upload_path(instance, filename):
     return os.path.join(instance.upload_id, filename)
+
+def get_file_path(instance, filename):
+    return os.path.join(instance.process_id, filename)
     
 #----MODELS----#
 @deconstructible
@@ -50,6 +57,23 @@ class FileManagerUploadSystemStorage(FileSystemStorage):
 
 storage = FileManagerUploadSystemStorage()
 
+@deconstructible
+class FileManagerProcessesSystemStorage(FileSystemStorage):
+    """
+    Subclass FileSystemStorage to prevent creation of new migrations when
+    using a file store location passed to FileSystemStorage using the
+    location attribute. Instead the location is applied dynamically on
+    creation of the subclass avoiding detection of changes by the migration
+    system.
+    """
+
+    def __init__(self, **kwargs):
+        kwargs.update({
+            'location': FILEMANAGER_PROCESS_TMP,
+        })
+        super(FileManagerProcessesSystemStorage, self).__init__(**kwargs)
+
+processes_storage=FileManagerProcessesSystemStorage()
 
 @deconstructible
 class FileManagerLocalStoredStorage(FileSystemStorage):
@@ -153,6 +177,32 @@ class StoredUpload(models.Model):
         if not fsp:
             fsp = ''
         return os.path.join(fsp, self.file.name)
+
+class TemporaryOutput(models.Model):
+
+    FILE_DATA = 'F'
+    URL = 'U'
+    UPLOAD_TYPE_CHOICES = (
+        (FILE_DATA, 'File data'),
+        (URL, 'Remote file URL'),
+    )
+
+    process_id=models.CharField(primary_key=True,max_length=22, validators=[MinLengthValidator(22)])
+
+    file_id = models.CharField(max_length=22,
+                                 validators=[MinLengthValidator(22)], default='MNMNMNMNMNMNMNMNMNMN')
+
+    file = models.FileField(blank=True, storage=processes_storage, upload_to=get_file_path)
+    created = models.DateTimeField(auto_now_add=True)
+    file_type = models.CharField(max_length=1,
+                                   choices=UPLOAD_TYPE_CHOICES)
+
+    process_type=models.CharField(max_length=50, blank=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True,
+                                    blank=True, on_delete=models.CASCADE)
+
+    def get_file_path(self):
+        return self.file.path
 
 
 # When a TemporaryUpload record is deleted, we need to delete the

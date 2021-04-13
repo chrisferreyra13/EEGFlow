@@ -70,9 +70,9 @@ const TheSidebar = ({show, addNode, enableChartTemporal, enableForm, diagramView
             placement="right-start"
             modifiers={[{name: 'flip', enabled: false }]}
           >
-            <CDropdownItem onClick={()=>enableChartTemporal()}>Temporal</CDropdownItem>
-            <CDropdownItem onClick={() => onClick(null,'plot fourier')} onDragStart={(event) => onDragStart(event, 'plot fourier')} draggable>Fourier</CDropdownItem>
-            <CDropdownItem onClick={() => onClick(null,'plot time - frequency')} onDragStart={(event) => onDragStart(event, 'plot time - frequency')} draggable>Tiempo - Frecuencia</CDropdownItem>
+            <CDropdownItem onClick={() => onClick('ENABLE_PLOT_TIME_SERIES_FORM','PLOT_TIME_SERIES')} onDragStart={(event) => onDragStart(event, 'PLOT_TIME_SERIES')} draggable>Temporal</CDropdownItem>
+            <CDropdownItem onClick={() => onClick(null,'PLOT_FOURIER')} onDragStart={(event) => onDragStart(event, 'PLOT_FOURIER')} draggable>Fourier</CDropdownItem>
+            <CDropdownItem onClick={() => onClick(null,'PLOT_TIME_FREQUENCY')} onDragStart={(event) => onDragStart(event, 'PLOT_TIME_FREQUENCY')} draggable>Tiempo - Frecuencia</CDropdownItem>
             <CDropdownItem disable="true">Topografico</CDropdownItem>
           </CDropdownMenu>
         </CDropdown>
@@ -86,10 +86,10 @@ const TheSidebar = ({show, addNode, enableChartTemporal, enableForm, diagramView
             modifiers={[{name: 'flip', enabled: false }]}
           >
             <CDropdownItem>Seleccionar</CDropdownItem>
-            <CDropdownItem onClick={() => onClick('ENABLE_EVENT_FORM','events')} onDragStart={(event) => onDragStart(event, 'events')} draggable>Eventos</CDropdownItem>
+            <CDropdownItem onClick={() => onClick('ENABLE_EVENT_FORM','EVENTS')} onDragStart={(event) => onDragStart(event, 'EVENTS')} draggable>Eventos</CDropdownItem>
             <CDropdownItem >Epocas</CDropdownItem>
-            <CDropdownItem onClick={() => onClick(null,'time window')} onDragStart={(event) => onDragStart(event, 'time window')} draggable>Ventana Temporal</CDropdownItem>
-            <CDropdownItem onClick={() => onClick(null,'remove')} onDragStart={(event) => onDragStart(event, 'remove')} draggable>Eliminar</CDropdownItem>
+            <CDropdownItem onClick={() => onClick(null,'TIME_WINDOW')} onDragStart={(event) => onDragStart(event, 'TIME_WINDOW')} draggable>Ventana Temporal</CDropdownItem>
+            <CDropdownItem onClick={() => onClick(null,'REMOVE')} onDragStart={(event) => onDragStart(event, 'REMOVE')} draggable>Eliminar</CDropdownItem>
           </CDropdownMenu>
         </CDropdown>
 
@@ -101,14 +101,14 @@ const TheSidebar = ({show, addNode, enableChartTemporal, enableForm, diagramView
             placement="right-start"
             modifiers={[{name: 'flip', enabled: false }]}
           >
-            <CDropdownItem onClick={() => onClick('ENABLE_FILTER_SELECTOR_FORM','custom filter')} onDragStart={(event) => onDragStart(event, 'custom filter')} draggable>Seleccionar frecuencias</CDropdownItem>
+            <CDropdownItem onClick={() => onClick('ENABLE_FILTER_SELECTOR_FORM','CUSTOM_FILTER')} onDragStart={(event) => onDragStart(event, 'CUSTOM_FILTER')} draggable>Seleccionar frecuencias</CDropdownItem>
             <CDropdownDivider/>
             {/*<CDropdownHeader>Frecuentes</CDropdownHeader>*/}
             {/* ESTO VA EN CDdropdownItem onClick={() => addNode('default')}*/}
-            <CDropdownItem onClick={() => onClick(null,'beta')} onDragStart={(event) => onDragStart(event, 'beta')} draggable>Beta</CDropdownItem>
-            <CDropdownItem onClick={() => onClick(null,'alpha')} onDragStart={(event) => onDragStart(event, 'alpha')} draggable>Alpha</CDropdownItem>
-            <CDropdownItem onClick={() => onClick(null,'theta')} onDragStart={(event) => onDragStart(event, 'theta')} draggable>Theta</CDropdownItem>
-            <CDropdownItem onClick={() => onClick(null,'delta')} onDragStart={(event) => onDragStart(event, 'delta')} draggable>Delta</CDropdownItem>
+            <CDropdownItem onClick={() => onClick(null,'BETA')} onDragStart={(event) => onDragStart(event, 'BETA')} draggable>Beta</CDropdownItem>
+            <CDropdownItem onClick={() => onClick(null,'ALPHA')} onDragStart={(event) => onDragStart(event, 'ALPHA')} draggable>Alpha</CDropdownItem>
+            <CDropdownItem onClick={() => onClick(null,'THETA')} onDragStart={(event) => onDragStart(event, 'THETA')} draggable>Theta</CDropdownItem>
+            <CDropdownItem onClick={() => onClick(null,'DELTA')} onDragStart={(event) => onDragStart(event, 'DELTA')} draggable>Delta</CDropdownItem>
           </CDropdownMenu>
         </CDropdown>
 
@@ -123,8 +123,8 @@ const TheSidebar = ({show, addNode, enableChartTemporal, enableForm, diagramView
             <CDropdownItem>Buscar</CDropdownItem>
             <CDropdownDivider/>
             {/*<CDropdownHeader>Frecuentes</CDropdownHeader>*/}
-            <CDropdownItem onClick={() => onClick(null,'ica')} onDragStart={(event) => onDragStart(event, 'ica')} draggable>ICA</CDropdownItem>
-            <CDropdownItem onClick={() => onClick(null,'max peak')} onDragStart={(event) => onDragStart(event, 'max peak')} draggable>Pico maximo</CDropdownItem>
+            <CDropdownItem onClick={() => onClick(null,'ICA')} onDragStart={(event) => onDragStart(event, 'ICA')} draggable>ICA</CDropdownItem>
+            <CDropdownItem onClick={() => onClick(null,'MAX_PEAK')} onDragStart={(event) => onDragStart(event, 'MAX_PEAK')} draggable>Pico maximo</CDropdownItem>
           </CDropdownMenu>
         </CDropdown>
 
