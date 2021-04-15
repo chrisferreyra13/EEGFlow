@@ -131,26 +131,34 @@ export const runProcess= (elements) => async (dispatch) => {
     let nextNodo=null
     {
         process.push(diagram[0]) // NODO INICIAL
-        nodo=diagram[0]
+        nodo=diagram[0] //1
         {
+            //nodo=3
+            if(blacklist.includes(nodo.output)){    // Todos los outputs
+                blacklist.push(nodo.id)
+                nodo=diagram.find(n=> n.id==favlist[favlist.findIndex(nd=>nd==nodo.id)-1])  //Buscar en la favlist en id del nodo anterior al 'nodo'
+                //process.delete.last //Eliminar el ultimo agregado a process porque nos equivocamos
+                
+            } //nodo=2
 
-            {i=i+1}while(blacklist.includes(nodo.output[i]))    
+            {i=i+1}while(blacklist.includes(nodo.output[i]))    //i=1
 
-            nextNodo=diagram.find(n => n.id==nodo.output[i])
-            process.push(nextNodo)
+            nextNodo=diagram.find(n => n.id==nodo.output[i]) //4
+            process.push(nextNodo)//4
 
             if(nextNodo.output.length>1 && firstime==true)
-                favlist.push(nextNodo.id)
+                favlist.push(nextNodo.id) //NUNCA MAS
 
             if(nextNodo.type=='output')
-                blacklist.push(nextNodo.id)
+                blacklist.push(nextNodo.id)//4
 
-            if(i>=nodo.output.length-1)
-                blacklist.push(nodo.id)
+            if(i>=nodo.output.length-1 && nodo.id!='1') // Si ya recorri todos los outputs
+                blacklist.push(nodo.id)//2
             
+            nodo=nextNodo //4
             i=0
 
-        }while(nodo.type=='output')
+        }while(nodo.type=='output')//4
         processes.push(process)
         firstime=false
         process=[]
