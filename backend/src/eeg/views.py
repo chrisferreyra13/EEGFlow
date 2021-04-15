@@ -332,24 +332,29 @@ class NotchFilterView(APIView):
                 
         # MAKE OUTPUT
 
-        if save_output==True:
+        if save_output:
             process_id=make_process_file(request,process_name='notch',content=time_series_notch)
             if type(process_id).__name__=='Response':
                 return process_id
         else:
             process_id=''
-               
+
+        output_dict={
+                'signal':'',
+                'filter':'notch',
+                'freqs':[notch_freq],
+                'filtered_channels': channels,
+                'process_id':process_id
+            }
+
+        if return_output:
+            output_dict['signal']=time_series_notch,
+                
 
         if channels==None:
             channels='all'
 
-        response=Response({
-            'signal':time_series_notch,
-            'filter':'notch',
-            'freqs':[notch_freq],
-            'filtered_channels': channels,
-            'process_id':process_id
-        })
+        response=Response(output_dict)
         return response
 
 
