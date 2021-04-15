@@ -1,13 +1,15 @@
 
 #----IMPORTS----#
 
-from backend.src.filemanager.models import TemporaryOutput
 import logging
 import os
 from sys import getsizeof
 
 from django.shortcuts import render
 from django.http import Http404
+from django.core.files import File
+from django.core.files.base import ContentFile
+
 
 from rest_framework import status
 from rest_framework.views import APIView
@@ -22,14 +24,65 @@ from .serializers import FileInfoSerializer
 from filemanager.storage_manager import get_stored_upload, get_temporary_upload
 from filemanager.models import StoredUpload, TemporaryUpload, TemporaryOutput
 from filemanager.utils import _get_file_id, _get_user
+from filemanager.filemanager_settings import PROCESS_TMP
 
 import mne
+import numpy as np
 
 ####VARIABLES####
 LOAD_RESTORE_PARAM_NAME = 'id'
 LOG = logging.getLogger(__name__)
 
 ####FUNCTIONS####
+
+def make_process_file(request,process_name,content):
+    process_id = _get_file_id()
+    file_id = _get_file_id()
+    user=_get_user(request)
+
+    temp_process_output=TemporaryOutput(
+                    process_id=process_id,
+                    file_type=TemporaryOutput.FILE_DATA,
+                    process_type=process_name,
+                    created_by=user)
+
+    if user==None:
+        user='anon'
+
+    filename=user+'.'+process_name+'.'+file_id+'.bin'
+    
+    try:
+        '''with open(os.path.join(path,filename), 'wb+') as f:
+            np.save(f, content)'''
+        temp_process_output.file.save(filename,ContentFile(content))
+    except:
+        raise Response('Error making file for process output', status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                        
+    temp_process_output.save()
+
+    return process_id
+
+def check_process_params(request,params_names=None,params_values=None):
+    if params_names==None:
+        params_names=['save_output','return_output']    # Default params
+    if params_values==None:
+        params_values=[False]*len(params_names) # Default list
+
+    params=dict(zip(params_names,params_values))
+    p=False
+    for param_name in params_names:
+        if param_name in request.query_params:
+            p=request.query_params[param_name]
+            if p=='true':
+                params[param_name]=True
+            elif p=='false':
+                params[param_name]=False
+            else:
+                return Response('An invalid {} field has been provided.'.format(param_name),
+                    status=status.HTTP_400_BAD_REQUEST)
+    
+    return params
+
 
 def get_upload_id(request):
     # Miro que el usuario envie el id que le retornamos al cargar el archivo
@@ -221,21 +274,7 @@ class NotchFilterView(APIView):
     
     def get(self, request, format=None):
 
-        if LOAD_RESTORE_PARAM_NAME not in request.query_params:
-            return Response('ID parameter is missing.',
-                            status=status.HTTP_400_BAD_REQUEST)
-
-        id=request.query_params[LOAD_RESTORE_PARAM_NAME]
-
-        file_info=get_file_info(id)
-        if type(file_info).__name__=='Response':
-            return file_info
-
-        try:
-            tu = get_upload(file_info.upload_id)
-        except FileNotFoundError:
-            Response('Not found', status=status.HTTP_404_NOT_FOUND)
-        
+        # CHECK REQUEST PARAMS    
         if 'channels' not in request.query_params:
             channels=None   # Si no envian nada se lo aplico a todos los canales
         else:
@@ -263,38 +302,43 @@ class NotchFilterView(APIView):
                     return Response('An invalid notch filter frequency has been provided.',
                         status=status.HTTP_400_BAD_REQUEST) 
 
+        process_params=check_process_params(request,params_names=['save_output','return_output'])
+
+        save_output=process_params['save_output']
+        return_output=process_params['return_output']
+
+        if LOAD_RESTORE_PARAM_NAME not in request.query_params:
+            return Response('ID parameter is missing.',
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        id=request.query_params[LOAD_RESTORE_PARAM_NAME]
+
+        file_info=get_file_info(id)
+        if type(file_info).__name__=='Response':
+            return file_info
+
+        try:
+            tu = get_upload(file_info.upload_id)
+        except FileNotFoundError:
+            Response('Not found', status=status.HTTP_404_NOT_FOUND)
+
+        # PROCESS
+
         try:
             time_series_notch=notch_filter(os.path.join(tu.upload_id,tu.upload_name),notch_freq,channels)
         except TypeError:
             return Response('Invalid file extension',
                         status=status.HTTP_406_NOT_ACCEPTABLE)
-
-
-        if 'save_output' not in request.query_params:
-            save_output=False   # Default: no guardar
-        else:
-            save_output=request.query_params['save_output']
-            if (save_output=='') or (not save_output):
-                save_output=False
-            else:
-                if save_output=='true':
-                    save_output=True
-                elif save_output=='false':
-                    save_output=False
-                else:
-                    return Response('An invalid save field has been provided.',
-                        status=status.HTTP_400_BAD_REQUEST)
+                
+        # MAKE OUTPUT
 
         if save_output==True:
-            file_obj='makefile'
-            process_id = _get_file_id()
-            file_id = _get_file_id()
-
-            temp_process_output=TemporaryOutput(process_id=process_id, file_id=file_id,
-                            file=file_obj, upload_type=TemporaryUpload.FILE_DATA,
-                            uploaded_by=_get_user(request))
-
-            temp_process_output.save()
+            process_id=make_process_file(request,process_name='notch',content=time_series_notch)
+            if type(process_id).__name__=='Response':
+                return process_id
+        else:
+            process_id=''
+               
 
         if channels==None:
             channels='all'
@@ -303,7 +347,8 @@ class NotchFilterView(APIView):
             'signal':time_series_notch,
             'filter':'notch',
             'freqs':[notch_freq],
-            'filtered_channels': channels
+            'filtered_channels': channels,
+            'process_id':process_id
         })
         return response
 
