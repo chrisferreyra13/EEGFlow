@@ -63,11 +63,38 @@ export function runProcessFailure(){
 
 export const runProcess= (elements) => async (dispatch) => {
     var i=0
-    var flux=[]
-    var nodes=[]
-    for(i;i<elements.length;i++){
+    var diagram=[
+        {
+            id:'1',
+            type:'input',
+            elementType:'TIME_SERIES',
+            input:null,
+            output:['2'],
+            params:null,
+            save_output:'false',
+            return_output:'false',
+
+        },
+        {
+            id:'2',
+            type:'output',
+            elementType:'PLOT_TIME_SERIES',
+            input:['1'],
+            output:null,
+            params:null,
+            save_output:'false',
+            return_output:'false',
+
+        },
+
+    ]
+
+    //CREAR NUMOUTPUT EN EL FOR
+    // Poner como primer nodo al input
+    let numOutput=1
+    /*for(i;i<elements.length;i++){
         if(elements[i].elementType==undefined){
-            flux.push({
+            diagram.push({
                 source:elements[i].source,
                 target:elements[i].target
             })
@@ -79,16 +106,10 @@ export const runProcess= (elements) => async (dispatch) => {
                 params:elements[i].params
             })
         }
-    }
-    console.log(flux)
-    console.log(nodes)
-    const sequence={
-        nodes:nodes,
-        flux:flux
-    }
+    }*/
 
-    var url = API_ROOT+'process/?' + new URLSearchParams({
-        sequence: sequence,
+    var url = API_ROOT+'check_process/?' + new URLSearchParams({
+        diagram: diagram,
       })
       
     var header= new Headers()
@@ -99,11 +120,52 @@ export const runProcess= (elements) => async (dispatch) => {
     cache: 'default'
     };
 
+    i=0
+    let firstime=true
+    let count=0
+    let processes=[]
+    let process=[]
+    let favlist=[] // nodos con multiple output
+    let blacklist=[] //caminos recorridos
+    let nodo=null
+    let nextNodo=null
+    {
+        process.push(diagram[0]) // NODO INICIAL
+        nodo=diagram[0]
+        {
+
+            {i=i+1}while(blacklist.includes(nodo.output[i]))    
+
+            nextNodo=diagram.find(n => n.id==nodo.output[i])
+            process.push(nextNodo)
+
+            if(nextNodo.output.length>1 && firstime==true)
+                favlist.push(nextNodo.id)
+
+            if(nextNodo.type=='output')
+                blacklist.push(nextNodo.id)
+
+            if(i>=nodo.output.length-1)
+                blacklist.push(nodo.id)
+            
+            i=0
+
+        }while(nodo.type=='output')
+        processes.push(process)
+        firstime=false
+        process=[]
+        count+=1
+    }while(count==numOutput)
+
     dispatch(runProcessRequest())
     try {
         fetch(url,initFetch)
         .then(res => res.json())
-        .then(json => dispatch(runProcessReceive(json)))
+        .then(json => {
+            dispatch(runProcessReceive(json))
+            
+        
+        })
     }
     catch (error){
         dispatch(runProcessFailure(error))

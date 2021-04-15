@@ -329,6 +329,7 @@ class NotchFilterView(APIView):
         except TypeError:
             return Response('Invalid file extension',
                         status=status.HTTP_406_NOT_ACCEPTABLE)
+<<<<<<< HEAD
                 
         # MAKE OUTPUT
 
@@ -339,6 +340,35 @@ class NotchFilterView(APIView):
         else:
             process_id=''
                
+=======
+
+        '''
+        if 'save_output' not in request.query_params:
+            save_output=False   # Default: no guardar
+        else:
+            save_output=request.query_params['save_output']
+            if (save_output=='') or (not save_output):
+                save_output=False
+            else:
+                if save_output=='true':
+                    save_output=True
+                elif save_output=='false':
+                    save_output=False
+                else:
+                    return Response('An invalid save field has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+
+        if save_output==True:
+            file_obj='makefile'
+            process_id = _get_file_id()
+            file_id = _get_file_id()
+
+            temp_process_output=TemporaryOutput(process_id=process_id, file_id=file_id,
+                            file=file_obj, upload_type=TemporaryUpload.FILE_DATA,
+                            uploaded_by=_get_user(request))
+
+            temp_process_output.save()'''
+>>>>>>> Caroapp
 
         if channels==None:
             channels='all'
