@@ -2,35 +2,42 @@ import React, { Component } from 'react'
 
 import {Line} from 'react-chartjs-2'
 
+import { getStyle } from '@coreui/utils/src';
+
+import {Scatter} from 'react-chartjs-2';
+
+// import Plot from "react-plotly.js";
+import Plotly from "plotly.js-basic-dist";
+
+import createPlotlyComponent from "react-plotly.js/factory";
+const Plot = createPlotlyComponent(Plotly);
+
 class ChartTemporal extends Component {
     constructor(props){
         super(props);
 
-        this.state={
+        this.state= {
             data:{
-                labels: [1,2,3,4,5,6,7],
-                datasets: [
-                    {
-                        label: 'C4',
-                        strokeColor: 'rgba(220,220,220,1)',
-                        pointColor: 'rgba(220,220,220,1)',
-                        pointStrokeColor: '#fff',
-                        pointHighlightFill: '#fff',
-                        pointHighlightStroke: 'rgba(220,220,220,1)',
-                        data: this.props.signals['signal'],
-                    },
-                ]
-            }
-        }
-    }
+
+                    data:[
+                        {
+                          x: [1, 2, 3],
+                          y: [1, 2, 3],
+                          type: 'scatter',
+                          mode: 'lines+markers',
+                          marker: {color: 'red'},
+                        },
+                    ]
+
+                 }
+                    }
+                                        }
+               
 
     render() {
-        return (
-            <div>
-                <Line data={this.state.data}/>
-            </div>
-        )
-    }
+        return (<Plot data={this.state.data.data}/>)
+             }
 }
+
 
 export default ChartTemporal
