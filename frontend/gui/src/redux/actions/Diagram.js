@@ -62,8 +62,8 @@ export function runProcessFailure(){
 }
 
 export const runProcess= (elements) => async (dispatch) => {
-    var i=0
-    var diagram=[
+
+    /*let diagram=[
         {
             id:'1',
             type:'input',
@@ -77,37 +77,213 @@ export const runProcess= (elements) => async (dispatch) => {
         },
         {
             id:'2',
+            type:'default',
+            elementType:'BETA',
+            input:['1'],
+            output:['3','4'],
+            params:null,
+            save_output:'false',
+            return_output:'false',
+
+        },
+        {
+            id:'3',
+            type:'default',
+            elementType:'MAX_PEAK',
+            input:['2'],
+            output:['5','6','7'],
+            params:null,
+            save_output:'false',
+            return_output:'false',
+
+        },
+        {
+            id:'4',
             type:'output',
             elementType:'PLOT_TIME_SERIES',
-            input:['1'],
+            input:['2'],
             output:null,
             params:null,
             save_output:'false',
             return_output:'false',
 
         },
+        {
+            id:'5',
+            type:'default',
+            elementType:'CUSTOM_FILTER',
+            input:['3'],
+            output:['8','9'],
+            params:null,
+            save_output:'false',
+            return_output:'false',
 
-    ]
+        },
+        {
+            id:'6',
+            type:'output',
+            elementType:'PLOT_FOURIER',
+            input:['3'],
+            output:null,
+            params:null,
+            save_output:'false',
+            return_output:'false',
+
+        },
+        {
+            id:'7',
+            type:'output',
+            elementType:'PLOT_TIME_SERIES',
+            input:['3'],
+            output:null,
+            params:null,
+            save_output:'false',
+            return_output:'false',
+
+        },
+        {
+            id:'8',
+            type:'default',
+            elementType:'ALPHA',
+            input:['5'],
+            output:['10','11'],
+            params:null,
+            save_output:'false',
+            return_output:'false',
+
+        },
+        {
+            id:'10',
+            type:'output',
+            elementType:'PLOT_TIME_SERIES',
+            input:['8'],
+            output:null,
+            params:null,
+            save_output:'false',
+            return_output:'false',
+
+        },
+        {
+            id:'11',
+            type:'output',
+            elementType:'PLOT_FOURIER',
+            input:['8'],
+            output:null,
+            params:null,
+            save_output:'false',
+            return_output:'false',
+
+        },
+        {
+            id:'9',
+            type:'default',
+            elementType:'MAX_PEAK',
+            input:['5'],
+            output:['12','13','14'],
+            params:null,
+            save_output:'false',
+            return_output:'false',
+
+        },
+        {
+            id:'12',
+            type:'output',
+            elementType:'PLOT_FOURIER',
+            input:['5'],
+            output:null,
+            params:null,
+            save_output:'false',
+            return_output:'false',
+
+        },
+        {
+            id:'13',
+            type:'output',
+            elementType:'PLOT_TIME_SERIES',
+            input:['5'],
+            output:null,
+            params:null,
+            save_output:'false',
+            return_output:'false',
+
+        },
+        {
+            id:'14',
+            type:'default',
+            elementType:'MAX_PEAK',
+            input:['9'],
+            output:['15'],
+            params:null,
+            save_output:'false',
+            return_output:'false',
+
+        },
+        {
+            id:'15',
+            type:'output',
+            elementType:'PLOT_TIME_SERIES',
+            input:['14'],
+            output:null,
+            params:null,
+            save_output:'false',
+            return_output:'false',
+
+        },
+        
+
+    ]*/
 
     //CREAR NUMOUTPUT EN EL FOR
     // Poner como primer nodo al input
-    let numOutput=1
-    /*for(i;i<elements.length;i++){
+    let i=0
+    let diagram=[]
+    let numOutput=0
+    let source=null
+    let target=null
+    let output=null
+    let input=null
+    for(i;i<elements.length;i++){
         if(elements[i].elementType==undefined){
-            diagram.push({
-                source:elements[i].source,
-                target:elements[i].target
-            })
+
+            source=diagram.find(n => n.id==elements[i].source)
+            source.output.push(elements[i].target)
+            
+            target=diagram.find(n => n.id==elements[i].target)
+            target.input.push(elements[i].source)
+
         }
         else {
-            nodes.push({
+            if(elements[i].type=="output"){
+                numOutput+=1
+                output=null
+            }
+            else{
+                output=[]
+                
+            }
+            if(elements[i].type=="input"){
+                input=null
+            }
+            else{
+                input=[]
+            }
+            
+                
+            diagram.push({
                 id:elements[i].id,
-                type: elements[i].elementType,
-                params:elements[i].params
+                type:elements[i].type,
+                elementType:elements[i].elementType,
+                input:input,
+                output:output,
+                params:elements[i].params,
+                save_output:'false',
+                return_output:'false',
             })
-        }
-    }*/
 
+        }
+    }
+
+    /*  ESTA SECCION VAAAAAAAA
     var url = API_ROOT+'check_process/?' + new URLSearchParams({
         diagram: diagram,
       })
@@ -118,53 +294,55 @@ export const runProcess= (elements) => async (dispatch) => {
     headers: header,
     mode: 'cors',
     cache: 'default'
-    };
-
+    };*/
+    
     i=0
-    let firstime=true
+    
     let count=0
     let processes=[]
     let process=[]
-    let favlist=[] // nodos con multiple output
-    let blacklist=[] //caminos recorridos
+    let blacklist=[] //nodo recorridos
     let nodo=null
     let nextNodo=null
-    {
-        process.push(diagram[0]) // NODO INICIAL
+    let checker = (array,target) => array.every(elem => target.includes(elem)) // revisa si TODOS los elementos en 'array' se encuentran en 'target'
+    do{
         nodo=diagram[0] //1
-        {
-            //nodo=3
-            if(blacklist.includes(nodo.output)){    // Todos los outputs
-                blacklist.push(nodo.id)
-                nodo=diagram.find(n=> n.id==favlist[favlist.findIndex(nd=>nd==nodo.id)-1])  //Buscar en la favlist en id del nodo anterior al 'nodo'
-                //process.delete.last //Eliminar el ultimo agregado a process porque nos equivocamos
-                
-            } //nodo=2
+        process.push(nodo) // NODO INICIAL
+        
+        do{ 
 
-            {i=i+1}while(blacklist.includes(nodo.output[i]))    //i=1
+            nextNodo=diagram.find(n => n.id==nodo.output[i]) //voy al output 'i' de nodo
 
-            nextNodo=diagram.find(n => n.id==nodo.output[i]) //4
-            process.push(nextNodo)//4
+            if (blacklist.includes(nextNodo.id)){   // Verifico que no haya caminado por ahi
+                i=i+1 // ya recorri la output 'i' entonces voy al siguiente
 
-            if(nextNodo.output.length>1 && firstime==true)
-                favlist.push(nextNodo.id) //NUNCA MAS
+                if(checker(nodo.output, blacklist)){ // reviso que no esten todas los outputs en la blacklist
+                    blacklist.push(nodo.id) // si tengo todas las salidas ocupadas, guardar en blacklist
+                    process.pop()   // me equivoque, lo saco del process
+                    nodo=process[process.length-1] // regreso al paso anterior
+                    i=0 //reinicio el recorrido de outputs
+                }
+            }
+            else{
+                process.push(nextNodo) // guardo en process el step
 
-            if(nextNodo.type=='output')
-                blacklist.push(nextNodo.id)//4
+                if(nextNodo.type=='output') // verifico que si llegue al final
+                    blacklist.push(nextNodo.id)
 
-            if(i>=nodo.output.length-1 && nodo.id!='1') // Si ya recorri todos los outputs
-                blacklist.push(nodo.id)//2
+                nodo=nextNodo // me paro en el siguiente
+                i=0 // reinicio
+            }
             
-            nodo=nextNodo //4
-            i=0
 
-        }while(nodo.type=='output')//4
+        }while(nodo.type!='output') // cuando llegue al final de un process, empiezo de nuevo
         processes.push(process)
-        firstime=false
         process=[]
         count+=1
-    }while(count==numOutput)
 
+    }while(count!=numOutput) // cuando ya no tengo mas nodos tipo output, termine de recorrer todo el diagrama
+
+    console.log(processes)
+    /*
     dispatch(runProcessRequest())
     try {
         fetch(url,initFetch)
@@ -177,7 +355,7 @@ export const runProcess= (elements) => async (dispatch) => {
     }
     catch (error){
         dispatch(runProcessFailure(error))
-    }
+    }*/
 }
 
 export const FETCH_CANCEL_PROCESS_REQUEST='FETCH_CANCEL_PROCESS_REQUEST'
