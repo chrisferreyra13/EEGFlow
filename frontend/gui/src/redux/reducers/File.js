@@ -5,7 +5,7 @@ import {
 } from '../actions/File'
 
 const initialStateFile={
-    fileId: 'EMDxhaCPMCdioH3LBnuF6A',
+    fileId: '123',
     fileInfo: [],
     isFetching: false,
 }
@@ -14,7 +14,7 @@ export const file = (state = initialStateFile, { type, ...rest }) => {
     switch (type) {
         case FETCH_FILE_INFO_REQUEST:
           return Object.assign({}, state, {
-              id: rest.fileId,
+              fileId: rest.fileId,
               isFetching: true
           })
         case FETCH_FILE_INFO_RECEIVE:

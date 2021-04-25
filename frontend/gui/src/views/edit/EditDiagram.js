@@ -28,6 +28,7 @@ class EditDiagram extends Component{
   constructor(props){
     super(props)
     this.props.diagramView(true);
+    this.props.stateElements[0].params={'id':this.props.fileId} // Seteo el file id de la señal
     this.state={
       contentHeight:Math.floor(window.innerHeight*0.75),
       elements: this.props.stateElements,
@@ -172,6 +173,7 @@ class EditDiagram extends Component{
 }
 const mapStateToProps = (state) => {
   return {
+    fileId: state.file.fileId,
     stateElements:state.diagram.elements,
   };
 }
