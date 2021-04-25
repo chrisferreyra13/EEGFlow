@@ -3,7 +3,9 @@
 
 import logging
 import os
+import re
 from sys import getsizeof
+from django.http.response import HttpResponseBadRequest
 
 from django.shortcuts import render
 from django.http import Http404
@@ -20,6 +22,7 @@ from rest_framework.renderers import JSONRenderer
 from .models import FileInfo
 from .eeg_api import *
 from .serializers import FileInfoSerializer
+from .process_steps import steps
 
 from filemanager.storage_manager import get_stored_upload, get_temporary_upload
 from filemanager.models import StoredUpload, TemporaryUpload, TemporaryOutput
@@ -198,8 +201,52 @@ class FileInfoView(APIView):
             return Response('Invalid file data.', #TODO: si ya se guardo en la BD, tambien salta a este punto
             status=status.HTTP_406_NOT_ACCEPTABLE)
         
-                
- 
+
+class RunProcess(APIView):
+    def post(self, request, format=None):
+
+        # Check process
+        if 'process' not in request.data:   # Return if not process in body request
+            return Response('Process is missing.',
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        process=request.data['process']
+        
+        if (process=='') or (not process):
+            return Response('Process is missing.',
+                            status=status.HTTP_400_BAD_REQUEST)
+
+
+        # TODO: Convertir esto en un paso del proceso
+        if LOAD_RESTORE_PARAM_NAME not in process[0]['params']: # Return if not fileid for processing
+            return Response('ID parameter is missing.',
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # Get file
+        id=process[0]['params'][LOAD_RESTORE_PARAM_NAME]
+        
+        '''
+        file_info=get_file_info(id) # Get file info from db
+        if type(file_info).__name__=='Response':
+            return file_info
+
+        try:
+            tu = get_upload(file_info.upload_id) # Get file from db
+        except FileNotFoundError:
+            Response('Not found', status=status.HTTP_404_NOT_FOUND)
+        '''
+        for step in process:
+            steps[step['elementType']](step['params'])
+        
+        
+        # TODO: Armar respuesta de OK si fue todo bien o response del error correspondiente (paso del proceso)
+        response=Response({
+            'process_status':'OK'
+        })
+        return response
+
+
+
 class GetTimeSeries(APIView):
 
     def get(self, request, format=None):

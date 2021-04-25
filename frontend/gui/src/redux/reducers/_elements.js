@@ -9,6 +9,7 @@ export default [
       label: 'Señal en tiempo'
     },
     position: { x: 450, y: 80 },
+    params:null
   },
   //PLOTS//
   {

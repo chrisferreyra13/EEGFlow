@@ -63,176 +63,6 @@ export function runProcessFailure(){
 
 export const runProcess= (elements) => async (dispatch) => {
 
-    /*let diagram=[
-        {
-            id:'1',
-            type:'input',
-            elementType:'TIME_SERIES',
-            input:null,
-            output:['2'],
-            params:null,
-            save_output:'false',
-            return_output:'false',
-
-        },
-        {
-            id:'2',
-            type:'default',
-            elementType:'BETA',
-            input:['1'],
-            output:['3','4'],
-            params:null,
-            save_output:'false',
-            return_output:'false',
-
-        },
-        {
-            id:'3',
-            type:'default',
-            elementType:'MAX_PEAK',
-            input:['2'],
-            output:['5','6','7'],
-            params:null,
-            save_output:'false',
-            return_output:'false',
-
-        },
-        {
-            id:'4',
-            type:'output',
-            elementType:'PLOT_TIME_SERIES',
-            input:['2'],
-            output:null,
-            params:null,
-            save_output:'false',
-            return_output:'false',
-
-        },
-        {
-            id:'5',
-            type:'default',
-            elementType:'CUSTOM_FILTER',
-            input:['3'],
-            output:['8','9'],
-            params:null,
-            save_output:'false',
-            return_output:'false',
-
-        },
-        {
-            id:'6',
-            type:'output',
-            elementType:'PLOT_FOURIER',
-            input:['3'],
-            output:null,
-            params:null,
-            save_output:'false',
-            return_output:'false',
-
-        },
-        {
-            id:'7',
-            type:'output',
-            elementType:'PLOT_TIME_SERIES',
-            input:['3'],
-            output:null,
-            params:null,
-            save_output:'false',
-            return_output:'false',
-
-        },
-        {
-            id:'8',
-            type:'default',
-            elementType:'ALPHA',
-            input:['5'],
-            output:['10','11'],
-            params:null,
-            save_output:'false',
-            return_output:'false',
-
-        },
-        {
-            id:'10',
-            type:'output',
-            elementType:'PLOT_TIME_SERIES',
-            input:['8'],
-            output:null,
-            params:null,
-            save_output:'false',
-            return_output:'false',
-
-        },
-        {
-            id:'11',
-            type:'output',
-            elementType:'PLOT_FOURIER',
-            input:['8'],
-            output:null,
-            params:null,
-            save_output:'false',
-            return_output:'false',
-
-        },
-        {
-            id:'9',
-            type:'default',
-            elementType:'MAX_PEAK',
-            input:['5'],
-            output:['12','13','14'],
-            params:null,
-            save_output:'false',
-            return_output:'false',
-
-        },
-        {
-            id:'12',
-            type:'output',
-            elementType:'PLOT_FOURIER',
-            input:['5'],
-            output:null,
-            params:null,
-            save_output:'false',
-            return_output:'false',
-
-        },
-        {
-            id:'13',
-            type:'output',
-            elementType:'PLOT_TIME_SERIES',
-            input:['5'],
-            output:null,
-            params:null,
-            save_output:'false',
-            return_output:'false',
-
-        },
-        {
-            id:'14',
-            type:'default',
-            elementType:'MAX_PEAK',
-            input:['9'],
-            output:['15'],
-            params:null,
-            save_output:'false',
-            return_output:'false',
-
-        },
-        {
-            id:'15',
-            type:'output',
-            elementType:'PLOT_TIME_SERIES',
-            input:['14'],
-            output:null,
-            params:null,
-            save_output:'false',
-            return_output:'false',
-
-        },
-        
-
-    ]*/
-
     //CREAR NUMOUTPUT EN EL FOR
     // Poner como primer nodo al input
     let i=0
@@ -282,28 +112,16 @@ export const runProcess= (elements) => async (dispatch) => {
 
         }
     }
-
-    /*  ESTA SECCION VAAAAAAAA
-    var url = API_ROOT+'check_process/?' + new URLSearchParams({
-        diagram: diagram,
-      })
-      
-    var header= new Headers()
-    var initFetch={
-    method: 'GET',
-    headers: header,
-    mode: 'cors',
-    cache: 'default'
-    };*/
     
     i=0
-    
+    let saveOutputList=[]
     let count=0
     let processes=[]
     let process=[]
     let blacklist=[] //nodo recorridos
     let nodo=null
     let nextNodo=null
+    let auxNodo=null
     let checker = (array,target) => array.every(elem => target.includes(elem)) // revisa si TODOS los elementos en 'array' se encuentran en 'target'
     do{
         nodo=diagram[0] //1
@@ -312,6 +130,17 @@ export const runProcess= (elements) => async (dispatch) => {
         do{ 
 
             nextNodo=diagram.find(n => n.id==nodo.output[i]) //voy al output 'i' de nodo
+
+            if(nextNodo.output!=null){
+                if(nextNodo.output.length>1 && !saveOutputList.includes(nextNodo.id)){ // me fijo que sea la primera vez que paso por nextNodo
+                    auxNodo=Object.assign({},nextNodo,{ //creo uno nuevo para perder la referencia
+                        save_output:'true' // pongo true para despues guardar la salida cuando procese en el back
+                    })
+                    saveOutputList.push(auxNodo.id) // Lo agrego para no volver a pasar
+                    nextNodo=auxNodo
+                }
+            }
+            
 
             if (blacklist.includes(nextNodo.id)){   // Verifico que no haya caminado por ahi
                 i=i+1 // ya recorri la output 'i' entonces voy al siguiente
@@ -342,20 +171,37 @@ export const runProcess= (elements) => async (dispatch) => {
     }while(count!=numOutput) // cuando ya no tengo mas nodos tipo output, termine de recorrer todo el diagrama
 
     console.log(processes)
-    /*
-    dispatch(runProcessRequest())
-    try {
-        fetch(url,initFetch)
-        .then(res => res.json())
-        .then(json => {
-            dispatch(runProcessReceive(json))
-            
+    
+    //let header= new Headers()
+    let url=null
+    let initFetch=null
+    for(process of processes){
+        url = API_ROOT+'process/?'
+          
+        initFetch={
+        method: 'POST',
+        body:JSON.stringify({"process": process}),
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        };
+    
         
-        })
+        dispatch(runProcessRequest())
+        try {
+            fetch(url,initFetch)
+            .then(res => res.json())
+            .then(json => {
+                dispatch(runProcessReceive(json))
+                
+            
+            })
+        }
+        catch (error){
+            dispatch(runProcessFailure(error))
+        }
     }
-    catch (error){
-        dispatch(runProcessFailure(error))
-    }*/
+    
 }
 
 export const FETCH_CANCEL_PROCESS_REQUEST='FETCH_CANCEL_PROCESS_REQUEST'

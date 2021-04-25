@@ -11,7 +11,6 @@ import CIcon from '@coreui/icons-react'
 import {fetchTimeSeries} from '../../redux/actions/Signal'
 import { diagramView } from '../../redux/actions/EditSession'
 import { enableChartTemporal } from '../../redux/actions/SideBar'
-import { element } from 'prop-types'
 
 const ChartTemporal = lazy(() => import('../../components/charts/ChartTemporal.js'))
 //const FormContainer = lazy(() => import('../../components/forms/FormContainer.js'))
