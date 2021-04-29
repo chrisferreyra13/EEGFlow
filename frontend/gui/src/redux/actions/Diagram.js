@@ -106,6 +106,7 @@ export const runProcess= (elements) => async (dispatch) => {
                 input:input,
                 output:output,
                 params:elements[i].params,
+                processed:false,
                 save_output:'false',
                 return_output:'false',
             })
@@ -121,7 +122,7 @@ export const runProcess= (elements) => async (dispatch) => {
     let blacklist=[] //nodo recorridos
     let nodo=null
     let nextNodo=null
-    let auxNodo=null
+    //let auxNodo=null
     let checker = (array,target) => array.every(elem => target.includes(elem)) // revisa si TODOS los elementos en 'array' se encuentran en 'target'
     do{
         nodo=diagram[0] //1
@@ -133,11 +134,8 @@ export const runProcess= (elements) => async (dispatch) => {
 
             if(nextNodo.output!=null){
                 if(nextNodo.output.length>1 && !saveOutputList.includes(nextNodo.id)){ // me fijo que sea la primera vez que paso por nextNodo
-                    auxNodo=Object.assign({},nextNodo,{ //creo uno nuevo para perder la referencia
-                        save_output:'true' // pongo true para despues guardar la salida cuando procese en el back
-                    })
-                    saveOutputList.push(auxNodo.id) // Lo agrego para no volver a pasar
-                    nextNodo=auxNodo
+                    nextNodo["save_output"]='true' // pongo true para despues guardar la salida cuando procese en el back
+                    saveOutputList.push(nextNodo.id) // Lo agrego para no volver a pasar
                 }
             }
             
@@ -193,8 +191,10 @@ export const runProcess= (elements) => async (dispatch) => {
             .then(res => res.json())
             .then(json => {
                 dispatch(runProcessReceive(json))
-                
-            
+                process.forEach(node =>{
+                    node["processed"]=true
+                })
+                console.log(process)
             })
         }
         catch (error){

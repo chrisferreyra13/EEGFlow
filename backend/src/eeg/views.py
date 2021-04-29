@@ -20,7 +20,7 @@ from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 
 from .models import FileInfo
-from .eeg_api import *
+from .eeg_lib import *
 from .serializers import FileInfoSerializer
 from .process_steps import steps
 
@@ -29,6 +29,8 @@ from filemanager.models import StoredUpload, TemporaryUpload, TemporaryOutput
 from filemanager.utils import _get_file_id, _get_user
 from filemanager.filemanager_settings import PROCESS_TMP
 
+from .utils import *
+
 import mne
 import numpy as np
 
@@ -36,110 +38,33 @@ import numpy as np
 LOAD_RESTORE_PARAM_NAME = 'id'
 LOG = logging.getLogger(__name__)
 
-####FUNCTIONS####
-
-def make_process_file(request,process_name,content):
-    process_id = _get_file_id()
-    file_id = _get_file_id()
-    user=_get_user(request)
-
-    temp_process_output=TemporaryOutput(
-                    process_id=process_id,
-                    file_type=TemporaryOutput.FILE_DATA,
-                    process_type=process_name,
-                    created_by=user)
-
-    if user==None:
-        user='anon'
-
-    filename=user+'.'+process_name+'.'+file_id+'.bin'
-    
-    try:
-        '''with open(os.path.join(path,filename), 'wb+') as f:
-            np.save(f, content)'''
-        temp_process_output.file.save(filename,ContentFile(content))
-    except:
-        raise Response('Error making file for process output', status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-                        
-    temp_process_output.save()
-
-    return process_id
-
-def check_process_params(request,params_names=None,params_values=None):
-    if params_names==None:
-        params_names=['save_output','return_output']    # Default params
-    if params_values==None:
-        params_values=[False]*len(params_names) # Default list
-
-    params=dict(zip(params_names,params_values))
-    p=False
-    for param_name in params_names:
-        if param_name in request.query_params:
-            p=request.query_params[param_name]
-            if p=='true':
-                params[param_name]=True
-            elif p=='false':
-                params[param_name]=False
-            else:
-                return Response('An invalid {} field has been provided.'.format(param_name),
-                    status=status.HTTP_400_BAD_REQUEST)
-    
-    return params
-
-
-def get_upload_id(request):
-    # Miro que el usuario envie el id que le retornamos al cargar el archivo
-    if LOAD_RESTORE_PARAM_NAME not in request.data:
-        return Response('A required parameter is missing.',
-                        status=status.HTTP_400_BAD_REQUEST)
-
-    #parametro para relacionar el modelo FileInfo con el archivo
-
-    upload_id = request.data[LOAD_RESTORE_PARAM_NAME]
-
-    if (not upload_id) or (upload_id == ''):
-        return Response('An invalid ID has been provided.',
-                        status=status.HTTP_400_BAD_REQUEST)
-    else:
-        return upload_id
-
-def get_upload(upload_id):
-    '''if LOAD_RESTORE_PARAM_NAME not in request.GET:
-            return Response('A required parameter is missing.',
-                            status=status.HTTP_400_BAD_REQUEST)
-
-    upload_id = request.GET[LOAD_RESTORE_PARAM_NAME]
-    
-    if (not upload_id) or (upload_id == ''):
-        return Response('An invalid ID has been provided.',
-                        status=status.HTTP_400_BAD_REQUEST)'''
-
-    try:
-        tu = get_temporary_upload(upload_id)
-    except TemporaryUpload.DoesNotExist as e:
-        LOG.error('TemporaryUpload with ID [%s] not found: [%s]'
-                    % (upload_id, str(e)))
-        raise FileNotFoundError
-
-    return tu
-
-def get_file_info(id):
-    try:
-        id=int(id)
-    except:
-        return Response('An invalid ID has been provided.',
-                    status=status.HTTP_400_BAD_REQUEST)
-
-    try:
-        file_info=FileInfo.objects.get(id=id)
-    except:
-        return Response('Not found', status=status.HTTP_404_NOT_FOUND)
-
-    return file_info
-
+####FUNCTIONS###
 
 ####VIEWS####
 
+class RunProcess(APIView):
+    def post(self, request, format=None):
+
+        # Check process
+        if 'process' not in request.data:   # Return if not process in body request
+            return Response('Process is missing.',
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        process=request.data['process']
+        
+        if (process=='') or (not process):
+            return Response('Process is missing.',
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        input=None
+        output=None
+        for step in process:
+            output=steps[step['elementType']](input=input,params=step['params'],step_type=step['elementType'])
+
+            if type(output).__name__=='Response':
+                return output
+            else:
+                input=output
 class FileInfoView(APIView):
     
     def get(self, request, format=None):
@@ -149,7 +74,7 @@ class FileInfoView(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
         id=request.query_params[LOAD_RESTORE_PARAM_NAME]
-
+        print(id)
         file_info=get_file_info(id)
         if type(file_info).__name__=='Response':     # Esto quiere decir que hubo un error, devuelvo response
             return file_info
@@ -200,53 +125,7 @@ class FileInfoView(APIView):
         else:
             return Response('Invalid file data.', #TODO: si ya se guardo en la BD, tambien salta a este punto
             status=status.HTTP_406_NOT_ACCEPTABLE)
-        
-
-class RunProcess(APIView):
-    def post(self, request, format=None):
-
-        # Check process
-        if 'process' not in request.data:   # Return if not process in body request
-            return Response('Process is missing.',
-                            status=status.HTTP_400_BAD_REQUEST)
-
-        process=request.data['process']
-        
-        if (process=='') or (not process):
-            return Response('Process is missing.',
-                            status=status.HTTP_400_BAD_REQUEST)
-
-
-        # TODO: Convertir esto en un paso del proceso
-        if LOAD_RESTORE_PARAM_NAME not in process[0]['params']: # Return if not fileid for processing
-            return Response('ID parameter is missing.',
-                            status=status.HTTP_400_BAD_REQUEST)
-
-        # Get file
-        id=process[0]['params'][LOAD_RESTORE_PARAM_NAME]
-        
-        '''
-        file_info=get_file_info(id) # Get file info from db
-        if type(file_info).__name__=='Response':
-            return file_info
-
-        try:
-            tu = get_upload(file_info.upload_id) # Get file from db
-        except FileNotFoundError:
-            Response('Not found', status=status.HTTP_404_NOT_FOUND)
-        '''
-        for step in process:
-            steps[step['elementType']](step['params'])
-        
-        
-        # TODO: Armar respuesta de OK si fue todo bien o response del error correspondiente (paso del proceso)
-        response=Response({
-            'process_status':'OK'
-        })
-        return response
-
-
-
+                 
 class GetTimeSeries(APIView):
 
     def get(self, request, format=None):
@@ -370,17 +249,26 @@ class NotchFilterView(APIView):
             Response('Not found', status=status.HTTP_404_NOT_FOUND)
 
         # PROCESS
-
         try:
-            time_series_notch=notch_filter(os.path.join(tu.upload_id,tu.upload_name),notch_freq,channels)
+            raw=get_raw(os.path.join(tu.upload_id,tu.upload_name))
         except TypeError:
             return Response('Invalid file extension',
                         status=status.HTTP_406_NOT_ACCEPTABLE)
+        try:
+            raw_filtered=notch_filter(raw,notch_freq,channels)
+        except TypeError:
+            return Response('Invalid file extension',
+                        status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        if channels==None: # Si es None, aplico el filtrado en todos los canales tipo EEG
+            pick_channels=mne.pick_types(raw.info,eeg=True)
+
+        time_series_filtered=raw_filtered.get_data(picks=pick_channels)
                 
         # MAKE OUTPUT
 
         if save_output:
-            process_id=make_process_file(request,process_name='notch',content=time_series_notch)
+            process_id=make_process_file(request,process_name='notch',content=time_series_filtered)
             if type(process_id).__name__=='Response':
                 return process_id
         else:
@@ -395,7 +283,7 @@ class NotchFilterView(APIView):
             }
 
         if return_output:
-            output_dict['signal']=time_series_notch,
+            output_dict['signal']=time_series_filtered,
                 
 
         if channels==None:
@@ -475,13 +363,22 @@ class CustomFilterView(APIView):
                 return Response('An invalid method has been provided.',
                         status=status.HTTP_400_BAD_REQUEST)
 
+        #PROCESS
         try:
-            time_series_filtered=custom_filter(os.path.join(tu.upload_id,tu.upload_name),low_freq,high_freq,channels,filter_method)
+            raw=get_raw(os.path.join(tu.upload_id,tu.upload_name))
+        except TypeError:
+            return Response('Invalid file extension',
+                        status=status.HTTP_406_NOT_ACCEPTABLE)
+        try:
+            raw_filtered=custom_filter(raw,low_freq,high_freq,channels,filter_method)
         except TypeError:
             return Response('Invalid file extension',
                         status=status.HTTP_406_NOT_ACCEPTABLE)
 
+        if channels==None: # Si es None, aplico el filtrado en todos los canales tipo EEG
+            pick_channels=mne.pick_types(raw.info,eeg=True)
 
+        time_series_filtered=raw_filtered.get_data(picks=pick_channels)
         #time_series_notch=raw_notch.get_data(picks=channels) # Obtengo todos los canales
 
         if channels==None:
@@ -541,8 +438,15 @@ class PeakView(APIView):
                     return Response('An invalid thresh has been provided.',
                         status=status.HTTP_400_BAD_REQUEST)
 
+        #PROCESS
         try:
-            peaks_idx=peak_finder(os.path.join(tu.upload_id,tu.upload_name),channels,thresh)
+            raw=get_raw(os.path.join(tu.upload_id,tu.upload_name))
+        except TypeError:
+            return Response('Invalid file extension',
+                        status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        try:
+            peaks_idx=peak_finder(raw,channels,thresh)
         except TypeError:
             return Response('Invalid file extension',
                         status=status.HTTP_406_NOT_ACCEPTABLE)

@@ -15,13 +15,8 @@ import {
 import { FilePond, File, registerPlugin } from 'react-filepond'
 import 'filepond/dist/filepond.min.css'
 
-import {getFileInfo} from '../../redux/actions/File'
+import {getFileInfo,postFileInfo} from '../../redux/actions/File'
 import {enableListGroupFileInfo, disableListGroupFileInfo} from '../../redux/actions/Dashboard'
-
-// Server conf
-//import serverConf from './_server'
-
-
 
 class DashboardDataPreview extends Component{
   constructor(props){
@@ -80,9 +75,10 @@ class DashboardDataPreview extends Component{
     console.log('holaaaa') //ESTO NO SE SI AL FINAL SE VA A USAR
   }
 
-  fetchFileInfo(response){
+  fetchFileInfo(response){ //PROBAR PONER EL FILEID EN EL ESTADO DEL COMPONENTE PARA QUE SE ACTUALICE
     this.setFileId(response);
-    this.props.getFileInfo(this.state.files[0].serverId)
+    this.props.postFileInfo(this.state.files[0].serverId).then(this.props.getFileInfo(this.props.fileId))
+    
     this.props.enableListGroupFileInfo() //Esto ya tiene una falla, si no busca bien el archivo
                                         // no hay info, pero se activa el list group --> MODIFICAR
   }
@@ -184,12 +180,14 @@ class DashboardDataPreview extends Component{
 const mapStateToProps = (state) => {
   return{
     fileInfo: state.file.fileInfo,
+    fileId:state.file.fileId,
     enableListGroup: state.dashboardDataPreview.enableListGroupFileInfo,
   };
 }
 
 const mapDispatchToProps = (dispatch) => {
   return {
+    postFileInfo: (fileIdServer) => dispatch(postFileInfo(fileIdServer)),
     getFileInfo: (fileId) => dispatch(getFileInfo(fileId)),
     enableListGroupFileInfo: () => dispatch(enableListGroupFileInfo()),
     disableListGroupFileInfo: () => dispatch(disableListGroupFileInfo())
