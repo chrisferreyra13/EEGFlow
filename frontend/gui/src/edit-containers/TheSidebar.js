@@ -105,6 +105,7 @@ const TheSidebar = ({show, addNode, enableChartTemporal, enableForm, diagramView
             <CDropdownDivider/>
             {/*<CDropdownHeader>Frecuentes</CDropdownHeader>*/}
             {/* ESTO VA EN CDdropdownItem onClick={() => addNode('default')}*/}
+            <CDropdownItem onClick={() => onClick(null,'NOTCH')} onDragStart={(event) => onDragStart(event, 'NOTCH')} draggable>Notch</CDropdownItem>
             <CDropdownItem onClick={() => onClick(null,'BETA')} onDragStart={(event) => onDragStart(event, 'BETA')} draggable>Beta</CDropdownItem>
             <CDropdownItem onClick={() => onClick(null,'ALPHA')} onDragStart={(event) => onDragStart(event, 'ALPHA')} draggable>Alpha</CDropdownItem>
             <CDropdownItem onClick={() => onClick(null,'THETA')} onDragStart={(event) => onDragStart(event, 'THETA')} draggable>Theta</CDropdownItem>

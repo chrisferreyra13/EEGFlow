@@ -28,47 +28,33 @@ def get_events(filepath):
     events = mne.find_events(raw) #, stim_channel='STI 014') Si no pongo un canal especifico, busca en distintos canales
     return events
 
-def notch_filter(filepath,notch_freq=50,channels=None):
-    try:
-        raw=get_raw(filepath)
-    except TypeError:
-        raise TypeError
+def notch_filter(raw,notch_freq=50,channels=None):
     
     if channels==None: # Si es None, aplico el filtrado en todos los canales tipo EEG
         channels=mne.pick_types(raw.info,eeg=True)
-    
     
     raw_eeg=raw.copy().pick_types(eeg=True)
     raw_eeg.load_data()
     channels_idxs=mne.pick_channels(raw_eeg.info['ch_names'], include=channels)
     raw_notch=raw_eeg.notch_filter(freqs=(notch_freq),picks=channels_idxs)
 
-    return raw_notch.get_data(picks=channels)
+    return raw_notch
 
 
-def custom_filter(filepath,low_freq=None,high_freq=None,channels=None, filter_method='fir'):
-    try:
-        raw=get_raw(filepath)
-    except TypeError:
-        raise TypeError
-    
+def custom_filter(raw,low_freq=None,high_freq=None,channels=None, filter_method='fir'):
+
     if channels==None: # Si es None, aplico el filtrado en todos los canales tipo EEG
         channels=mne.pick_types(raw.info,eeg=True)
-    
     
     raw_eeg=raw.copy().pick_types(eeg=True)
     raw_eeg.load_data()
     channels_idxs=mne.pick_channels(raw_eeg.info['ch_names'], include=channels)
-    raw_notch=raw_eeg.filter(l_freq=low_freq, h_freq=high_freq, picks=channels_idxs, method=filter_method)
+    raw_filtered=raw_eeg.filter(l_freq=low_freq, h_freq=high_freq, picks=channels_idxs, method=filter_method)
 
-    return raw_notch.get_data(picks=channels)
+    return raw_filtered
 
-def peak_finder(filepath,channels=None,thresh=None):
-    try:
-        raw=get_raw(filepath)
-    except TypeError:
-        raise TypeError
-    
+def peak_finder(raw,channels=None,thresh=None):
+
     if channels==None: # Si es None, aplico el filtrado en todos los canales tipo EEG
         channels=mne.pick_types(raw.info,eeg=True)
     

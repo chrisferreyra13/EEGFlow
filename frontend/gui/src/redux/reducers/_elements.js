@@ -90,6 +90,21 @@ export default [
   {
     id: null,
     type: 'default',
+    elementType: 'NOTCH',
+    targetPosition: 'left',
+    sourcePosition: 'right',
+    data: {
+      label: 'Filtro Notch'
+    },
+    position: { x: 450, y: 80 },
+    params:{
+      channels:['316','317'],
+      notch_freq:50,
+    },
+  },
+  {
+    id: null,
+    type: 'default',
     elementType: 'BETA',
     targetPosition: 'left',
     sourcePosition: 'right',
@@ -97,7 +112,10 @@ export default [
       label: 'Filtro Beta'
     },
     position: { x: 450, y: 80 },
-    params:null,
+    params:{
+      channels:['316','317'],
+      filter_method:'fir'
+    },
   },
   {
     id: null,
@@ -146,7 +164,12 @@ export default [
       label: 'Filtro Personalizado'
     },
     position: { x: 450, y: 80 },
-    params:null,
+    params:{
+      low_freq:3,
+      high_freq:8,
+      channels:['316','317'],
+      filter_method:'fir'
+    },
   },
   ////////
   //METHODS//

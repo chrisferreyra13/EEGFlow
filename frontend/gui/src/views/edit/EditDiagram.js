@@ -21,9 +21,6 @@ import { updateAfterDeleteElements, updateNodePropierties, addNode, addNewEdge, 
 import { diagramView, linkDiagram } from '../../redux/actions/EditSession';
 import { enableForm } from '../../redux/actions/Form'
 
-
-
-
 class EditDiagram extends Component{
   constructor(props){
     super(props)

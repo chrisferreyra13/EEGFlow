@@ -1,18 +1,26 @@
 const API_ROOT= 'http://127.0.0.1:8000/eeg/'
 
+
+export const FETCH_FILE_ID_RECEIVE = 'FETCH_FILE_ID_RECEIVE'
+function receiveFileId(json) {
+  return {
+    type: FETCH_FILE_ID_RECEIVE,
+    fileId:json["id"]
+    
+  }
+}
+
 export const FETCH_FILE_INFO_REQUEST = 'FETCH_FILE_INFO_REQUEST'
-function requestFileInfo(fileId) {
+function requestFileInfo() {
   return {
     type: FETCH_FILE_INFO_REQUEST,
-    fileId
   }
 }
 
 export const FETCH_FILE_INFO_RECEIVE = 'FETCH_FILE_INFO_RECEIVE'
-function receiveFileInfo(fileId, json) {
+function receiveFileInfo(json) {
   return {
     type: FETCH_FILE_INFO_RECEIVE,
-    fileId,
     fileInfo: json,
     
   }
@@ -27,27 +35,48 @@ function errorFetchingFileInfo(error){
 }
 
 
-export const getFileInfo = (fileId) => async (dispatch) =>{
+export const postFileInfo = (fileIdServer) => async (dispatch) =>{
     var url = API_ROOT+'info/?'
-    
-    var header= new Headers()
     var initFetch={
       method: 'POST',
-      body:JSON.stringify({"id": fileId}),
+      body:JSON.stringify({"id": fileIdServer}),
       headers: {
         'Content-Type': 'application/json'
       },
-      /*mode: 'cors',
-      cache: 'default'*/
     };
 
-    dispatch(requestFileInfo(fileId))
+    //dispatch(requestFileInfo(fileId))
     try {
         fetch(url,initFetch)
         .then(res => res.json())
-        .then(json => dispatch(receiveFileInfo(fileId, json)))
+        .then(json => dispatch(receiveFileId(json)))
     }
     catch (error){
-        dispatch(errorFetchingFileInfo(error))
+      console.log("Error al hacer post de fileIdServer")
+        //dispatch(errorFetchingFileInfo(error))
     }
+}
+
+export const getFileInfo = (fileId) => async (dispatch) =>{
+  var url = API_ROOT+'info/?'+new URLSearchParams({
+    id: fileId,
+  })
+  var header= new Headers()
+  var initFetch={
+    method: 'GET',
+    headers: header,
+    mode: 'cors',
+    cache: 'default'
+  };
+
+  dispatch(requestFileInfo())
+  try {
+    fetch(url,initFetch)
+    .then(res => res.json())
+    .then(json => dispatch(receiveFileInfo(json)))
+  }
+  catch (error){
+    dispatch(errorFetchingFileInfo(error))
+  }
+
 }
