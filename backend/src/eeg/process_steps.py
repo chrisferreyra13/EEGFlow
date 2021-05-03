@@ -31,7 +31,7 @@ def time_series_step(input=None,params=None,step_type=None):
 
 def result_step(input=None,params=None,step_type=None):
     return Response({
-            'process_status':'OK',
+            'process_status':'SUCCESFULL',
             'result':step_type
         })
 
@@ -72,7 +72,7 @@ def filter_step(input=None,params=None,step_type=None):
             channels=None
         else:
             try:
-                channels=channels.split(',')
+                channels=channels.split(',') #Los canales vienen en un string separados por comas
             except:
                 return Response('An invalid list of channels has been provided.',
                     status=status.HTTP_400_BAD_REQUEST)   
@@ -108,4 +108,8 @@ steps={
     'PLOT_FOURIER':result_step,
     'PLOT_TIME_FREQUENCY':result_step,
     'BETA':filter_step,
+    'ALPHA':filter_step,
+    'DELTA':filter_step,
+    'THETA':filter_step,
+    'NOTCH':filter_step,
 }

@@ -22,7 +22,8 @@ class DashboardDataPreview extends Component{
   constructor(props){
     super(props);
     this.state={
-      files: [],      
+      files: [],
+      fileId: this.props.fileId
     }
     
 
@@ -75,9 +76,12 @@ class DashboardDataPreview extends Component{
     console.log('holaaaa') //ESTO NO SE SI AL FINAL SE VA A USAR
   }
 
-  fetchFileInfo(response){ //PROBAR PONER EL FILEID EN EL ESTADO DEL COMPONENTE PARA QUE SE ACTUALICE
+  fetchFileInfo(response){
     this.setFileId(response);
-    this.props.postFileInfo(this.state.files[0].serverId).then(this.props.getFileInfo(this.props.fileId))
+    this.props.postFileInfo(this.state.files[0].serverId)
+    .then(this.setState({fileId: this.props.fileId}))
+    .then(this.props.getFileInfo(this.state.fileId))
+
     
     this.props.enableListGroupFileInfo() //Esto ya tiene una falla, si no busca bien el archivo
                                         // no hay info, pero se activa el list group --> MODIFICAR
@@ -110,13 +114,13 @@ class DashboardDataPreview extends Component{
     }
     else {
       listGroup= <CListGroup>
-                        <CListGroupItem>ID de proyecto: {this.props.fileInfo['proj_id']}</CListGroupItem>
-                        <CListGroupItem>Nombre de proyecto: {this.props.fileInfo['proj_name']}</CListGroupItem>
-                        <CListGroupItem>Experimentador: {this.props.fileInfo['proj_experimenter']}</CListGroupItem>
-                        <CListGroupItem>Fecha de medicion: {this.props.fileInfo['meas_date']}</CListGroupItem>
-                        <CListGroupItem>Numero de canales: {this.props.fileInfo['nchan']}</CListGroupItem>
-                        <CListGroupItem>Referencia: {this.props.fileInfo['custom_ref_applied'] ? 'Verdadero' : 'Falso'}</CListGroupItem>
-                      </CListGroup>;
+                  <CListGroupItem>ID de proyecto: {this.props.fileInfo['proj_id']}</CListGroupItem>
+                  <CListGroupItem>Nombre de proyecto: {this.props.fileInfo['proj_name']}</CListGroupItem>
+                  <CListGroupItem>Experimentador: {this.props.fileInfo['proj_experimenter']}</CListGroupItem>
+                  <CListGroupItem>Fecha de medicion: {this.props.fileInfo['meas_date']}</CListGroupItem>
+                  <CListGroupItem>Numero de canales: {this.props.fileInfo['nchan']}</CListGroupItem>
+                  <CListGroupItem>Referencia: {this.props.fileInfo['custom_ref_applied'] ? 'Verdadero' : 'Falso'}</CListGroupItem>
+                </CListGroup>;
     }
 
     return (

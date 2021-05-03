@@ -1,12 +1,5 @@
 import React, { Component, lazy } from 'react'
 import {connect} from 'react-redux'
-import {
-  CCol,
-  CRow,
-  CCard,
-  CCardBody,
-  CCardGroup,
-} from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {fetchTimeSeries} from '../../redux/actions/Signal'
 import { diagramView } from '../../redux/actions/EditSession'

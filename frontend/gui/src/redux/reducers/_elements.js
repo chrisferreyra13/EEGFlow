@@ -23,6 +23,7 @@ export default [
     },
     position: { x: 450, y: 80 },
     params:null,
+    fetchInput:false,
   },
   {
     id: null,
@@ -34,6 +35,7 @@ export default [
     },
     position: { x: 450, y: 80 },
     params:null,
+    fetchInput:false,
   },
   {
     id: null,
@@ -45,6 +47,7 @@ export default [
     },
     position: { x: 450, y: 80 },
     params:null,
+    fetchInput:false,
   },
   ////////
   //PREPROCESSING METHODS//
@@ -98,7 +101,7 @@ export default [
     },
     position: { x: 450, y: 80 },
     params:{
-      channels:['316','317'],
+      channels:'EEG 016,EEG 017',
       notch_freq:50,
     },
   },
@@ -113,7 +116,7 @@ export default [
     },
     position: { x: 450, y: 80 },
     params:{
-      channels:['316','317'],
+      channels:'EEG 016,EEG 017',
       filter_method:'fir'
     },
   },
@@ -167,7 +170,7 @@ export default [
     params:{
       low_freq:3,
       high_freq:8,
-      channels:['316','317'],
+      channels:'EEG 016,EEG 017',
       filter_method:'fir'
     },
   },
