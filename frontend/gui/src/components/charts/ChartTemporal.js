@@ -20,7 +20,7 @@ class ChartTemporal extends Component {
 		let params={}
 		if(nodePlot.params==null){
 			params={ //Default params
-				channels:['317','316'],
+				channels:['EEG 016','EEG 017'], //Para ChartTemporal, los canales son una lista de strings
 				minTimeWindow:null,
 				maxTimeWindow:null,
 				largeSize:'on',
@@ -30,7 +30,7 @@ class ChartTemporal extends Component {
 			}
 		}else{
 			params={
-				channels:nodePlot.params.channels.split(","),
+				channels:nodePlot.params.channels.split(','), // En params se guarda como ch separado por comas
 				...nodePlot.params
 			}
 				

@@ -15,13 +15,13 @@ from filemanager.utils import _get_file_id, _get_user
 LOG = logging.getLogger(__name__)
 LOAD_RESTORE_PARAM_NAME = 'id'
 
-def make_process_file(request,process_name,content):
-    process_id = _get_file_id()
+def make_process_result_file(request,process_name,content):
+    process_result_id = _get_file_id()
     file_id = _get_file_id()
     user=_get_user(request)
 
     temp_process_output=TemporaryOutput(
-                    process_id=process_id,
+                    process_id=process_result_id,
                     file_type=TemporaryOutput.FILE_DATA,
                     process_type=process_name,
                     created_by=user)
@@ -40,7 +40,7 @@ def make_process_file(request,process_name,content):
                         
     temp_process_output.save()
 
-    return process_id
+    return process_result_id
 
 def check_process_params(request,params_names=None,params_values=None):
     if params_names==None:
@@ -53,9 +53,9 @@ def check_process_params(request,params_names=None,params_values=None):
     for param_name in params_names:
         if param_name in request.query_params:
             p=request.query_params[param_name]
-            if p=='true':
+            if p==True:
                 params[param_name]=True
-            elif p=='false':
+            elif p==False:
                 params[param_name]=False
             else:
                 return Response('An invalid {} field has been provided.'.format(param_name),

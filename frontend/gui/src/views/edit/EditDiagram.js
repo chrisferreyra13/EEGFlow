@@ -63,6 +63,7 @@ class EditDiagram extends Component{
   }
   runButton(){
     this.props.runProcess(this.props.stateElements)
+    
   }
   cancelButton(){
     this.props.cancelProcess()

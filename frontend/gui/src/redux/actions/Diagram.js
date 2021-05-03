@@ -43,23 +43,36 @@ export function updateAfterDeleteElements(newElements, numOfNodesRemoved){
 }
 
 export const FETCH_RUN_PROCESS_REQUEST='FETCH_RUN_PROCESS_REQUEST'
-export function runProcessRequest(){
+export function runProcessRequest(json){
     return{
         type:FETCH_RUN_PROCESS_REQUEST,
+        process:json
     }
 }
 export const FETCH_RUN_PROCESS_RECEIVE='FETCH_RUN_PROCESS_RECEIVE'
-export function runProcessReceive(){
+export function runProcessReceive(json){
     return{
         type:FETCH_RUN_PROCESS_RECEIVE,
+        process:json
+
     }
 }
 export const FETCH_RUN_PROCESS_FAILURE='FETCH_RUN_PROCESS_FAILURE'
-export function runProcessFailure(){
+export function runProcessFailure(json){
     return{
         type:FETCH_RUN_PROCESS_FAILURE,
+        process:json
     }
 }
+
+export const PROCESSES_TO_START='PROCESSES_TO_START'
+export function processesToStart(len){
+    return{
+        type: PROCESSES_TO_START,
+        numberOfProcesses:len
+    }
+}
+
 
 export const runProcess= (elements) => async (dispatch) => {
 
@@ -107,8 +120,8 @@ export const runProcess= (elements) => async (dispatch) => {
                 output:output,
                 params:elements[i].params,
                 processed:false,
-                save_output:'false',
-                return_output:'false',
+                save_output:false,
+                return_output:false,
             })
 
         }
@@ -116,7 +129,7 @@ export const runProcess= (elements) => async (dispatch) => {
     
     i=0
     let saveOutputList=[]
-    let count=0
+    let cont=0
     let processes=[]
     let process=[]
     let blacklist=[] //nodo recorridos
@@ -133,8 +146,9 @@ export const runProcess= (elements) => async (dispatch) => {
             nextNodo=diagram.find(n => n.id==nodo.output[i]) //voy al output 'i' de nodo
 
             if(nextNodo.output!=null){
+                // VERIFICACION DE NODOS CON OUTPUT>1  ---> FAVLIST
                 if(nextNodo.output.length>1 && !saveOutputList.includes(nextNodo.id)){ // me fijo que sea la primera vez que paso por nextNodo
-                    nextNodo["save_output"]='true' // pongo true para despues guardar la salida cuando procese en el back
+                    nextNodo["save_output"]=true // pongo true para despues guardar la salida cuando procese en el back
                     saveOutputList.push(nextNodo.id) // Lo agrego para no volver a pasar
                 }
             }
@@ -155,6 +169,8 @@ export const runProcess= (elements) => async (dispatch) => {
 
                 if(nextNodo.type=='output') // verifico que si llegue al final
                     blacklist.push(nextNodo.id)
+                    //Indico que hay que guardar el resultado del anterior en back para pedirlo
+                    nodo["save_output"]=true
 
                 nodo=nextNodo // me paro en el siguiente
                 i=0 // reinicio
@@ -164,15 +180,17 @@ export const runProcess= (elements) => async (dispatch) => {
         }while(nodo.type!='output') // cuando llegue al final de un process, empiezo de nuevo
         processes.push(process)
         process=[]
-        count+=1
+        cont+=1
 
-    }while(count!=numOutput) // cuando ya no tengo mas nodos tipo output, termine de recorrer todo el diagrama
+    }while(cont!=numOutput) // cuando ya no tengo mas nodos tipo output, termine de recorrer todo el diagrama
 
     console.log(processes)
     
     //let header= new Headers()
     let url=null
     let initFetch=null
+    cont=0
+    dispatch(processesToStart(processes.length))
     for(process of processes){
         url = API_ROOT+'process/?'
           
@@ -185,12 +203,12 @@ export const runProcess= (elements) => async (dispatch) => {
         };
     
         
-        dispatch(runProcessRequest())
+        dispatch(runProcessRequest({'process_id':cont}))
         try {
             fetch(url,initFetch)
             .then(res => res.json())
             .then(json => {
-                dispatch(runProcessReceive(json))
+                dispatch(runProcessReceive(Object.assign({},json,{'process_id':cont,'node_output_id':process[process.length-1].id})))
                 process.forEach(node =>{
                     node["processed"]=true
                 })
@@ -200,6 +218,7 @@ export const runProcess= (elements) => async (dispatch) => {
         catch (error){
             dispatch(runProcessFailure(error))
         }
+        cont+=1
     }
     
 }

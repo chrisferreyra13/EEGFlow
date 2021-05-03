@@ -6,7 +6,7 @@ import {
 } from '../actions/File'
 
 const initialStateFile={
-    fileId: '123',
+    fileId: '6',
     fileInfo: [],
     isFetching: false,
 }

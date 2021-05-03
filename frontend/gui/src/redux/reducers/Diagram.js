@@ -6,7 +6,8 @@ import {
     CHANGE_EDGE,
     FETCH_RUN_PROCESS_REQUEST,
     FETCH_RUN_PROCESS_RECEIVE,
-    FETCH_RUN_PROCESS_FAILURE
+    FETCH_RUN_PROCESS_FAILURE,
+    PROCESSES_TO_START,
 } from '../actions/Diagram';
 
 import allowedElements from './_elements';
@@ -31,7 +32,8 @@ const initialState={
         data: { label: 'Grafico en tiempo' },
         position: { x: 500, y: 20 },
         draggable:true,
-        params:null
+        params:null,
+        fetchInput:false,
     },
     {
         animated:true,
@@ -43,7 +45,8 @@ const initialState={
     },
     ],
     nodesCount: 2,
-    lastId: 2
+    lastId: 2,
+    processes_status:[] //[TOSTART, PROCESSING, SUCCESFULL, FAIL]
 }
 
 export const diagram= (state=initialState, {type, ...rest})=>{
@@ -70,14 +73,14 @@ export const diagram= (state=initialState, {type, ...rest})=>{
         case UPDATE_NODE_PROPIERTIES:
             var copyState=Object.assign({},state);
             var propierties=Object.getOwnPropertyNames(rest.propierties);
-            let id='0'
+            var idx='0'
             if(rest.id==''){
-                id=lastNodeIndex(copyState.elements)
+                idx=lastNodeIndex(copyState.elements)
             }else{
-                id=copyState.elements.findIndex(elem => elem.id==rest.id)
+                idx=copyState.elements.findIndex(elem => elem.id==rest.id)
             }
             for(let prop of propierties){
-                copyState.elements[id][prop]=rest.propierties[prop];
+                copyState.elements[idx][prop]=rest.propierties[prop];
             }
             return Object.assign({},state,{
                 elements:copyState.elements
@@ -107,14 +110,41 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                 elements: rest.newElements,
             })
 
+        case PROCESSES_TO_START:
+            let i=0
+            var processes_status=[]
+            for(i;i<rest.numberOfProcesses;i++){
+                processes_status.push('TOSTART')
+            }
+            return Object.assign({},state,{
+                processes_status: processes_status, //PROCESSING
+            })
+        
+
         case FETCH_RUN_PROCESS_REQUEST:
-            return state
+            var processes_status=Object.assign({},state.processes_status)
+            processes_status[rest.process['process_id']]='PROCESSING'
+            return Object.assign({},state,{
+                processes_status: processes_status, //PROCESSING
+            })
         
         case FETCH_RUN_PROCESS_RECEIVE:
-            return state
+            var processes_status=Object.assign({},state.processes_status)
+            processes_status[rest.process['process_id']]=rest.process["process_status"]
+            var copyElements=Object.assign({},state.elements);
+            var idx=copyElements.findIndex(n => n.id==rest.process["node_output_id"])
+            copyElements[idx].fetchInput=true //Ya puedo ir a buscar el resultado
+            return Object.assign({},state,{
+                processes_status: processes_status, //SUCCESFULL
+                elements:copyElements,
+            })
 
         case FETCH_RUN_PROCESS_FAILURE:
-            return state
+            var processes_status=Object.assign({},state.processes_status)
+            processes_status[rest.process['process_id']]=rest.process["process_status"]
+            return Object.assign({},state,{
+                process_status: processes_status, //FAIL
+            })
 
         default:
             return state

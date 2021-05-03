@@ -58,12 +58,22 @@ class RunProcess(APIView):
 
         input=None
         output=None
+        process_result_ids=[]
         for step in process:
             output=steps[step['elementType']](input=input,params=step['params'],step_type=step['elementType'])
 
             if type(output).__name__=='Response':
+                if len(process_result_ids)!=0:
+                    output['process_result_ids']=process_result_ids
                 return output
             else:
+                if step['save_output']==True:
+                    process_result_id=make_process_result_file(request,process_name=step['elementType'],content=output) # TODO: BUSCAR COMO GUARDAR EL RAW y NO LA SEÑAL CRUDA
+                    if type(process_result_id).__name__=='Response':
+                        return process_result_id # Hubo un error
+                    else:
+                        process_result_ids.append(process_result_id)
+
                 input=output
 class FileInfoView(APIView):
     
@@ -268,7 +278,7 @@ class NotchFilterView(APIView):
         # MAKE OUTPUT
 
         if save_output:
-            process_id=make_process_file(request,process_name='notch',content=time_series_filtered)
+            process_id=make_process_result_file(request,process_name='notch',content=time_series_filtered)
             if type(process_id).__name__=='Response':
                 return process_id
         else:
