@@ -61,7 +61,7 @@ class EditDiagram extends Component{
   componentWillUnmount(){
     window.removeEventListener('resize',this.throttleHandleWindowResize());
   }
-  runButton(){
+  runButton(){ //PENSAR COMO BUSCAR LOS RESULTADOS!!!! .then()??? 
     this.props.runProcess(this.props.stateElements)
     
   }

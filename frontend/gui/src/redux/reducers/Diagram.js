@@ -129,14 +129,15 @@ export const diagram= (state=initialState, {type, ...rest})=>{
             })
         
         case FETCH_RUN_PROCESS_RECEIVE:
-            var processes_status=Object.assign({},state.processes_status)
-            processes_status[rest.process['process_id']]=rest.process["process_status"]
-            var copyElements=Object.assign({},state.elements);
-            var idx=copyElements.findIndex(n => n.id==rest.process["node_output_id"])
-            copyElements[idx].fetchInput=true //Ya puedo ir a buscar el resultado
+            var copyState=Object.assign({},state);
+            
+            copyState.processes_status[rest.process['process_id']]=rest.process["process_status"]
+            
+            var idx=copyState.elements.findIndex(n => n.id==rest.process["node_output_id"])
+            copyState.elements[idx].fetchInput=true //Ya puedo ir a buscar el resultado
             return Object.assign({},state,{
-                processes_status: processes_status, //SUCCESFULL
-                elements:copyElements,
+                processes_status: copyState.processes_status, //SUCCESFULL
+                elements:copyState.elements,
             })
 
         case FETCH_RUN_PROCESS_FAILURE:
@@ -145,6 +146,7 @@ export const diagram= (state=initialState, {type, ...rest})=>{
             return Object.assign({},state,{
                 process_status: processes_status, //FAIL
             })
+
 
         default:
             return state

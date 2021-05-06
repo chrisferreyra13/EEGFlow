@@ -117,7 +117,7 @@ export default [
     position: { x: 450, y: 80 },
     params:{
       channels:'EEG 016,EEG 017',
-      filter_method:'fir'
+      filter_method:'fir',
     },
   },
   {
@@ -130,7 +130,10 @@ export default [
       label: 'Filtro Alpha'
     },
     position: { x: 450, y: 80 },
-    params:null,
+    params:{
+      channels:'EEG 016,EEG 017',
+      filter_method:'fir',
+    },
   },
   {
     id: null,
