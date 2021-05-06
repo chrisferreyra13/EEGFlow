@@ -73,6 +73,14 @@ export function processesToStart(len){
     }
 }
 
+export const OUTPUT_RECIEVE='OUTPUT_RECIEVE'
+export function outputRecieve(json){
+    return{
+        type: OUTPUT_RECIEVE,
+        processOutput:json
+    }
+}
+
 
 export const runProcess= (elements) => async (dispatch) => {
 
@@ -167,10 +175,12 @@ export const runProcess= (elements) => async (dispatch) => {
             else{
                 process.push(nextNodo) // guardo en process el step
 
-                if(nextNodo.type=='output') // verifico que si llegue al final
+                if(nextNodo.type=='output'){ // verifico que si llegue al final
                     blacklist.push(nextNodo.id)
                     //Indico que hay que guardar el resultado del anterior en back para pedirlo
-                    nodo["save_output"]=true
+                    if (nodo.id!="1")
+                        nodo["save_output"]=true
+                }
 
                 nodo=nextNodo // me paro en el siguiente
                 i=0 // reinicio

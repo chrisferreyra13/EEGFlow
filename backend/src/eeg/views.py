@@ -64,11 +64,12 @@ class RunProcess(APIView):
 
             if type(output).__name__=='Response':
                 if len(process_result_ids)!=0:
-                    output['process_result_ids']=process_result_ids
+                    output.data['process_result_ids']=process_result_ids
+
                 return output
             else:
                 if step['save_output']==True:
-                    process_result_id=make_process_result_file(request,process_name=step['elementType'],content=output) # TODO: BUSCAR COMO GUARDAR EL RAW y NO LA SEÑAL CRUDA
+                    process_result_id=make_output_raw_file(request,process_name=step['elementType'],raw_output=output)
                     if type(process_result_id).__name__=='Response':
                         return process_result_id # Hubo un error
                     else:

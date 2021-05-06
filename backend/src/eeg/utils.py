@@ -15,6 +15,25 @@ from filemanager.utils import _get_file_id, _get_user
 LOG = logging.getLogger(__name__)
 LOAD_RESTORE_PARAM_NAME = 'id'
 
+
+def make_output_raw_file(request, process_name,raw_output):
+    process_result_id = _get_file_id()
+    file_id = _get_file_id()
+    user=_get_user(request)
+
+    #TODO:VER TEMA BD TEMPORARYOUTPUT
+
+    if user==None:
+        user='anon'
+
+    main_path='./cconsciente/processes-temp/'
+    filename=user+'_'+process_name+'_'+file_id+'_raw.fif'
+
+    raw_output.save(main_path+filename, overwrite=True)
+
+    return process_result_id
+
+
 def make_process_result_file(request,process_name,content):
     process_result_id = _get_file_id()
     file_id = _get_file_id()
@@ -32,12 +51,12 @@ def make_process_result_file(request,process_name,content):
     filename=user+'.'+process_name+'.'+file_id+'.bin'
     
     try:
-        '''with open(os.path.join(path,filename), 'wb+') as f:
-            np.save(f, content)'''
+        #with open(os.path.join(path,filename), 'wb+') as f:
+            #np.save(f, content)
         temp_process_output.file.save(filename,ContentFile(content))
     except:
         raise Response('Error making file for process output', status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-                        
+
     temp_process_output.save()
 
     return process_result_id
