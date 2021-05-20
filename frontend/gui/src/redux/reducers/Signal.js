@@ -20,7 +20,7 @@ export const timeSeries = (state = initialState, { type, ...rest }) => {
               isFetching: true
             })
         case FETCH_TIME_SERIES_RECEIVE:
-            console.log(rest)
+            
           return Object.assign({},state, {
               isFetching: false,
               signal: rest.timeSeries['signal'],

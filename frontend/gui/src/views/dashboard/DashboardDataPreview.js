@@ -16,11 +16,13 @@ import { FilePond, File, registerPlugin } from 'react-filepond'
 import 'filepond/dist/filepond.min.css'
 
 import {getFileInfo,postFileInfo} from '../../redux/actions/File'
+import {runProcess, setNodeFileId} from '../../redux/actions/Diagram'
 import {enableListGroupFileInfo, disableListGroupFileInfo} from '../../redux/actions/Dashboard'
 
 class DashboardDataPreview extends Component{
   constructor(props){
     super(props);
+    
     this.state={
       files: [],
       fileId: this.props.fileId
@@ -28,6 +30,7 @@ class DashboardDataPreview extends Component{
     
 
     this.setFiles=this.setFiles.bind(this);
+    this.vizButton=this.vizButton.bind(this);
     
     //this.revertFile=this.revertFile.bind(this);
     this.setInfo=this.setInfo.bind(this);
@@ -81,10 +84,14 @@ class DashboardDataPreview extends Component{
     this.props.postFileInfo(this.state.files[0].serverId)
     .then(this.setState({fileId: this.props.fileId}))
     .then(this.props.getFileInfo(this.state.fileId))
+    .then(this.props.setNodeFileId(this.state.fileId)) // Seteo el file id de la señal
 
     
     this.props.enableListGroupFileInfo() //Esto ya tiene una falla, si no busca bien el archivo
                                         // no hay info, pero se activa el list group --> MODIFICAR
+  }
+  vizButton(){
+    this.props.runProcess(this.props.elements) 
   }
 
   
@@ -157,7 +164,7 @@ class DashboardDataPreview extends Component{
                     to="/app/edit/plot"
                   >
                   {/*<a href="https://coreui.github.io/components/listgroup/" rel="noreferrer noopener" target="_blank" className="card-header-action">*/}
-                    <CButton block color="info">Visualizar</CButton>
+                    <CButton block color="info" onClick={this.vizButton}>Visualizar</CButton>
                   {/*</a>}*/}
                   </CLink>
                 </div> :
@@ -186,6 +193,7 @@ const mapStateToProps = (state) => {
     fileInfo: state.file.fileInfo,
     fileId:state.file.fileId,
     enableListGroup: state.dashboardDataPreview.enableListGroupFileInfo,
+    elements: state.diagram.elements,
   };
 }
 
@@ -194,7 +202,9 @@ const mapDispatchToProps = (dispatch) => {
     postFileInfo: (fileIdServer) => dispatch(postFileInfo(fileIdServer)),
     getFileInfo: (fileId) => dispatch(getFileInfo(fileId)),
     enableListGroupFileInfo: () => dispatch(enableListGroupFileInfo()),
-    disableListGroupFileInfo: () => dispatch(disableListGroupFileInfo())
+    disableListGroupFileInfo: () => dispatch(disableListGroupFileInfo()),
+    runProcess: (elements) => dispatch(runProcess(elements)),
+    setNodeFileId: (fileId) => dispatch(setNodeFileId(fileId))
   
   };
 };

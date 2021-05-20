@@ -9,7 +9,13 @@ export default [
       label: 'Señal en tiempo'
     },
     position: { x: 450, y: 80 },
-    params:null
+    params:{
+      id:'12',
+      data: [],
+      sFreq: 0,
+      chNames: [],
+    },
+    isFetching:false,
   },
   //PLOTS//
   {
@@ -22,8 +28,11 @@ export default [
       label: 'Grafico en tiempo'
     },
     position: { x: 450, y: 80 },
-    params:null,
-    fetchInput:false,
+    params:{
+      data:[],
+      channels:null,
+    },
+    isFetching:false,
   },
   {
     id: null,
@@ -35,7 +44,7 @@ export default [
     },
     position: { x: 450, y: 80 },
     params:null,
-    fetchInput:false,
+    isFetching:false,
   },
   {
     id: null,

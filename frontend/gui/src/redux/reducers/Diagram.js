@@ -8,6 +8,10 @@ import {
     FETCH_RUN_PROCESS_RECEIVE,
     FETCH_RUN_PROCESS_FAILURE,
     PROCESSES_TO_START,
+    FETCH_TIME_SERIES_REQUEST,
+    FETCH_TIME_SERIES_RECEIVE,
+    FETCH_TIME_SERIES_FAILURE,
+    SET_NODE_FILE_ID,
 } from '../actions/Diagram';
 
 import allowedElements from './_elements';
@@ -22,7 +26,14 @@ const initialState={
         data: { label: 'Señal en tiempo' },
         position: { x: 150, y: 50 },
         draggable:false,
-        params:null
+        params:{
+            id:'12',
+            data: [],
+            sFreq: 0,
+            chNames: [],
+            
+        },
+        isFetching:false,
     },
     {
         id: '2',
@@ -32,7 +43,10 @@ const initialState={
         data: { label: 'Grafico en tiempo' },
         position: { x: 500, y: 20 },
         draggable:true,
-        params:null,
+        params:{
+            data:[],
+            channels:null,
+        },
         fetchInput:false,
     },
     {
@@ -60,8 +74,8 @@ export const diagram= (state=initialState, {type, ...rest})=>{
             copyState.elements[copyState.elements.length-1].id=(copyState.lastId).toString();
             var position=copyState.elements[nodeIndex].position
             copyState.elements[copyState.elements.length-1].position=Object.assign({},position,{
-                                                                    x: position.x+200,
-                                                                    y: position.y+100
+                                                                        x: position.x+200,
+                                                                        y: position.y+100
                                                                     })
 
             return Object.assign({},state,{
@@ -120,6 +134,14 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                 processes_status: processes_status, //PROCESSING
             })
         
+        case SET_NODE_FILE_ID:
+            var copyState=Object.assign({},state);
+            var idx=copyState.elements.findIndex(n => n.elementType=='TIME_SERIES')
+            copyState.elements[idx].params.id=rest.fileId
+            return Object.assign({},state, {
+                elements: copyState.elements,
+            })
+        
 
         case FETCH_RUN_PROCESS_REQUEST:
             var processes_status=Object.assign({},state.processes_status)
@@ -146,6 +168,26 @@ export const diagram= (state=initialState, {type, ...rest})=>{
             return Object.assign({},state,{
                 process_status: processes_status, //FAIL
             })
+        
+        case FETCH_TIME_SERIES_REQUEST:
+            var copyState=Object.assign({},state);
+            var idx=copyState.elements.findIndex(n => n.elementType=='TIME_SERIES')
+            copyState.elements[idx].isFetching=true
+            return Object.assign({},state, {
+                elements: copyState.elements,
+            })
+        case FETCH_TIME_SERIES_RECEIVE:
+            var copyState=Object.assign({},state);
+            var idx=copyState.elements.findIndex(n => n.elementType=='TIME_SERIES')
+            copyState.elements[idx].params.data=rest.timeSeries['signal']
+            copyState.elements[idx].params.sFreq=rest.timeSeries['sampling_freq']
+            copyState.elements[idx].params.chNames=rest.timeSeries['ch_names']
+            copyState.elements[idx].isFetching=false
+            return Object.assign({},state, {
+                elements: copyState.elements,
+            })
+        case FETCH_TIME_SERIES_FAILURE:
+            return {...state, ...rest}
 
 
         default:

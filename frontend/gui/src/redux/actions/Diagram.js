@@ -1,3 +1,5 @@
+import { func } from "prop-types"
+
 const API_ROOT= 'http://127.0.0.1:8000/eeg/'
 
 export const ADD_NODE='ADD_NODE'
@@ -41,6 +43,15 @@ export function updateAfterDeleteElements(newElements, numOfNodesRemoved){
         numOfNodesRemoved
     }
 }
+
+export const SET_NODE_FILE_ID='SET_NODE_FILE_ID'
+export function setNodeFileId(fileId){
+    return {
+        type:SET_NODE_FILE_ID,
+        fileId
+    }
+}
+
 
 export const FETCH_RUN_PROCESS_REQUEST='FETCH_RUN_PROCESS_REQUEST'
 export function runProcessRequest(json){
@@ -222,6 +233,7 @@ export const runProcess= (elements) => async (dispatch) => {
                 process.forEach(node =>{
                     node["processed"]=true
                 })
+                dispatch(fetchSignal(process[0].params.id))
                 console.log(process)
             })
         }
@@ -320,4 +332,55 @@ export const runSingleProcess= (params) => async (dispatch) => {
     catch (error){
         dispatch(singleProcessFailure(error))
     }
+}
+
+export const FETCH_TIME_SERIES_REQUEST = 'FETCH_TIME_SERIES_REQUEST'
+function requestTimeSeries() {
+  return {
+    type: FETCH_TIME_SERIES_REQUEST,
+  }
+}
+
+export const FETCH_TIME_SERIES_RECEIVE = 'FETCH_TIME_SERIES_RECEIVE'
+function receiveTimeSeries(json) {
+  return {
+    type: FETCH_TIME_SERIES_RECEIVE,
+    timeSeries:json
+    
+  }
+}
+
+export const FETCH_TIME_SERIES_FAILURE = 'FETCH_TIME_SERIES_FAILURE'
+function errorFetchingTimeSeries(error){
+    return {
+        type: FETCH_TIME_SERIES_FAILURE,
+        error
+    }
+}
+
+export const fetchSignal = (id) => async (dispatch) => {
+
+    var url = API_ROOT+'time_series/?' + new URLSearchParams({
+    id: id,
+    })
+    
+    var header= new Headers()
+    var initFetch={
+    method: 'GET',
+    headers: header,
+    mode: 'cors',
+    cache: 'default'
+    };
+
+    dispatch(requestTimeSeries())
+    try {
+        await fetch(url,initFetch)
+        .then(res => res.json())
+        .then(json => receiveTimeSeries(json))
+    }
+    catch (error){
+        dispatch(errorFetchingTimeSeries(error))
+    }
+    
+    
 }

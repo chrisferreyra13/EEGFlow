@@ -25,7 +25,7 @@ class EditDiagram extends Component{
   constructor(props){
     super(props)
     this.props.diagramView(true);
-    this.props.stateElements[0].params={'id':this.props.fileId} // Seteo el file id de la señal
+    
     this.state={
       contentHeight:Math.floor(window.innerHeight*0.75),
       elements: this.props.stateElements,
@@ -61,7 +61,7 @@ class EditDiagram extends Component{
   componentWillUnmount(){
     window.removeEventListener('resize',this.throttleHandleWindowResize());
   }
-  runButton(){ //PENSAR COMO BUSCAR LOS RESULTADOS!!!! .then()??? 
+  runButton(){
     this.props.runProcess(this.props.stateElements)
     
   }

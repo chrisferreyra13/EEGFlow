@@ -9,16 +9,17 @@ import {connect} from 'react-redux'
 import ChartChannel from './ChartChannel'
 import ChartChannels from './ChartChannels'
 import {SamplesToTimes} from '../../tools/Signal'
-import { node } from 'prop-types'
+
+
 //import  CanvasJSReact from '../../canvasjs/canvasjs.react'
 //import {Line} from 'react-chartjs-2'
 
 class ChartTemporal extends Component {
     constructor(props){
         super(props);
-		const nodePlot=this.props.elements.find((elem) => elem.id==this.props.nodeId)
+		const nodePlot=this.props.elements.find((elem) => elem.id==this.props.nodeId) //Busco nodoPlot para setear los params
 		let params={}
-		if(nodePlot.params==null){
+		if(nodePlot.params.channels==null){ 
 			params={ //Default params
 				channels:['EEG 016','EEG 017'], //Para ChartTemporal, los canales son una lista de strings
 				minTimeWindow:null,
@@ -35,30 +36,30 @@ class ChartTemporal extends Component {
 			}
 				
 		}
-		console.log(params)
+		//const nodeTimeSeries=this.props.elements.find(n=> n.elementType=='TIME_SERIES')
 
 		let data=[]
-		let limit = this.props.timeSeries[1].length;
+		let limit = this.props.data.data[0].length;
 		let dataPoints = [];
 		let minTimeIndex=0;
 		let maxTimeIndex=limit;
 		if(params.minTimeWindow!=null){
-			minTimeIndex=Math.round(params.minTimeWindow*this.props.samplingFreq)
+			minTimeIndex=Math.round(params.minTimeWindow*this.props.data.sFreq)
 			if(minTimeIndex>=limit) minTimeIndex=0; //Se paso, tira error
 		}
 		if(params.maxTimeWindow!=null){
-			maxTimeIndex=Math.round(params.maxTimeWindow*this.props.samplingFreq)
+			maxTimeIndex=Math.round(params.maxTimeWindow*this.props.data.sFreq)
 			if(maxTimeIndex>limit) maxTimeIndex=limit; //Se paso, tira error
 		}
 
 		if(params.channels.length!=0){
 			// Si no coinciden hay error, tenerlo en cuenta para hacer una excepcion
-			const idxs=params.channels.map((ch) => this.props.chNames.findIndex((chName) => ch===chName))
+			const idxs=params.channels.map((ch) => this.props.data.chNames.findIndex((chName) => ch===chName))
 			for(var j = 0; j < params.channels.length; j += 1){
 				for (var i = minTimeIndex; i < maxTimeIndex; i += 1) {
 					dataPoints.push({
-					x: SamplesToTimes(i,this.props.samplingFreq,3),
-					y: Math.pow(10,6)*this.props.timeSeries[idxs[j]][i]
+					x: SamplesToTimes(i,this.props.data.sFreq,3),
+					y: Math.pow(10,6)*this.props.data.data[idxs[j]][i]
 				});
 				}
 				data.push(dataPoints)
@@ -67,8 +68,8 @@ class ChartTemporal extends Component {
 		}else{
 			for (var i = minTimeIndex; i < maxTimeIndex; i += 1) {
 				dataPoints.push({
-				x: SamplesToTimes(i,this.props.samplingFreq,3),
-				y: Math.pow(10,6)*this.props.timeSeries[1][i]
+				x: SamplesToTimes(i,this.props.data.sFreq,3),
+				y: Math.pow(10,6)*this.props.data.data[1][i]
 			});
 			}
 			data=dataPoints
@@ -96,12 +97,14 @@ class ChartTemporal extends Component {
 			params:params,
 			style:style,
 			data:data
+
 		}
 
     }
 
     render() {
-		if(this.props.timeSeries[1]==undefined){
+		const nodeTimeSeries=this.props.elements.find(n=> n.elementType=='TIME_SERIES')
+		if(this.props.data.data[1]==undefined){
 			return null
 		}else{
 			return (
@@ -112,7 +115,7 @@ class ChartTemporal extends Component {
 							<ChartChannel
 							data={this.state.data}
 							chartStyle={{height: '100%', width:'100%'}}
-							channel={this.state.params.channels[1]==undefined ? this.props.chNames[1] : this.state.params.channels[1]}
+							channel={this.state.params.channels[1]==undefined ? this.props.data.chNames[1] : this.state.params.channels[1]}
 							/> :
 							<ChartChannels 
 							data={this.state.data}
@@ -130,10 +133,7 @@ class ChartTemporal extends Component {
 const mapStateToProps = (state) => {
 	return{
 	  fileInfo: state.file.fileInfo,
-	  timeSeries: state.timeSeries.signal,
-	  samplingFreq: state.timeSeries.sFreq,
-	  chNames: state.timeSeries.chNames,
-	  elements:state.diagram.elements
+	  elements:state.diagram.elements,
 	};
   }
   
