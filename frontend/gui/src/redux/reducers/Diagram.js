@@ -26,14 +26,14 @@ const initialState={
         data: { label: 'Señal en tiempo' },
         position: { x: 150, y: 50 },
         draggable:false,
-        params:{
+        dataParams:{
+            dataReady:false,
             id:'12',
             data: [],
             sFreq: 0,
             chNames: [],
             
         },
-        isFetching:false,
     },
     {
         id: '2',
@@ -43,11 +43,19 @@ const initialState={
         data: { label: 'Grafico en tiempo' },
         position: { x: 500, y: 20 },
         draggable:true,
-        params:{
-            data:[],
-            channels:null,
+        inputData:{
+            fetchInput:true,
+            inputNodeId:'1',
         },
-        fetchInput:false,
+        params:{
+            channels:null,
+            minTimeWindow:null,
+            maxTimeWindow:null,
+            largeSize:null,
+            mediumSize:null,
+            smallSize:null,
+        },
+        
     },
     {
         animated:true,
@@ -60,44 +68,45 @@ const initialState={
     ],
     nodesCount: 2,
     lastId: 2,
-    processes_status:[] //[TOSTART, PROCESSING, SUCCESFULL, FAIL]
+    processes_status:[], //[TOSTART, PROCESSING, SUCCESFULL, FAIL]
+    inputsReady:[]
 }
 
 export const diagram= (state=initialState, {type, ...rest})=>{
     switch(type){
         case ADD_NODE: 
-            var copyState=Object.assign({},state);
-            var nodeIndex=lastNodeIndex(copyState.elements)//,copyState.lastId)
-            copyState.elements.push(Object.assign({},allowedElements.find(element => element.elementType===rest.elementType)));
-            copyState.lastId=parseInt(copyState.elements[nodeIndex].id)+1;
-            copyState.nodesCount=copyState.nodesCount+1
-            copyState.elements[copyState.elements.length-1].id=(copyState.lastId).toString();
-            var position=copyState.elements[nodeIndex].position
-            copyState.elements[copyState.elements.length-1].position=Object.assign({},position,{
+            var stateCopy=Object.assign({},state);
+            var nodeIndex=lastNodeIndex(stateCopy.elements)//,stateCopy.lastId)
+            stateCopy.elements.push(Object.assign({},allowedElements.find(element => element.elementType===rest.elementType)));
+            stateCopy.lastId=parseInt(stateCopy.elements[nodeIndex].id)+1;
+            stateCopy.nodesCount=stateCopy.nodesCount+1
+            stateCopy.elements[stateCopy.elements.length-1].id=(stateCopy.lastId).toString();
+            var position=stateCopy.elements[nodeIndex].position
+            stateCopy.elements[stateCopy.elements.length-1].position=Object.assign({},position,{
                                                                         x: position.x+200,
                                                                         y: position.y+100
                                                                     })
 
             return Object.assign({},state,{
-                elements: copyState.elements,
-                nodesCount: copyState.nodesCount,
-                lastId: copyState.lastId
+                elements: stateCopy.elements,
+                nodesCount: stateCopy.nodesCount,
+                lastId: stateCopy.lastId
             })
 
         case UPDATE_NODE_PROPIERTIES:
-            var copyState=Object.assign({},state);
+            var stateCopy=Object.assign({},state);
             var propierties=Object.getOwnPropertyNames(rest.propierties);
             var idx='0'
             if(rest.id==''){
-                idx=lastNodeIndex(copyState.elements)
+                idx=lastNodeIndex(stateCopy.elements)
             }else{
-                idx=copyState.elements.findIndex(elem => elem.id==rest.id)
+                idx=stateCopy.elements.findIndex(elem => elem.id==rest.id)
             }
             for(let prop of propierties){
-                copyState.elements[idx][prop]=rest.propierties[prop];
+                stateCopy.elements[idx][prop]=rest.propierties[prop];
             }
             return Object.assign({},state,{
-                elements:copyState.elements
+                elements:stateCopy.elements
             })
 
         case UPDATE_AFTER_DELETE_ELEMENTS:
@@ -124,6 +133,14 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                 elements: rest.newElements,
             })
 
+        case SET_NODE_FILE_ID:
+            var stateCopy=Object.assign({},state);
+            var idx=stateCopy.elements.findIndex(n => n.elementType=='TIME_SERIES')
+            stateCopy.elements[idx].params.id=rest.fileId
+            return Object.assign({},state, {
+                elements: stateCopy.elements,
+            })
+
         case PROCESSES_TO_START:
             let i=0
             var processes_status=[]
@@ -133,15 +150,6 @@ export const diagram= (state=initialState, {type, ...rest})=>{
             return Object.assign({},state,{
                 processes_status: processes_status, //PROCESSING
             })
-        
-        case SET_NODE_FILE_ID:
-            var copyState=Object.assign({},state);
-            var idx=copyState.elements.findIndex(n => n.elementType=='TIME_SERIES')
-            copyState.elements[idx].params.id=rest.fileId
-            return Object.assign({},state, {
-                elements: copyState.elements,
-            })
-        
 
         case FETCH_RUN_PROCESS_REQUEST:
             var processes_status=Object.assign({},state.processes_status)
@@ -151,15 +159,16 @@ export const diagram= (state=initialState, {type, ...rest})=>{
             })
         
         case FETCH_RUN_PROCESS_RECEIVE:
-            var copyState=Object.assign({},state);
+            var stateCopy=Object.assign({},state);
             
-            copyState.processes_status[rest.process['process_id']]=rest.process["process_status"]
+            stateCopy.processes_status[rest.process['process_id']]=rest.process["process_status"]
             
-            var idx=copyState.elements.findIndex(n => n.id==rest.process["node_output_id"])
-            copyState.elements[idx].fetchInput=true //Ya puedo ir a buscar el resultado
+            var idx=stateCopy.elements.findIndex(n => n.id==rest.process["node_output_id"])
+            stateCopy.elements[idx].inputData.fetchInput=true
+            stateCopy.elements[idx].inputData.inputNodeId=rest.process["node_input_id"] //Ya puedo ir a buscar el resultado
             return Object.assign({},state,{
-                processes_status: copyState.processes_status, //SUCCESFULL
-                elements:copyState.elements,
+                processes_status: stateCopy.processes_status, //SUCCESFULL
+                elements:stateCopy.elements,
             })
 
         case FETCH_RUN_PROCESS_FAILURE:
@@ -170,22 +179,27 @@ export const diagram= (state=initialState, {type, ...rest})=>{
             })
         
         case FETCH_TIME_SERIES_REQUEST:
-            var copyState=Object.assign({},state);
-            var idx=copyState.elements.findIndex(n => n.elementType=='TIME_SERIES')
-            copyState.elements[idx].isFetching=true
+            var stateCopy=Object.assign({},state);
+            var idx=stateCopy.elements.findIndex(n => n.elementType=='TIME_SERIES')
+            stateCopy.elements[idx].dataParams.dataReady=false
             return Object.assign({},state, {
-                elements: copyState.elements,
+                elements: stateCopy.elements,
             })
         case FETCH_TIME_SERIES_RECEIVE:
-            var copyState=Object.assign({},state);
-            var idx=copyState.elements.findIndex(n => n.elementType=='TIME_SERIES')
-            copyState.elements[idx].params.data=rest.timeSeries['signal']
-            copyState.elements[idx].params.sFreq=rest.timeSeries['sampling_freq']
-            copyState.elements[idx].params.chNames=rest.timeSeries['ch_names']
-            copyState.elements[idx].isFetching=false
-            return Object.assign({},state, {
-                elements: copyState.elements,
-            })
+            var stateCopy={...state} //Object.assign({},state);
+            var idx=stateCopy.elements.findIndex(n => n.elementType=='TIME_SERIES')
+            stateCopy.elements[idx].dataParams.data=rest.timeSeries['signal']
+            stateCopy.elements[idx].dataParams.sFreq=rest.timeSeries['sampling_freq']
+            stateCopy.elements[idx].dataParams.chNames=rest.timeSeries['ch_names']
+            stateCopy.elements[idx].dataParams.dataReady=true
+
+            stateCopy.inputsReady.push(stateCopy.elements[idx].id)
+            return {
+                ...state, 
+                elements: stateCopy.elements,
+                inputsReady:stateCopy.inputsReady
+                }
+                
         case FETCH_TIME_SERIES_FAILURE:
             return {...state, ...rest}
 

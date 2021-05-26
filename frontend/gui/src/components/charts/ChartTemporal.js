@@ -4,11 +4,13 @@ import {
 	CCardBody,
 	CCardGroup,
 } from '@coreui/react'
-
+import CIcon from '@coreui/icons-react'
+import {fetchSignal} from '../../redux/actions/Diagram'
 import {connect} from 'react-redux'
 import ChartChannel from './ChartChannel'
 import ChartChannels from './ChartChannels'
 import {SamplesToTimes} from '../../tools/Signal'
+import { node } from 'prop-types'
 
 
 //import  CanvasJSReact from '../../canvasjs/canvasjs.react'
@@ -36,44 +38,23 @@ class ChartTemporal extends Component {
 			}
 				
 		}
-		//const nodeTimeSeries=this.props.elements.find(n=> n.elementType=='TIME_SERIES')
 
-		let data=[]
-		let limit = this.props.data.data[0].length;
-		let dataPoints = [];
-		let minTimeIndex=0;
-		let maxTimeIndex=limit;
-		if(params.minTimeWindow!=null){
-			minTimeIndex=Math.round(params.minTimeWindow*this.props.data.sFreq)
-			if(minTimeIndex>=limit) minTimeIndex=0; //Se paso, tira error
-		}
-		if(params.maxTimeWindow!=null){
-			maxTimeIndex=Math.round(params.maxTimeWindow*this.props.data.sFreq)
-			if(maxTimeIndex>limit) maxTimeIndex=limit; //Se paso, tira error
+		this.preprocessData=this.preprocessData.bind(this);
+
+		let dataReady;
+
+		if(nodePlot.inputData.fetchInput){
+			const nodeInput=this.props.elements.find((elem) => elem.id==nodePlot.inputData.inputNodeId)
+			if(!nodeInput.dataParams.dataReady){
+				dataReady=false
+				this.props.fetchSignal(nodeInput.dataParams.id)
+				
+			}
+			/*else{
+				dataReady=true
+			}*/
 		}
 
-		if(params.channels.length!=0){
-			// Si no coinciden hay error, tenerlo en cuenta para hacer una excepcion
-			const idxs=params.channels.map((ch) => this.props.data.chNames.findIndex((chName) => ch===chName))
-			for(var j = 0; j < params.channels.length; j += 1){
-				for (var i = minTimeIndex; i < maxTimeIndex; i += 1) {
-					dataPoints.push({
-					x: SamplesToTimes(i,this.props.data.sFreq,3),
-					y: Math.pow(10,6)*this.props.data.data[idxs[j]][i]
-				});
-				}
-				data.push(dataPoints)
-				dataPoints=[]
-			}
-		}else{
-			for (var i = minTimeIndex; i < maxTimeIndex; i += 1) {
-				dataPoints.push({
-				x: SamplesToTimes(i,this.props.data.sFreq,3),
-				y: Math.pow(10,6)*this.props.data.data[1][i]
-			});
-			}
-			data=dataPoints
-		}	
 		let style={} //Seteando las dimensiones del grafico en base a los parametros
 		//Cambiar esto, no va a funcionar, el form solo envia uno de los 3, los otros 2 quedan undefined
 		if(params.largeSize==='on'){// TODO: Mejorar esto, no funciona el dividir de forma inteligente
@@ -92,54 +73,125 @@ class ChartTemporal extends Component {
 			}
 		}
 
+		let data=[]
+
 		this.state={
-			nodeId:this.props.nodeId,
+			dataReady:dataReady,
+			nodePlot:nodePlot,
 			params:params,
 			style:style,
-			data:data
+			data:data,
 
 		}
 
     }
+
+
+	preprocessData(dataParams){
+		if(this.state.dataReady==true){
+			return
+		}
+
+		let data=[];
+		let limit = dataParams.data[0].length;
+		let dataPoints = [];
+		let minTimeIndex=0;
+		let maxTimeIndex=limit;
+		if(this.state.params.minTimeWindow!=null){
+			minTimeIndex=Math.round(this.state.params.minTimeWindow*dataParams.sFreq)
+			if(minTimeIndex>=limit) minTimeIndex=0; //Se paso, tira error
+		}
+		if(this.state.params.maxTimeWindow!=null){
+			maxTimeIndex=Math.round(this.state.params.maxTimeWindow*dataParams.sFreq)
+			if(maxTimeIndex>limit) maxTimeIndex=limit; //Se paso, tira error
+		}
+
+		if(this.state.params.channels.length!=0){
+			// Si no coinciden hay error, tenerlo en cuenta para hacer una excepcion
+			const idxs=this.state.params.channels.map((ch) => dataParams.chNames.findIndex((chName) => ch===chName))
+			for(var j = 0; j < this.state.params.channels.length; j += 1){
+				for (var i = minTimeIndex; i < maxTimeIndex; i += 1) {
+					dataPoints.push({
+					x: SamplesToTimes(i,dataParams.sFreq,3),
+					y: Math.pow(10,6)*dataParams.data[idxs[j]][i]
+				});
+				}
+				data.push(dataPoints)
+				dataPoints=[]
+			}
+		}else{
+			for (var i = minTimeIndex; i < maxTimeIndex; i += 1) {
+				dataPoints.push({
+				x: SamplesToTimes(i,dataParams.sFreq,3),
+				y: Math.pow(10,6)*dataParams.data[1][i]
+				});
+			}
+			data=dataPoints
+		}
+
+		this.setState({
+			data:data,
+			dataReady:true,
+		})
+
+	}
 
     render() {
-		const nodeTimeSeries=this.props.elements.find(n=> n.elementType=='TIME_SERIES')
-		if(this.props.data.data[1]==undefined){
-			return null
-		}else{
-			return (
-				<div>
-					<CCard style={this.state.style}>
-						<CCardBody>
-							{this.state.params.channels.length<=1 ?
-							<ChartChannel
-							data={this.state.data}
-							chartStyle={{height: '100%', width:'100%'}}
-							channel={this.state.params.channels[1]==undefined ? this.props.data.chNames[1] : this.state.params.channels[1]}
-							/> :
-							<ChartChannels 
-							data={this.state.data}
-							chartStyle={{height: '100%', width:'100%'}}
-							channels={this.state.params.channels}
-							/>
-						}
-						</CCardBody>
-					</CCard>
-				</div>
-			)	
+
+		if(this.props.inputsReady.includes(this.state.nodePlot.inputData.inputNodeId)){
+			const nodeInput=this.props.elements.find((elem) => elem.id==this.state.nodePlot.inputData.inputNodeId)
+			this.preprocessData(nodeInput.dataParams)
+			
 		}
+
+
+		return (
+			<div>
+				<CCard style={this.state.style} key={this.props.inputsReady.length==0 ? 0 : this.props.inputsReady[0]}>
+					<CCardBody>
+						{ this.state.dataReady ?
+							<div>
+								{this.state.channels.length==1 ?
+								<ChartChannel
+								data={this.state.data}
+								chartStyle={{height: '100%', width:'100%'}}
+								channel={this.state.params.channels[1]==undefined ? this.state.params.channels[1] : this.state.params.channels[1]}//nodeInput.dataParams.chNames[1] : this.state.params.channels[1]}
+								/> :
+								<ChartChannels 
+								data={this.state.data}
+								chartStyle={{height: '100%', width:'100%'}}
+								channels={this.state.params.channels}
+								/>
+								}
+							</div>
+							:
+							<div style={{alignItems:'center', textAlign:'center', margin:'auto'}}>
+								<h4>Cargando...</h4>
+								<CIcon size= "xl" name="cil-cloud-download"/>
+							</div>
+						}
+					</CCardBody>
+				</CCard>
+
+			</div>
+			
+		)
+		
     }
 }
+
+
 const mapStateToProps = (state) => {
 	return{
-	  fileInfo: state.file.fileInfo,
 	  elements:state.diagram.elements,
+	  
+	  
 	};
   }
   
   const mapDispatchToProps = (dispatch) => {
 	return {
-		//
+		fetchSignal: (id) => dispatch(fetchSignal(id)),
 	};
   };
 export default connect(mapStateToProps, mapDispatchToProps)(ChartTemporal)

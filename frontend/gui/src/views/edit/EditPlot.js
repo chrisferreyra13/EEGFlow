@@ -1,7 +1,8 @@
 import React, { Component, lazy } from 'react'
 import {connect, connectAdvanced} from 'react-redux'
-import CIcon from '@coreui/icons-react'
-import {fetchSignal} from '../../redux/actions/Diagram'
+
+//import {fetchSignal} from '../../redux/actions/Diagram'
+
 import { diagramView } from '../../redux/actions/EditSession'
 import { enableChartTemporal } from '../../redux/actions/SideBar'
 
@@ -23,46 +24,16 @@ class EditPlot extends Component {
       }else return null
     })
 
-    let basicDiagram=false
-    if(this.props.elements[0].elementType=='TIME_SERIES' && this.props.elements[1].elementType=='PLOT_TIME_SERIES'){
-      basicDiagram=true
-    }
-
-
     this.state={
       nodePlots:nodePlots.filter((nodePlot) => nodePlot!=null),
-      dataReady:false,
-      nodeTimeSeries: this.props.elements.find(n=> n.elementType=='TIME_SERIES'),       // nodo de la señal temporal
     }
 
     //this.idSelection=this.idSelection.bind(this);
     this.chartSelection=this.chartSelection.bind(this);
-    this.fetchData=this.fetchData.bind(this);
-    this.fetcher=this.fetcher.bind(this);
 
-  }
-
-  fetcher(id){
-    return new Promise(resolve => {
-      this.props.fetchSignal(id)
-      setTimeout(() => {
-        resolve(true)
-      }, 5000);
-      
-    })
-  }
-
-  async fetchData(id){
-    let dataReady= await this.fetcher(id)
-    return dataReady
   }
 
   chartSelection(node){
-    const charging=<div style={{alignItems:'center', textAlign:'center', margin:'auto'}}>
-                  <h4>Cargando...</h4>
-                  <CIcon size= "xl" name="cil-cloud-download" />
-                 </div>
-
     const charts = {
       PLOT_TIME_SERIES: {content:ChartTemporal},
       //COMPLETAR
@@ -74,24 +45,7 @@ class EditPlot extends Component {
     }
     const chart=charts[node.plotType]
 
-    let content;
-
-    if(this.state.dataReady==false){
-      this.fetchData(this.state.nodeTimeSeries.params.id).then(ready =>{
-        this.setState({
-          dataReady:ready,
-          nodeTimeSeries:this.props.elements.find(n=> n.elementType=='TIME_SERIES'),
-        })
-      })
-    }
-
-    if(this.state.dataReady==true){ // si no tengo señal
-      content=<chart.content nodeId={node.id} data={this.state.nodeTimeSeries}/>
-    }else{
-      content=charging
-    }
-
-    return content // Cambiar por props cuando se necesiten mas props
+    return <chart.content nodeId={node.id} inputsReady={this.props.inputsReady}/> // Cambiar por props cuando se necesiten mas props
   }
   
   render(){
@@ -115,6 +69,8 @@ const mapStateToProps = (state) => {
     fileId: state.file.fileId,
     enableChart: state.plots.chartTemporal,
     elements: state.diagram.elements,
+    inputsReady:state.diagram.inputsReady,
+
   };
 }
 
@@ -123,7 +79,7 @@ const mapDispatchToProps = (dispatch) => {
     enableChartTemporal: () => dispatch(enableChartTemporal()),
     //fetchTimeSeries: (fileId) => dispatch(fetchTimeSeries(fileId)),
     diagramView: (activate) => dispatch(diagramView(activate)),
-    fetchSignal: (id) => dispatch(fetchSignal(id))
+    //fetchSignal: (id) => dispatch(fetchSignal(id)),
   };
 };
 

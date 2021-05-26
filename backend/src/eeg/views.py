@@ -59,6 +59,7 @@ class RunProcess(APIView):
         input=None
         output=None
         process_result_ids=[]
+        
         for step in process:
             output=steps[step['elementType']](input=input,params=step['params'],step_type=step['elementType'])
 
