@@ -9,7 +9,7 @@ export default [
       label: 'Señal en tiempo'
     },
     position: { x: 450, y: 80 },
-    params:{
+    dataParams:{
       id:'12',
       data: [],
       sFreq: 0,
@@ -29,10 +29,19 @@ export default [
     },
     position: { x: 450, y: 80 },
     params:{
-      data:[],
       channels:null,
+      minTimeWindow:null,
+      maxTimeWindow:null,
+      largeSize:null,
+      mediumSize:null,
+      smallSize:null,
     },
-    isFetching:false,
+    inputData:{
+      fetchInput:false,
+      inputNodeId:'',
+
+    },
+  
   },
   {
     id: null,
@@ -43,8 +52,19 @@ export default [
       label: 'Espectro'
     },
     position: { x: 450, y: 80 },
-    params:null,
-    isFetching:false,
+    params:{
+      channels:null,
+      minTimeWindow:null,
+      maxTimeWindow:null,
+      largeSize:null,
+      mediumSize:null,
+      smallSize:null,
+    },
+    inputData:{
+      fetchInput:false,
+      inputNodeId:'',
+    },
+  
   },
   {
     id: null,
@@ -113,6 +133,9 @@ export default [
       channels:'EEG 016,EEG 017',
       notch_freq:50,
     },
+    dataParams:{
+      data:[]
+    },
   },
   {
     id: null,
@@ -127,6 +150,9 @@ export default [
     params:{
       channels:'EEG 016,EEG 017',
       filter_method:'fir',
+    },
+    dataParams:{
+      data:[]
     },
   },
   {

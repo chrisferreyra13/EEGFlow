@@ -1,4 +1,4 @@
-import { func } from "prop-types"
+
 
 const API_ROOT= 'http://127.0.0.1:8000/eeg/'
 
@@ -229,12 +229,12 @@ export const runProcess= (elements) => async (dispatch) => {
             fetch(url,initFetch)
             .then(res => res.json())
             .then(json => {
-                dispatch(runProcessReceive(Object.assign({},json,{'process_id':cont,'node_output_id':process[process.length-1].id})))
+                dispatch(runProcessReceive(Object.assign({},json,{'process_id':cont,'node_output_id':process[process.length-1].id, 'node_input_id':process[process.length-2].id})))
                 process.forEach(node =>{
                     node["processed"]=true
                 })
-                dispatch(fetchSignal(process[0].params.id))
-                console.log(process)
+                //dispatch(fetchSignal(process[0].params.id))
+                //console.log(process)
             })
         }
         catch (error){
@@ -374,13 +374,15 @@ export const fetchSignal = (id) => async (dispatch) => {
 
     dispatch(requestTimeSeries())
     try {
+        //await fetcher(url,initFetch)
         await fetch(url,initFetch)
         .then(res => res.json())
-        .then(json => receiveTimeSeries(json))
+        .then(json => dispatch(receiveTimeSeries(json)))
     }
     catch (error){
         dispatch(errorFetchingTimeSeries(error))
     }
     
-    
+
 }
+
