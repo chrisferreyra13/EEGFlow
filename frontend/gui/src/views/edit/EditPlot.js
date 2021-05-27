@@ -45,7 +45,7 @@ class EditPlot extends Component {
     }
     const chart=charts[node.plotType]
 
-    return <chart.content nodeId={node.id} inputsReady={this.props.inputsReady}/> // Cambiar por props cuando se necesiten mas props
+    return <chart.content nodeId={node.id}/> // Cambiar por props cuando se necesiten mas props
   }
   
   render(){
@@ -69,7 +69,6 @@ const mapStateToProps = (state) => {
     fileId: state.file.fileId,
     enableChart: state.plots.chartTemporal,
     elements: state.diagram.elements,
-    inputsReady:state.diagram.inputsReady,
 
   };
 }

@@ -41,20 +41,6 @@ class ChartTemporal extends Component {
 
 		this.preprocessData=this.preprocessData.bind(this);
 
-		let dataReady;
-
-		if(nodePlot.inputData.fetchInput){
-			const nodeInput=this.props.elements.find((elem) => elem.id==nodePlot.inputData.inputNodeId)
-			if(!nodeInput.dataParams.dataReady){
-				dataReady=false
-				this.props.fetchSignal(nodeInput.dataParams.id)
-				
-			}
-			/*else{
-				dataReady=true
-			}*/
-		}
-
 		let style={} //Seteando las dimensiones del grafico en base a los parametros
 		//Cambiar esto, no va a funcionar, el form solo envia uno de los 3, los otros 2 quedan undefined
 		if(params.largeSize==='on'){// TODO: Mejorar esto, no funciona el dividir de forma inteligente
@@ -74,6 +60,16 @@ class ChartTemporal extends Component {
 		}
 
 		let data=[]
+		let dataReady=false;
+
+		if(nodePlot.inputData.fetchInput){
+			const nodeInput=this.props.elements.find((elem) => elem.id==nodePlot.inputData.inputNodeId)
+			if(!nodeInput.dataParams.dataReady){
+				this.props.fetchSignal(nodeInput.dataParams.id)
+				
+			}
+
+		}
 
 		this.state={
 			dataReady:dataReady,
@@ -85,7 +81,6 @@ class ChartTemporal extends Component {
 		}
 
     }
-
 
 	preprocessData(dataParams){
 		if(this.state.dataReady==true){
@@ -136,26 +131,26 @@ class ChartTemporal extends Component {
 
 	}
 
-    render() {
 
+    render() {
+		let nodeInput
 		if(this.props.inputsReady.includes(this.state.nodePlot.inputData.inputNodeId)){
-			const nodeInput=this.props.elements.find((elem) => elem.id==this.state.nodePlot.inputData.inputNodeId)
+			nodeInput=this.props.elements.find((elem) => elem.id==this.state.nodePlot.inputData.inputNodeId)
 			this.preprocessData(nodeInput.dataParams)
 			
 		}
 
-
 		return (
-			<div>
-				<CCard style={this.state.style} key={this.props.inputsReady.length==0 ? 0 : this.props.inputsReady[0]}>
-					<CCardBody>
+			<>
+				<CCard>
+					<CCardBody >
 						{ this.state.dataReady ?
-							<div>
-								{this.state.channels.length==1 ?
+							<div style={this.state.style}>
+								{this.state.params.channels.length==1 ?
 								<ChartChannel
 								data={this.state.data}
 								chartStyle={{height: '100%', width:'100%'}}
-								channel={this.state.params.channels[1]==undefined ? this.state.params.channels[1] : this.state.params.channels[1]}//nodeInput.dataParams.chNames[1] : this.state.params.channels[1]}
+								channel={this.state.params.channels[1]==undefined ? nodeInput.dataParams.chNames[1] : this.state.params.channels[1]}
 								/> :
 								<ChartChannels 
 								data={this.state.data}
@@ -165,7 +160,7 @@ class ChartTemporal extends Component {
 								}
 							</div>
 							:
-							<div style={{alignItems:'center', textAlign:'center', margin:'auto'}}>
+							<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
 								<h4>Cargando...</h4>
 								<CIcon size= "xl" name="cil-cloud-download"/>
 							</div>
@@ -173,7 +168,7 @@ class ChartTemporal extends Component {
 					</CCardBody>
 				</CCard>
 
-			</div>
+			</>
 			
 		)
 		
@@ -184,14 +179,14 @@ class ChartTemporal extends Component {
 const mapStateToProps = (state) => {
 	return{
 	  elements:state.diagram.elements,
-	  
+	  inputsReady: state.diagram.inputsReady
 	  
 	};
-  }
+}
   
-  const mapDispatchToProps = (dispatch) => {
+const mapDispatchToProps = (dispatch) => {
 	return {
 		fetchSignal: (id) => dispatch(fetchSignal(id)),
 	};
-  };
+};
 export default connect(mapStateToProps, mapDispatchToProps)(ChartTemporal)

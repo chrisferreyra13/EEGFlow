@@ -8,9 +8,9 @@ import {
     FETCH_RUN_PROCESS_RECEIVE,
     FETCH_RUN_PROCESS_FAILURE,
     PROCESSES_TO_START,
-    FETCH_TIME_SERIES_REQUEST,
-    FETCH_TIME_SERIES_RECEIVE,
-    FETCH_TIME_SERIES_FAILURE,
+    FETCH_SIGNAL_REQUEST,
+    FETCH_SIGNAL_RECEIVE,
+    FETCH_SIGNAL_FAILURE,
     SET_NODE_FILE_ID,
 } from '../actions/Diagram';
 
@@ -48,12 +48,12 @@ const initialState={
             inputNodeId:'1',
         },
         params:{
-            channels:null,
+            channels:'EEG 017,EEG 016',
             minTimeWindow:null,
             maxTimeWindow:null,
-            largeSize:null,
-            mediumSize:null,
-            smallSize:null,
+            largeSize:'on',
+            mediumSize:'off',
+            smallSize:'off',
         },
         
     },
@@ -178,29 +178,49 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                 process_status: processes_status, //FAIL
             })
         
-        case FETCH_TIME_SERIES_REQUEST:
-            var stateCopy=Object.assign({},state);
-            var idx=stateCopy.elements.findIndex(n => n.elementType=='TIME_SERIES')
-            stateCopy.elements[idx].dataParams.dataReady=false
-            return Object.assign({},state, {
-                elements: stateCopy.elements,
-            })
-        case FETCH_TIME_SERIES_RECEIVE:
-            var stateCopy={...state} //Object.assign({},state);
-            var idx=stateCopy.elements.findIndex(n => n.elementType=='TIME_SERIES')
-            stateCopy.elements[idx].dataParams.data=rest.timeSeries['signal']
-            stateCopy.elements[idx].dataParams.sFreq=rest.timeSeries['sampling_freq']
-            stateCopy.elements[idx].dataParams.chNames=rest.timeSeries['ch_names']
-            stateCopy.elements[idx].dataParams.dataReady=true
-
-            stateCopy.inputsReady.push(stateCopy.elements[idx].id)
-            return {
-                ...state, 
-                elements: stateCopy.elements,
-                inputsReady:stateCopy.inputsReady
+        case FETCH_SIGNAL_REQUEST:
+            var elements=state.elements.map((item) => {
+                if (item.elementType !== 'TIME_SERIES') {
+                    return item
                 }
+
+                return {
+                    ...item,
+                    dataParams:{
+                        dataReady:false,
+                    }
+                }
+            })
+
+            return Object.assign({},state,{
+                elements: elements,
+                })
+
+        case FETCH_SIGNAL_RECEIVE:
+            var inputsReady=JSON.parse(JSON.stringify(state.inputsReady))
+            var elements=state.elements.map((item) => {
+                if (item.elementType !== 'TIME_SERIES') {
+                    return item
+                  }
+
+                  inputsReady.push(item.id)
+                  return {
+                    ...item,
+                    dataParams:{
+                        data:rest.timeSeries['signal'],
+                        sFreq:rest.timeSeries['sampling_freq'],
+                        chNames:rest.timeSeries['ch_names'],
+                        dataReady:true,
+                    }
+                  }
+            })
+
+            return Object.assign({},state,{
+                elements: elements,
+                inputsReady:inputsReady
+                })
                 
-        case FETCH_TIME_SERIES_FAILURE:
+        case FETCH_SIGNAL_FAILURE:
             return {...state, ...rest}
 
 
@@ -220,3 +240,18 @@ const lastNodeIndex = (elements) => {
     return id
     //return elements.findIndex((element)=> element.id===lastId.toString())
 }
+
+function updateObjectInArray(array, action) {
+    return array.map((item, index) => {
+      if (index !== action.index) {
+        // This isn't the item we care about - keep it as-is
+        return item
+      }
+  
+      // Otherwise, this is the one we want - return an updated value
+      return {
+        ...item,
+        ...action.item
+      }
+    })
+  }

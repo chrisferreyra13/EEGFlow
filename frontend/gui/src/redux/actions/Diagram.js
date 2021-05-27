@@ -334,26 +334,26 @@ export const runSingleProcess= (params) => async (dispatch) => {
     }
 }
 
-export const FETCH_TIME_SERIES_REQUEST = 'FETCH_TIME_SERIES_REQUEST'
+export const FETCH_SIGNAL_REQUEST = 'FETCH_SIGNAL_REQUEST'
 function requestTimeSeries() {
   return {
-    type: FETCH_TIME_SERIES_REQUEST,
+    type: FETCH_SIGNAL_REQUEST,
   }
 }
 
-export const FETCH_TIME_SERIES_RECEIVE = 'FETCH_TIME_SERIES_RECEIVE'
+export const FETCH_SIGNAL_RECEIVE = 'FETCH_SIGNAL_RECEIVE'
 function receiveTimeSeries(json) {
   return {
-    type: FETCH_TIME_SERIES_RECEIVE,
+    type: FETCH_SIGNAL_RECEIVE,
     timeSeries:json
     
   }
 }
 
-export const FETCH_TIME_SERIES_FAILURE = 'FETCH_TIME_SERIES_FAILURE'
+export const FETCH_SIGNAL_FAILURE = 'FETCH_SIGNAL_FAILURE'
 function errorFetchingTimeSeries(error){
     return {
-        type: FETCH_TIME_SERIES_FAILURE,
+        type: FETCH_SIGNAL_FAILURE,
         error
     }
 }
