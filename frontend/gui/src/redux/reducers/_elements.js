@@ -9,11 +9,15 @@ export default [
       label: 'Señal en tiempo'
     },
     position: { x: 450, y: 80 },
+    params:{
+      id:'40',
+    },
     dataParams:{
-      id:'12',
-      data: [],
-      sFreq: 0,
-      chNames: [],
+        dataReady:false,
+        data: [],
+        sFreq: 0,
+        chNames: [],
+        
     },
     isFetching:false,
   },
@@ -130,11 +134,14 @@ export default [
     },
     position: { x: 450, y: 80 },
     params:{
+      id:null,
       channels:'EEG 016,EEG 017',
       notch_freq:50,
     },
     dataParams:{
-      data:[]
+      data:[],
+      sFreq: 0,
+      chNames: [],
     },
   },
   {
@@ -148,11 +155,14 @@ export default [
     },
     position: { x: 450, y: 80 },
     params:{
+      id:null,
       channels:'EEG 016,EEG 017',
       filter_method:'fir',
     },
     dataParams:{
-      data:[]
+      data:[],
+      sFreq: 0,
+      chNames: [],
     },
   },
   {

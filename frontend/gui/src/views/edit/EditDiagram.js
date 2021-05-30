@@ -28,7 +28,7 @@ class EditDiagram extends Component{
     
     this.state={
       contentHeight:Math.floor(window.innerHeight*0.75),
-      elements: this.props.stateElements,
+      elements: purge(this.props.elements),
       reactFlowInstance: null,
       reactFlowWrapper: React.createRef(null) //useRef(null)
     }
@@ -62,7 +62,7 @@ class EditDiagram extends Component{
     window.removeEventListener('resize',this.throttleHandleWindowResize());
   }
   runButton(){
-    this.props.runProcess(this.props.stateElements)
+    this.props.runProcess(this.props.elements)
     
   }
   cancelButton(){
@@ -92,7 +92,7 @@ class EditDiagram extends Component{
       this.setElements(newElements);
   }
   onElementsRemove(elementsToRemove){
-    const newElements=removeElements(elementsToRemove, this.props.stateElements)
+    const newElements=removeElements(elementsToRemove, this.state.elements)
     this.props.updateAfterDeleteElements(newElements, elementsToRemove.length)
     this.setElements(newElements)
   }
@@ -118,20 +118,20 @@ class EditDiagram extends Component{
     };
     this.props.addNode(type)
     this.props.updateNodePropierties('',propierties);
-    this.setElements([...this.props.stateElements]);
+    this.setElements([...purge(this.props.elements)]);
   };
   onElementClick(event,element){
     if (event.detail===2){
-      const stateElement=this.props.stateElements.find(elem => elem.id===element.id);
-      if(stateElement.formType!=undefined){
-        this.props.enableForm(stateElement.id,stateElement.formType)
+      const elem=this.props.elements.find(el => el.id===element.id);
+      if(elem.formType!=undefined){
+        this.props.enableForm(elem.id,elem.formType)
       }
     }
   };
   onNodeMoved(event, node){
     event.preventDefault();
     this.props.updateNodePropierties(node.id,{'position':node.position});
-    //this.setElements([...this.props.stateElements]);
+    //this.setElements([...this.props.elements]);
   }
 
   render(){
@@ -169,10 +169,22 @@ class EditDiagram extends Component{
     );
   };
 }
+
+function purge(elements){
+  return elements.map((item) => {
+    if (item.dataParams == undefined){return item}
+      return {
+        ...item,
+        dataParams:{}
+      }
+})
+}
+
+
 const mapStateToProps = (state) => {
   return {
     fileId: state.file.fileId,
-    stateElements:state.diagram.elements,
+    elements:state.diagram.elements,
   };
 }
 

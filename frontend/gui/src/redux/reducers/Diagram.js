@@ -26,9 +26,11 @@ const initialState={
         data: { label: 'Señal en tiempo' },
         position: { x: 150, y: 50 },
         draggable:false,
+        params:{
+            id:'40',
+        },
         dataParams:{
             dataReady:false,
-            id:'12',
             data: [],
             sFreq: 0,
             chNames: [],
@@ -48,7 +50,7 @@ const initialState={
             inputNodeId:'1',
         },
         params:{
-            channels:'EEG 017,EEG 016',
+            channels:'EEG 016,EEG 017',
             minTimeWindow:null,
             maxTimeWindow:null,
             largeSize:'on',
@@ -73,6 +75,8 @@ const initialState={
 }
 
 export const diagram= (state=initialState, {type, ...rest})=>{
+    let elements;
+    let processes_status;
     switch(type){
         case ADD_NODE: 
             var stateCopy=Object.assign({},state);
@@ -134,16 +138,29 @@ export const diagram= (state=initialState, {type, ...rest})=>{
             })
 
         case SET_NODE_FILE_ID:
-            var stateCopy=Object.assign({},state);
-            var idx=stateCopy.elements.findIndex(n => n.elementType=='TIME_SERIES')
-            stateCopy.elements[idx].params.id=rest.fileId
+            elements={}
+            elements=state.elements.map((item) => {
+                if (item.elementType == 'TIME_SERIES'){
+                    return {
+                        ...item,
+                        params:{
+                            //...item.params,
+                            id:rest.fileId,
+                        }
+                      }
+
+                }else{
+                    return item
+                }
+                  
+            })
             return Object.assign({},state, {
-                elements: stateCopy.elements,
+                elements: elements,
             })
 
         case PROCESSES_TO_START:
             let i=0
-            var processes_status=[]
+            processes_status=[]
             for(i;i<rest.numberOfProcesses;i++){
                 processes_status.push('TOSTART')
             }
@@ -152,43 +169,66 @@ export const diagram= (state=initialState, {type, ...rest})=>{
             })
 
         case FETCH_RUN_PROCESS_REQUEST:
-            var processes_status=Object.assign({},state.processes_status)
+            processes_status=[]
+            processes_status=JSON.parse(JSON.stringify(state.processes_status))
             processes_status[rest.process['process_id']]='PROCESSING'
             return Object.assign({},state,{
                 processes_status: processes_status, //PROCESSING
             })
         
         case FETCH_RUN_PROCESS_RECEIVE:
-            var stateCopy=Object.assign({},state);
-            
-            stateCopy.processes_status[rest.process['process_id']]=rest.process["process_status"]
-            
-            var idx=stateCopy.elements.findIndex(n => n.id==rest.process["node_output_id"])
-            stateCopy.elements[idx].inputData.fetchInput=true
-            stateCopy.elements[idx].inputData.inputNodeId=rest.process["node_input_id"] //Ya puedo ir a buscar el resultado
+            elements={}
+            elements=state.elements.map((item) => {
+                if(rest.process["process_result_ids"].hasOwnProperty(item.id)){
+                    return {
+                        ...item,
+                        params:{
+                            ...item.params,
+                            id:rest.process["process_result_ids"][item.id]
+                        }
+                    }
+                }
+                if (item.id==rest.process["node_output_id"]){
+                    return {
+                        ...item,
+                        inputData:{
+                            fetchInput:true,
+                            inputNodeId:rest.process["node_input_id"], //Ya puedo ir a buscar el resultado
+                        }
+                    }
+                }else{
+                    return item
+                }
+            })
+            // Seteo process en SUCCESFULL
+            processes_status=[]
+            processes_status=JSON.parse(JSON.stringify(state.processes_status))
+            processes_status[rest.process['process_id']]=rest.process["process_status"]
+             
             return Object.assign({},state,{
-                processes_status: stateCopy.processes_status, //SUCCESFULL
-                elements:stateCopy.elements,
+                processes_status: processes_status, //SUCCESFULL
+                elements:elements,
             })
 
         case FETCH_RUN_PROCESS_FAILURE:
-            var processes_status=Object.assign({},state.processes_status)
+            processes_status=[]
+            processes_status=JSON.parse(JSON.stringify(state.processes_status))
             processes_status[rest.process['process_id']]=rest.process["process_status"]
             return Object.assign({},state,{
                 process_status: processes_status, //FAIL
             })
         
         case FETCH_SIGNAL_REQUEST:
-            var elements=state.elements.map((item) => {
-                if (item.elementType !== 'TIME_SERIES') {
-                    return item
-                }
-
-                return {
-                    ...item,
-                    dataParams:{
-                        dataReady:false,
+            elements=state.elements.map((item) => {
+                if (item.elementType == 'TIME_SERIES') {
+                    return {
+                        ...item,
+                        dataParams:{
+                            dataReady:false,
+                        }
                     }
+                }else{
+                    return item
                 }
             })
 
@@ -198,21 +238,21 @@ export const diagram= (state=initialState, {type, ...rest})=>{
 
         case FETCH_SIGNAL_RECEIVE:
             var inputsReady=JSON.parse(JSON.stringify(state.inputsReady))
-            var elements=state.elements.map((item) => {
-                if (item.elementType !== 'TIME_SERIES') {
-                    return item
-                  }
-
-                  inputsReady.push(item.id)
-                  return {
-                    ...item,
-                    dataParams:{
-                        data:rest.timeSeries['signal'],
-                        sFreq:rest.timeSeries['sampling_freq'],
-                        chNames:rest.timeSeries['ch_names'],
-                        dataReady:true,
+            elements=state.elements.map((item) => {
+                if (item.elementType == 'TIME_SERIES') {
+                    inputsReady.push(item.id)
+                    return {
+                        ...item,
+                        dataParams:{
+                            data:rest.timeSeries['signal'],
+                            sFreq:rest.timeSeries['sampling_freq'],
+                            chNames:rest.timeSeries['ch_names'],
+                            dataReady:true,
+                        }
                     }
-                  }
+                }else{
+                    return item
+                } 
             })
 
             return Object.assign({},state,{

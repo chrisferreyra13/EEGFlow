@@ -25,7 +25,6 @@ class DashboardDataPreview extends Component{
     
     this.state={
       files: [],
-      fileId: this.props.fileId
     }
     
 
@@ -34,7 +33,7 @@ class DashboardDataPreview extends Component{
     
     //this.revertFile=this.revertFile.bind(this);
     this.setInfo=this.setInfo.bind(this);
-    this.setFileId=this.setFileId.bind(this);
+    this.setServerId=this.setServerId.bind(this);
   }
   setFiles(fileItems){
     this.setState({
@@ -46,7 +45,7 @@ class DashboardDataPreview extends Component{
       info: info
     });
   }
-  setFileId(ids){ // TODO: MEJORAR ESTO, MUY CABEZA
+  setServerId(ids){ // TODO: MEJORAR ESTO, MUY CABEZA
     if (this.state.files.length==1){
       //this.state.files[0].serverId=ids;
       console.log(ids)
@@ -80,16 +79,21 @@ class DashboardDataPreview extends Component{
   }
 
   fetchFileInfo(response){
-    this.setFileId(response);
+    this.setServerId(response);
     this.props.postFileInfo(this.state.files[0].serverId)
-    .then(this.setState({fileId: this.props.fileId}))
-    .then(this.props.getFileInfo(this.state.fileId))
-    .then(this.props.setNodeFileId(this.state.fileId)) // Seteo el file id de la señal
-
-    
-    this.props.enableListGroupFileInfo() //Esto ya tiene una falla, si no busca bien el archivo
-                                        // no hay info, pero se activa el list group --> MODIFICAR
+    //espero...
   }
+
+  componentDidUpdate(prevProps) {
+    // Uso tipico (no olvides de comparar las props):
+    if (this.props.fileId !== prevProps.fileId) {
+      this.props.getFileInfo(this.props.fileId)
+      this.props.setNodeFileId(this.props.fileId) // Seteo el file id de la señal
+      this.props.enableListGroupFileInfo() //Esto ya tiene una falla, si no busca bien el archivo
+                                        // no hay info, pero se activa el list group --> MODIFICAR
+    }
+  }
+
   vizButton(){
     this.props.runProcess(this.props.elements) 
   }

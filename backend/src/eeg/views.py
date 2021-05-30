@@ -58,15 +58,19 @@ class RunProcess(APIView):
 
         input=None
         output=None
-        process_result_ids=[]
-        
+        process_result_ids={}
+        num_step=1
+        num_of_steps=len(process)
+        print('[INFO]: Running process...')
         for step in process:
+            print('[INFO]: STEP {}/{} | PARAMS:{}'.format(num_step,num_of_steps,step['params']))
             output=steps[step['elementType']](input=input,params=step['params'],step_type=step['elementType'])
 
             if type(output).__name__=='Response':
                 if len(process_result_ids)!=0:
                     output.data['process_result_ids']=process_result_ids
-
+                
+                print('[INFO]: RESPONSE: {}'.format(output.data))
                 return output
             else:
                 if step['save_output']==True:
@@ -74,9 +78,12 @@ class RunProcess(APIView):
                     if type(process_result_id).__name__=='Response':
                         return process_result_id # Hubo un error
                     else:
-                        process_result_ids.append(process_result_id)
+                        process_result_ids[step["id"]]=process_result_id
+                        #process_result_ids.append(process_result_id)
 
                 input=output
+
+            num_step+=1
 class FileInfoView(APIView):
     
     def get(self, request, format=None):
@@ -86,7 +93,7 @@ class FileInfoView(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
         id=request.query_params[LOAD_RESTORE_PARAM_NAME]
-        print(id)
+        print(f'[INFO]: estas buscando con este id: {id}')
         file_info=get_file_info(id)
         if type(file_info).__name__=='Response':     # Esto quiere decir que hubo un error, devuelvo response
             return file_info
@@ -133,7 +140,7 @@ class FileInfoView(APIView):
         if serializer.is_valid():
             serializer.save()
             eeg=FileInfo.objects.get(upload_id=upload_id)
-            return Response({'id':eeg.id},status=status.HTTP_201_CREATED)
+            return Response({'id':str(eeg.id)},status=status.HTTP_201_CREATED)
         else:
             return Response('Invalid file data.', #TODO: si ya se guardo en la BD, tambien salta a este punto
             status=status.HTTP_406_NOT_ACCEPTABLE)
@@ -148,30 +155,66 @@ class GetTimeSeries(APIView):
 
         id=request.query_params[LOAD_RESTORE_PARAM_NAME]
 
-        file_info=get_file_info(id)
-        if type(file_info).__name__=='Response':
-            return file_info
+        # Check if is a number or an id result and get the filepath
+        filepath=''
+        if id.isnumeric():
+            file_info=get_file_info(id)
+            if type(file_info).__name__=='Response':
+                return file_info
 
-        try:
-            tu = get_upload(file_info.upload_id)
-        except FileNotFoundError:
-            Response('Not found', status=status.HTTP_404_NOT_FOUND)
+            try:
+                tu = get_upload(file_info.upload_id)
+            except FileNotFoundError:
+                Response('Not found', status=status.HTTP_404_NOT_FOUND)
 
+            filepath=os.path.join(tu.upload_id,tu.upload_name)
+
+        else:
+            filepath=get_temp_output_filepath(request,process_result_id=id)
+
+        # Get the raw
         try:
-            raw=get_raw(os.path.join(tu.upload_id,tu.upload_name))
+            raw=get_raw(filepath)
         except TypeError:
             return Response('Invalid file extension',
                         status=status.HTTP_406_NOT_ACCEPTABLE)
         
-        ch_idxs=mne.pick_types(raw.info,eeg=True) # Obtengo los indices de los canales que son EEG
+        #return requested channels
+        if 'channels' not in request.query_params:
+            channels=None
+        else:
+            channels=request.query_params['channels']
+            if (not channels) or (channels == ''):    # Si no envian nada, lo aplico en todos los canales
+                channels=None
+            else:
+                try:
+                    channels=channels.split(',') #Los canales vienen en un string separados por comas
+                except:
+                    return Response('An invalid list of channels has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST) 
         
-        eeg_info=mne.pick_info(raw.info,sel=ch_idxs)    # Obtengo la info de los canales tipo EEG
-        ch_names=eeg_info['ch_names']   # Obtengo los nombres de los canales tipo EEG
-        time_series=raw.get_data(picks=['eeg']) # Obtengo todos los canales tipo EEG
+        ch_names=raw.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
+        
+        if channels==None: # Si es None, agarro todos
+            channels_idxs=mne.pick_types(raw.info,eeg=True) #Retorna los indices internos de raw
+        else:
+            if channels in ch_names:
+                channels_idxs=mne.pick_channels(ch_names, include=channels) #Retorna los indices internos de raw
+            else:
+                return Response('An invalid list of channels has been provided.',
+                            status=status.HTTP_400_BAD_REQUEST) 
+
+        time_series=raw.get_data(picks=channels_idxs) # agarro los canales
+
+        if len(channels)!=0:
+            returned_channels=channels
+        else:
+            returned_channels=ch_names
+
         response=Response({
             'signal':time_series,
             'sampling_freq':raw.info['sfreq'],
-            'ch_names': ch_names
+            'ch_names': returned_channels,
         })
         return response
 

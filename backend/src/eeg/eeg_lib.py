@@ -18,6 +18,10 @@ def get_raw(filepath):
 
     return raw
 
+def save_raw(raw,filename, overwrite=True):
+    raw.save(filename, overwrite=overwrite)
+    return
+
 def get_events(filepath):
     try:
         raw=get_raw(filepath)
@@ -30,37 +34,43 @@ def get_events(filepath):
 
 def notch_filter(raw,notch_freq=50,channels=None):
     
-    if channels==None: # Si es None, aplico el filtrado en todos los canales tipo EEG
-        channels=mne.pick_types(raw.info,eeg=True)
-    
     raw_eeg=raw.copy().pick_types(eeg=True)
     raw_eeg.load_data()
-    channels_idxs=mne.pick_channels(raw_eeg.info['ch_names'], include=channels)
-    raw_notch=raw_eeg.notch_filter(freqs=(notch_freq),picks=channels_idxs)
 
-    return raw_notch
+    if channels==None: # Si es None, aplico el filtrado en todos los canales tipo EEG
+        channels_idxs=mne.pick_types(raw.info,eeg=True)
+    else:
+        channels_idxs=mne.pick_channels(raw_eeg.info['ch_names'], include=channels)
+
+    raw_filtered=raw_eeg.notch_filter(freqs=(notch_freq),picks=channels_idxs)
+
+    return raw_filtered
 
 
 def custom_filter(raw,low_freq=None,high_freq=None,channels=None, filter_method='fir'):
 
-    if channels==None: # Si es None, aplico el filtrado en todos los canales tipo EEG
-        channels=mne.pick_types(raw.info,eeg=True)
-    
     raw_eeg=raw.copy().pick_types(eeg=True)
     raw_eeg.load_data()
-    channels_idxs=mne.pick_channels(raw_eeg.info['ch_names'], include=channels)
+
+    if channels==None: # Si es None, aplico el filtrado en todos los canales tipo EEG
+        channels_idxs=mne.pick_types(raw.info,eeg=True)
+    else:
+        channels_idxs=mne.pick_channels(raw_eeg.info['ch_names'], include=channels)
+    
     raw_filtered=raw_eeg.filter(l_freq=low_freq, h_freq=high_freq, picks=channels_idxs, method=filter_method)
 
     return raw_filtered
 
 def peak_finder(raw,channels=None,thresh=None):
 
-    if channels==None: # Si es None, aplico el filtrado en todos los canales tipo EEG
-        channels=mne.pick_types(raw.info,eeg=True)
-    
-    
     raw_eeg=raw.copy().pick_types(eeg=True)
-    series=raw_eeg.get_data(picks=channels)
+
+    if channels==None: # Si es None, aplico el filtrado en todos los canales tipo EEG
+        channels_idxs=mne.pick_types(raw.info,eeg=True)
+    else:
+        channels_idxs=mne.pick_channels(raw_eeg.info['ch_names'], include=channels)
+    
+    series=raw_eeg.get_data(picks=channels_idxs)
     peaks_idx=[]
 
     for serie in series:

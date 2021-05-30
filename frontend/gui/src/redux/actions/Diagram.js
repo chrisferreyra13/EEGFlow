@@ -61,10 +61,10 @@ export function runProcessRequest(json){
     }
 }
 export const FETCH_RUN_PROCESS_RECEIVE='FETCH_RUN_PROCESS_RECEIVE'
-export function runProcessReceive(json){
+export function runProcessReceive(process){
     return{
         type:FETCH_RUN_PROCESS_RECEIVE,
-        process:json
+        process
 
     }
 }
@@ -211,10 +211,11 @@ export const runProcess= (elements) => async (dispatch) => {
     let url=null
     let initFetch=null
     cont=0
+    let ouput_ids;
     dispatch(processesToStart(processes.length))
     for(process of processes){
         url = API_ROOT+'process/?'
-          
+        ouput_ids=[]
         initFetch={
         method: 'POST',
         body:JSON.stringify({"process": process}),
@@ -229,8 +230,15 @@ export const runProcess= (elements) => async (dispatch) => {
             fetch(url,initFetch)
             .then(res => res.json())
             .then(json => {
-                dispatch(runProcessReceive(Object.assign({},json,{'process_id':cont,'node_output_id':process[process.length-1].id, 'node_input_id':process[process.length-2].id})))
+                dispatch(runProcessReceive({
+                    'process_status':json["process_status"],
+                    'process_result_ids':json["process_result_ids"],
+                    'process_id':cont,
+                    'node_output_id':process[process.length-1].id,
+                    'node_input_id':process[process.length-2].id
+                }))
                 process.forEach(node =>{
+                    
                     node["processed"]=true
                 })
                 //dispatch(fetchSignal(process[0].params.id))
@@ -358,14 +366,15 @@ function errorFetchingTimeSeries(error){
     }
 }
 
-export const fetchSignal = (id) => async (dispatch) => {
-
-    var url = API_ROOT+'time_series/?' + new URLSearchParams({
-    id: id,
-    })
+export const fetchSignal = (id,channels) => async (dispatch) => {
+    let endpoint=API_ROOT+'time_series/?'
+    let url = endpoint + new URLSearchParams({
+        id: id,
+        channels: channels,
+        })
     
-    var header= new Headers()
-    var initFetch={
+    let header= new Headers()
+    let initFetch={
     method: 'GET',
     headers: header,
     mode: 'cors',
