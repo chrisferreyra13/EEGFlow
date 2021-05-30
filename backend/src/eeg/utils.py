@@ -1,5 +1,5 @@
 
-import logging
+import os
 
 from django.core.files.base import ContentFile
 
@@ -7,31 +7,44 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from .models import FileInfo
+from .eeg_lib import save_raw
 
 from filemanager.storage_manager import get_temporary_upload
 from filemanager.models import TemporaryUpload, TemporaryOutput
 from filemanager.utils import _get_file_id, _get_user
 
-LOG = logging.getLogger(__name__)
 LOAD_RESTORE_PARAM_NAME = 'id'
+MAIN_PROCESSES_TEMP_OUTPU_PATH='./cconsciente/processes-temp'
 
 
-def make_output_raw_file(request, process_name,raw_output):
-    process_result_id = _get_file_id()
-    file_id = _get_file_id()
+def get_temp_output_filepath(request,process_result_id=None):
+    
+    #TODO: check if process_result_id exists in the DB!!! Ahora cabeza
+
     user=_get_user(request)
-
-    #TODO:VER TEMA BD TEMPORARYOUTPUT
-
     if user==None:
         user='anon'
 
-    main_path='./cconsciente/processes-temp/'
-    filename=user+'_'+process_name+'_'+file_id+'_raw.fif'
+    filename=user+'_'+process_result_id+'_raw.fif'
+    return os.path.join(MAIN_PROCESSES_TEMP_OUTPU_PATH,filename)
 
-    raw_output.save(main_path+filename, overwrite=True)
 
-    return process_result_id
+def make_output_raw_file(request, process_name,raw_output):
+    #process_result_id = _get_file_id()
+    file_id = _get_file_id()
+    
+    user=_get_user(request)
+    if user==None:
+        user='anon'
+
+    #TODO:VER TEMA DB TEMPORARYOUTPUT y retornar process_result_id
+    #NOTE:usamos process_name? Si lo usamos, agregar en get_temp_output_filepath
+    
+    filename=user+'_'+file_id+'_raw.fif'
+    filepath=os.path.join(MAIN_PROCESSES_TEMP_OUTPU_PATH,filename)
+    save_raw(raw_output,filepath, overwrite=True)
+
+    return file_id
 
 
 def make_process_result_file(request,process_name,content):
