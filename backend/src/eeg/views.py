@@ -1,10 +1,7 @@
 
 #----IMPORTS----#
 
-import logging
 import os
-import re
-from sys import getsizeof
 from django.http.response import HttpResponseBadRequest
 
 from django.shortcuts import render
@@ -29,6 +26,8 @@ from filemanager.models import StoredUpload, TemporaryUpload, TemporaryOutput
 from filemanager.utils import _get_file_id, _get_user
 from filemanager.filemanager_settings import PROCESS_TMP
 
+from cconsciente.settings.base import MEDIA_TEMP, MEDIA_STORED, MEDIA_PROC_TEMP_OUTPUT_PATH
+
 from .utils import *
 
 import mne
@@ -36,7 +35,6 @@ import numpy as np
 
 ####VARIABLES####
 LOAD_RESTORE_PARAM_NAME = 'id'
-LOG = logging.getLogger(__name__)
 
 ####FUNCTIONS###
 
@@ -67,8 +65,7 @@ class RunProcess(APIView):
             output=steps[step['elementType']](input=input,params=step['params'],step_type=step['elementType'])
 
             if type(output).__name__=='Response':
-                if len(process_result_ids)!=0:
-                    output.data['process_result_ids']=process_result_ids
+                output.data['process_result_ids']=process_result_ids
                 
                 print('[INFO]: RESPONSE: {}'.format(output.data))
                 return output
@@ -114,7 +111,8 @@ class FileInfoView(APIView):
             return Response('Not found', status=status.HTTP_404_NOT_FOUND)
         
         try:
-            raw=get_raw(os.path.join(tu.upload_id,tu.upload_name))
+            filepath=os.path.join(tu.upload_id,tu.upload_name)
+            raw=get_raw(MEDIA_TEMP,filepath)
         except TypeError:
             return Response('Invalid file extension',
                         status=status.HTTP_406_NOT_ACCEPTABLE)
@@ -156,7 +154,7 @@ class GetTimeSeries(APIView):
         id=request.query_params[LOAD_RESTORE_PARAM_NAME]
 
         # Check if is a number or an id result and get the filepath
-        filepath=''
+        media_path=MEDIA_TEMP
         if id.isnumeric():
             file_info=get_file_info(id)
             if type(file_info).__name__=='Response':
@@ -168,18 +166,21 @@ class GetTimeSeries(APIView):
                 Response('Not found', status=status.HTTP_404_NOT_FOUND)
 
             filepath=os.path.join(tu.upload_id,tu.upload_name)
+            media_path=MEDIA_TEMP
 
         else:
             filepath=get_temp_output_filepath(request,process_result_id=id)
+            media_path=MEDIA_PROC_TEMP_OUTPUT_PATH
 
         # Get the raw
         try:
-            raw=get_raw(filepath)
+            raw=get_raw(media_path,filepath)
         except TypeError:
             return Response('Invalid file extension',
                         status=status.HTTP_406_NOT_ACCEPTABLE)
         
         #return requested channels
+        
         if 'channels' not in request.query_params:
             channels=None
         else:
@@ -191,22 +192,27 @@ class GetTimeSeries(APIView):
                     channels=channels.split(',') #Los canales vienen en un string separados por comas
                 except:
                     return Response('An invalid list of channels has been provided.',
-                        status=status.HTTP_400_BAD_REQUEST) 
+                        status=status.HTTP_400_BAD_REQUEST)
         
-        ch_names=raw.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
         
+
         if channels==None: # Si es None, agarro todos
             channels_idxs=mne.pick_types(raw.info,eeg=True) #Retorna los indices internos de raw
+            eeg_info=mne.pick_info(raw.info, sel=channels_idxs)
+            ch_names=eeg_info["ch_names"]
+            
         else:
-            if channels in ch_names:
+            ch_names=raw.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
+            if set(channels).issubset(set(ch_names)):
                 channels_idxs=mne.pick_channels(ch_names, include=channels) #Retorna los indices internos de raw
             else:
                 return Response('An invalid list of channels has been provided.',
                             status=status.HTTP_400_BAD_REQUEST) 
 
         time_series=raw.get_data(picks=channels_idxs) # agarro los canales
+        
 
-        if len(channels)!=0:
+        if channels!=None:
             returned_channels=channels
         else:
             returned_channels=ch_names
@@ -305,7 +311,8 @@ class NotchFilterView(APIView):
 
         # PROCESS
         try:
-            raw=get_raw(os.path.join(tu.upload_id,tu.upload_name))
+            filepath=os.path.join(tu.upload_id,tu.upload_name)
+            raw=get_raw(MEDIA_TEMP,filepath)
         except TypeError:
             return Response('Invalid file extension',
                         status=status.HTTP_406_NOT_ACCEPTABLE)
@@ -420,7 +427,8 @@ class CustomFilterView(APIView):
 
         #PROCESS
         try:
-            raw=get_raw(os.path.join(tu.upload_id,tu.upload_name))
+            filepath=os.path.join(tu.upload_id,tu.upload_name)
+            raw=get_raw(MEDIA_TEMP,filepath)
         except TypeError:
             return Response('Invalid file extension',
                         status=status.HTTP_406_NOT_ACCEPTABLE)
@@ -495,7 +503,8 @@ class PeakView(APIView):
 
         #PROCESS
         try:
-            raw=get_raw(os.path.join(tu.upload_id,tu.upload_name))
+            filepath=os.path.join(tu.upload_id,tu.upload_name)
+            raw=get_raw(MEDIA_TEMP,filepath)
         except TypeError:
             return Response('Invalid file extension',
                         status=status.HTTP_406_NOT_ACCEPTABLE)

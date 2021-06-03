@@ -2,17 +2,15 @@ import mne
 import os
 
 from django.conf import settings
+from cconsciente.settings.base import MEDIA_TEMP, MEDIA_STORED, MEDIA_PROC_TEMP_OUTPUT_PATH
 
-MEDIA_TEMP=os.path.join(settings.BASE_DIR, 'media-temp')
-MEDIA_STORED=os.path.join(settings.BASE_DIR, 'media-stored')
-
-
-def get_raw(filepath):
+def get_raw(media_path,filepath):
     file_extension=filepath.split('.')[1]
+    full_filepath=os.path.join(media_path,filepath)
     if file_extension=='set': #EEGLAB
-        raw=mne.io.read_raw_eeglab(MEDIA_TEMP+'/'+filepath)
+        raw=mne.io.read_raw_eeglab(full_filepath)
     elif file_extension=='fif': #MNE
-        raw=mne.io.read_raw_fif(MEDIA_TEMP+'/'+filepath)
+        raw=mne.io.read_raw_fif(full_filepath)
     else:
         raise TypeError
 
@@ -24,7 +22,7 @@ def save_raw(raw,filename, overwrite=True):
 
 def get_events(filepath):
     try:
-        raw=get_raw(filepath)
+        raw=get_raw(MEDIA_TEMP,filepath)
     except TypeError:
         raise TypeError
 

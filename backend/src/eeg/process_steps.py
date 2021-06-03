@@ -1,6 +1,6 @@
 from .eeg_lib import *
 from .utils import *
-
+from cconsciente.settings.base import MEDIA_TEMP, MEDIA_STORED, MEDIA_PROC_TEMP_OUTPUT_PATH
 
 LOAD_RESTORE_PARAM_NAME = 'id'
 
@@ -22,7 +22,8 @@ def time_series_step(input=None,params=None,step_type=None):
         return Response('Not found', status=status.HTTP_404_NOT_FOUND)
 
     try:
-        raw=get_raw(os.path.join(tu.upload_id,tu.upload_name))
+        filepath=os.path.join(tu.upload_id,tu.upload_name)
+        raw=get_raw(MEDIA_TEMP,filepath)
     except TypeError:
         return Response('Invalid file extension',
                     status=status.HTTP_406_NOT_ACCEPTABLE)
@@ -45,6 +46,14 @@ def filter_step(input=None,params=None,step_type=None):
     elif step_type=='ALPHA':
         low_freq=8.0
         high_freq=13.0
+
+    elif step_type=='THETA':
+        low_freq=4.0
+        high_freq=8.0
+
+    elif step_type=='DELTA':
+        low_freq=0.2
+        high_freq=4.0
 
     elif step_type=='NOTCH':
         if 'notch_freq' not in params:

@@ -13,9 +13,10 @@ from filemanager.storage_manager import get_temporary_upload
 from filemanager.models import TemporaryUpload, TemporaryOutput
 from filemanager.utils import _get_file_id, _get_user
 
-LOAD_RESTORE_PARAM_NAME = 'id'
-MAIN_PROCESSES_TEMP_OUTPU_PATH='./cconsciente/processes-temp'
+from cconsciente.settings.base import MEDIA_TEMP, MEDIA_STORED, MEDIA_PROC_TEMP_OUTPUT_PATH
 
+
+LOAD_RESTORE_PARAM_NAME = 'id'
 
 def get_temp_output_filepath(request,process_result_id=None):
     
@@ -26,7 +27,7 @@ def get_temp_output_filepath(request,process_result_id=None):
         user='anon'
 
     filename=user+'_'+process_result_id+'_raw.fif'
-    return os.path.join(MAIN_PROCESSES_TEMP_OUTPU_PATH,filename)
+    return filename
 
 
 def make_output_raw_file(request, process_name,raw_output):
@@ -41,7 +42,7 @@ def make_output_raw_file(request, process_name,raw_output):
     #NOTE:usamos process_name? Si lo usamos, agregar en get_temp_output_filepath
     
     filename=user+'_'+file_id+'_raw.fif'
-    filepath=os.path.join(MAIN_PROCESSES_TEMP_OUTPU_PATH,filename)
+    filepath=os.path.join(MEDIA_PROC_TEMP_OUTPUT_PATH,filename)
     save_raw(raw_output,filepath, overwrite=True)
 
     return file_id

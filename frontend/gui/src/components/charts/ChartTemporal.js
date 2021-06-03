@@ -67,7 +67,7 @@ class ChartTemporal extends Component {
 		if(nodePlot.inputData.fetchInput){
 			const nodeInput=this.props.elements.find((elem) => elem.id==nodePlot.inputData.inputNodeId)
 			if(!nodeInput.dataParams.dataReady){
-				this.props.fetchSignal(nodeInput.params.id,nodeInput.params.channels)
+				this.props.fetchSignal(nodeInput.params.id,nodeInput.params.channels,nodeInput.id)
 				
 			}
 
@@ -105,6 +105,7 @@ class ChartTemporal extends Component {
 
 		if(this.state.params.channels.length!=0){ //Por seguridad, ver else
 			// Si no coinciden hay error, tenerlo en cuenta para hacer una excepcion
+			
 			const idxs=this.state.params.channels.map((ch) => dataParams.chNames.findIndex((chName) => ch===chName))
 			for(var j = 0; j < this.state.params.channels.length; j += 1){
 				for (var i = minTimeIndex; i < maxTimeIndex; i += 1) {
@@ -186,7 +187,7 @@ const mapStateToProps = (state) => {
   
 const mapDispatchToProps = (dispatch) => {
 	return {
-		fetchSignal: (id,channels) => dispatch(fetchSignal(id,channels)),
+		fetchSignal: (id,channels,nodeId) => dispatch(fetchSignal(id,channels,nodeId)),
 	};
 };
 export default connect(mapStateToProps, mapDispatchToProps)(ChartTemporal)

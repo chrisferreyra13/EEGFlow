@@ -12,6 +12,7 @@ import {
     FETCH_SIGNAL_RECEIVE,
     FETCH_SIGNAL_FAILURE,
     SET_NODE_FILE_ID,
+    PROCESS_IS_COMPLETED,
 } from '../actions/Diagram';
 
 import allowedElements from './_elements';
@@ -36,6 +37,9 @@ const initialState={
             chNames: [],
             
         },
+        processParams:{
+            precessed:false,
+        },
     },
     {
         id: '2',
@@ -57,6 +61,9 @@ const initialState={
             mediumSize:'off',
             smallSize:'off',
         },
+        processParams:{
+            precessed:false,
+        },
         
     },
     {
@@ -77,6 +84,8 @@ const initialState={
 export const diagram= (state=initialState, {type, ...rest})=>{
     let elements;
     let processes_status;
+    let inputsReady;
+    let processed;
     switch(type){
         case ADD_NODE: 
             var stateCopy=Object.assign({},state);
@@ -167,6 +176,14 @@ export const diagram= (state=initialState, {type, ...rest})=>{
             return Object.assign({},state,{
                 processes_status: processes_status, //PROCESSING
             })
+        
+        case PROCESS_IS_COMPLETED:
+            processes_status=[]
+            processes_status=JSON.parse(JSON.stringify(state.processes_status))
+            processes_status[rest.process['process_id']]='SUCCESFULL'
+            return Object.assign({},state,{
+                processes_status: processes_status, //PROCESSING
+            })
 
         case FETCH_RUN_PROCESS_REQUEST:
             processes_status=[]
@@ -178,13 +195,20 @@ export const diagram= (state=initialState, {type, ...rest})=>{
         
         case FETCH_RUN_PROCESS_RECEIVE:
             elements={}
+            processed=false
             elements=state.elements.map((item) => {
+                if(rest.process["process_node_ids"].includes(item.id)){processed=true}
+                else{processed=false}
+
                 if(rest.process["process_result_ids"].hasOwnProperty(item.id)){
                     return {
                         ...item,
                         params:{
                             ...item.params,
                             id:rest.process["process_result_ids"][item.id]
+                        },
+                        processParams:{
+                            processed:processed
                         }
                     }
                 }
@@ -194,10 +218,18 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                         inputData:{
                             fetchInput:true,
                             inputNodeId:rest.process["node_input_id"], //Ya puedo ir a buscar el resultado
+                        },
+                        processParams:{
+                            processed:processed
                         }
                     }
                 }else{
-                    return item
+                    return {
+                        ...item,
+                        processParams:{
+                            processed:processed
+                        }
+                    }
                 }
             })
             // Seteo process en SUCCESFULL
@@ -220,7 +252,7 @@ export const diagram= (state=initialState, {type, ...rest})=>{
         
         case FETCH_SIGNAL_REQUEST:
             elements=state.elements.map((item) => {
-                if (item.elementType == 'TIME_SERIES') {
+                if (item.id == rest.nodeId) {
                     return {
                         ...item,
                         dataParams:{
@@ -237,23 +269,36 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                 })
 
         case FETCH_SIGNAL_RECEIVE:
-            var inputsReady=JSON.parse(JSON.stringify(state.inputsReady))
+            inputsReady=JSON.parse(JSON.stringify(state.inputsReady))
+            let nodesWithData=[]
+
             elements=state.elements.map((item) => {
-                if (item.elementType == 'TIME_SERIES') {
+                if(item.dataParams!=undefined)
+                    if(item.dataParams.dataReady==true){nodesWithData.push(item.id)}
+
+                if (item.id == rest.nodeId) {
                     inputsReady.push(item.id)
+                    nodesWithData.push(item.id)
                     return {
                         ...item,
                         dataParams:{
-                            data:rest.timeSeries['signal'],
-                            sFreq:rest.timeSeries['sampling_freq'],
-                            chNames:rest.timeSeries['ch_names'],
+                            data:rest.signalData['signal'],
+                            sFreq:rest.signalData['sampling_freq'],
+                            chNames:rest.signalData['ch_names'],
                             dataReady:true,
                         }
                     }
-                }else{
+                }
+                else{
                     return item
                 } 
             })
+            
+            inputsReady=inputsReady.filter((nodeId) => { // elimino si quedo uno viejo
+                if(nodesWithData.includes(nodeId)){return true}
+                else {return false}
+            })
+            inputsReady=[...new Set(inputsReady)] //elimino las copias
 
             return Object.assign({},state,{
                 elements: elements,

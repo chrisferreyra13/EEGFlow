@@ -84,11 +84,11 @@ export function processesToStart(len){
     }
 }
 
-export const OUTPUT_RECIEVE='OUTPUT_RECIEVE'
-export function outputRecieve(json){
+export const PROCESS_IS_COMPLETED='PROCESS_IS_COMPLETED'
+export function processIsCompleted(processId){
     return{
-        type: OUTPUT_RECIEVE,
-        processOutput:json
+        type: PROCESS_IS_COMPLETED,
+        processId
     }
 }
 
@@ -129,7 +129,6 @@ export const runProcess= (elements) => async (dispatch) => {
             else{
                 input=[]
             }
-            
                 
             diagram.push({
                 id:elements[i].id,
@@ -138,7 +137,7 @@ export const runProcess= (elements) => async (dispatch) => {
                 input:input,
                 output:output,
                 params:elements[i].params,
-                processed:false,
+                processed:elements[i].processParams.processed,
                 save_output:false,
                 return_output:false,
             })
@@ -204,50 +203,54 @@ export const runProcess= (elements) => async (dispatch) => {
         cont+=1
 
     }while(cont!=numOutput) // cuando ya no tengo mas nodos tipo output, termine de recorrer todo el diagrama
-
-    console.log(processes)
     
     //let header= new Headers()
     let url=null
     let initFetch=null
     cont=0
-    let ouput_ids;
-    dispatch(processesToStart(processes.length))
-    for(process of processes){
-        url = API_ROOT+'process/?'
-        ouput_ids=[]
-        initFetch={
+    url = API_ROOT+'process/?'
+    initFetch={
         method: 'POST',
-        body:JSON.stringify({"process": process}),
+        body:'',
         headers: {
             'Content-Type': 'application/json'
         },
         };
-    
-        
-        dispatch(runProcessRequest({'process_id':cont}))
-        try {
-            fetch(url,initFetch)
-            .then(res => res.json())
-            .then(json => {
-                dispatch(runProcessReceive({
-                    'process_status':json["process_status"],
-                    'process_result_ids':json["process_result_ids"],
-                    'process_id':cont,
-                    'node_output_id':process[process.length-1].id,
-                    'node_input_id':process[process.length-2].id
-                }))
-                process.forEach(node =>{
+
+    dispatch(processesToStart(processes.length))
+    for(process of processes){
+        initFetch={...initFetch, body:JSON.stringify({"process": process}),}
+        if(process.every((n) => n.processed==true)){
+            dispatch(processIsCompleted({'process_id':cont}))
+        }
+        else{
+            dispatch(runProcessRequest({'process_id':cont}))
+            try {
+                fetch(url,initFetch)
+                .then(res => res.json())
+                .then(json => {
                     
-                    node["processed"]=true
+                    dispatch(runProcessReceive({
+                        'process_status':json["process_status"],
+                        'process_result_ids':json["process_result_ids"],
+                        'process_id':cont,
+                        'process_node_ids':process.map((node)=> node.id),
+                        'node_output_id':process[process.length-1].id,
+                        'node_input_id':process[process.length-2].id
+                    }))
+                    //dispatch(fetchSignal(process[0].params.id))
+                    //console.log(process)
                 })
-                //dispatch(fetchSignal(process[0].params.id))
-                //console.log(process)
-            })
+            }
+            catch (error){
+                dispatch(runProcessFailure({
+                    'process_id':cont,
+                    'process_status':'FAIL',
+                }))
+            }
         }
-        catch (error){
-            dispatch(runProcessFailure(error))
-        }
+        
+        
         cont+=1
     }
     
@@ -343,31 +346,39 @@ export const runSingleProcess= (params) => async (dispatch) => {
 }
 
 export const FETCH_SIGNAL_REQUEST = 'FETCH_SIGNAL_REQUEST'
-function requestTimeSeries() {
+function requestSignal(nodeId) {
   return {
     type: FETCH_SIGNAL_REQUEST,
+    nodeId:nodeId
   }
 }
 
 export const FETCH_SIGNAL_RECEIVE = 'FETCH_SIGNAL_RECEIVE'
-function receiveTimeSeries(json) {
+function receiveSignal(payload) {
   return {
     type: FETCH_SIGNAL_RECEIVE,
-    timeSeries:json
+    signalData:payload["signalData"],
+    nodeId:payload["nodeId"]
     
   }
 }
 
 export const FETCH_SIGNAL_FAILURE = 'FETCH_SIGNAL_FAILURE'
-function errorFetchingTimeSeries(error){
+function errorFetchingSignal(payload){
     return {
         type: FETCH_SIGNAL_FAILURE,
-        error
+        error:payload["error"],
+        nodeId:payload["nodeId"]
     }
 }
 
-export const fetchSignal = (id,channels) => async (dispatch) => {
+export const fetchSignal = (id,channels,nodeId) => async (dispatch) => {
     let endpoint=API_ROOT+'time_series/?'
+
+    if(channels==undefined){
+        channels=''
+    }
+
     let url = endpoint + new URLSearchParams({
         id: id,
         channels: channels,
@@ -381,15 +392,15 @@ export const fetchSignal = (id,channels) => async (dispatch) => {
     cache: 'default'
     };
 
-    dispatch(requestTimeSeries())
+    dispatch(requestSignal(nodeId))
     try {
         //await fetcher(url,initFetch)
         await fetch(url,initFetch)
         .then(res => res.json())
-        .then(json => dispatch(receiveTimeSeries(json)))
+        .then(signalData => dispatch(receiveSignal({signalData, 'nodeId':nodeId})))
     }
     catch (error){
-        dispatch(errorFetchingTimeSeries(error))
+        dispatch(errorFetchingSignal({error, 'nodeId':nodeId}))
     }
     
 
