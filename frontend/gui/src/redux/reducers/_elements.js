@@ -45,7 +45,9 @@ export default [
       inputNodeId:'',
 
     },
-  
+    processParams:{
+      precessed:false,
+    },
   },
   {
     id: null,
@@ -143,6 +145,9 @@ export default [
       sFreq: 0,
       chNames: [],
     },
+    processParams:{
+      precessed:false,
+  },
   },
   {
     id: null,
@@ -164,6 +169,9 @@ export default [
       sFreq: 0,
       chNames: [],
     },
+    processParams:{
+      precessed:false,
+  },
   },
   {
     id: null,
@@ -176,9 +184,18 @@ export default [
     },
     position: { x: 450, y: 80 },
     params:{
+      id:null,
       channels:'EEG 016,EEG 017',
       filter_method:'fir',
     },
+    dataParams:{
+      data:[],
+      sFreq: 0,
+      chNames: [],
+    },
+    processParams:{
+      precessed:false,
+  },
   },
   {
     id: null,
@@ -190,7 +207,19 @@ export default [
       label: 'Filtro Theta'
     },
     position: { x: 450, y: 80 },
-    params:null,
+    params:{
+      id:null,
+      channels:'EEG 016,EEG 017',
+      filter_method:'fir',
+    },
+    dataParams:{
+      data:[],
+      sFreq: 0,
+      chNames: [],
+    },
+    processParams:{
+      precessed:false,
+  },
   },
   {
     id: null,
@@ -202,7 +231,19 @@ export default [
       label: 'Filtro Delta'
     },
     position: { x: 450, y: 80 },
-    params:null,
+    params:{
+      id:null,
+      channels:'EEG 016,EEG 017',
+      filter_method:'fir',
+    },
+    dataParams:{
+      data:[],
+      sFreq: 0,
+      chNames: [],
+    },
+    processParams:{
+      precessed:false,
+  },
   },
   {
     id: null,
@@ -216,11 +257,20 @@ export default [
     },
     position: { x: 450, y: 80 },
     params:{
+      id:null,
       low_freq:3,
       high_freq:8,
       channels:'EEG 016,EEG 017',
       filter_method:'fir'
     },
+    dataParams:{
+      data:[],
+      sFreq: 0,
+      chNames: [],
+    },
+    processParams:{
+      precessed:false,
+  },
   },
   ////////
   //METHODS//

@@ -113,3 +113,7 @@ STATIC_URL = '/static/'
 
 MEDIA_ROOT=os.path.join(BASE_DIR,'media')
 MEDIA_URL='/media/'
+
+MEDIA_TEMP=os.path.join(BASE_DIR, 'media-temp')
+MEDIA_STORED=os.path.join(BASE_DIR, 'media-stored')
+MEDIA_PROC_TEMP_OUTPUT_PATH=os.path.join(BASE_DIR, 'processes-temp')
