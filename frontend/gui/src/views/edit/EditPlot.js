@@ -6,7 +6,8 @@ import {connect, connectAdvanced} from 'react-redux'
 import { diagramView } from '../../redux/actions/EditSession'
 import { enableChartTemporal } from '../../redux/actions/SideBar'
 
-const ChartTemporal = lazy(() => import('../../components/charts/ChartTemporal.js'))
+const ChartTemporal = lazy(() => import('../../components/charts/containers/ChartTemporal.js'))
+const ChartSpectrum = lazy(() => import('../../components/charts/containers/ChartSpectrum.js'))
 //const FormContainer = lazy(() => import('../../components/forms/FormContainer.js'))
 
 class EditPlot extends Component {
@@ -36,6 +37,7 @@ class EditPlot extends Component {
   chartSelection(node){
     const charts = {
       PLOT_TIME_SERIES: {content:ChartTemporal},
+      PLOT_PSD: {content:ChartSpectrum},
       //COMPLETAR
       //Aca van los otros tipos de charts
       //

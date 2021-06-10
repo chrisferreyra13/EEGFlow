@@ -114,7 +114,7 @@ def filter_step(input=None,params=None,step_type=None):
 steps={
     'TIME_SERIES': time_series_step,
     'PLOT_TIME_SERIES':result_step,
-    'PLOT_FOURIER':result_step,
+    'PLOT_PSD':result_step,
     'PLOT_TIME_FREQUENCY':result_step,
     'BETA':filter_step,
     'ALPHA':filter_step,

@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from .models import FileInfo
-from .eeg_lib import save_raw
+from .eeg_lib import save_raw, psd
 
 from filemanager.storage_manager import get_temporary_upload
 from filemanager.models import TemporaryUpload, TemporaryOutput

@@ -1,4 +1,20 @@
-//import React from 'react';
+const paramsTemplate={
+  id:'40',
+}
+const signalsDataTemplate=[{
+  id:null,
+  dataReady:false,
+  data: [],
+  dataType:null,
+  sFreq: 0,
+  chNames: [], 
+}]
+
+const processParamsTemplate={
+  processed:false,
+}
+
+
 export default [
   {
     id: null,
@@ -9,16 +25,8 @@ export default [
       label: 'Señal en tiempo'
     },
     position: { x: 450, y: 80 },
-    params:{
-      id:'40',
-    },
-    dataParams:{
-        dataReady:false,
-        data: [],
-        sFreq: 0,
-        chNames: [],
-        
-    },
+    params:paramsTemplate,
+    signalsData:signalsDataTemplate,
     isFetching:false,
   },
   //PLOTS//
@@ -34,8 +42,8 @@ export default [
     position: { x: 450, y: 80 },
     params:{
       channels:null,
-      minTimeWindow:null,
-      maxTimeWindow:null,
+      minXWindow:null,
+      maxXWindow:null,
       largeSize:null,
       mediumSize:null,
       smallSize:null,
@@ -45,31 +53,31 @@ export default [
       inputNodeId:'',
 
     },
-    processParams:{
-      precessed:false,
-    },
+    processParams:processParamsTemplate,
   },
   {
     id: null,
     type: 'output',
-    elementType: 'PLOT_FOURIER',
+    elementType: 'PLOT_PSD',
     targetPosition: 'left',
     data: {
-      label: 'Espectro'
+      label: 'PSD'
     },
     position: { x: 450, y: 80 },
     params:{
-      channels:null,
-      minTimeWindow:null,
-      maxTimeWindow:null,
-      largeSize:null,
-      mediumSize:null,
-      smallSize:null,
+      channels:'EEG 016',
+      minXWindow:null,
+      maxXWindow:null,
+      largeSize:'on',
+      mediumSize:'off',
+      smallSize:'off',
     },
     inputData:{
       fetchInput:false,
       inputNodeId:'',
+
     },
+    processParams:processParamsTemplate,
   
   },
   {
@@ -81,8 +89,20 @@ export default [
       label: 'Tiempo - Frecuencia'
     },
     position: { x: 450, y: 80 },
-    params:null,
-    fetchInput:false,
+    params:{
+      channels:null,
+      minXWindow:null,
+      maxXWindow:null,
+      largeSize:null,
+      mediumSize:null,
+      smallSize:null,
+    },
+    inputData:{
+      fetchInput:false,
+      inputNodeId:'',
+
+    },
+    processParams:processParamsTemplate,
   },
   ////////
   //PREPROCESSING METHODS//
@@ -140,14 +160,8 @@ export default [
       channels:'EEG 016,EEG 017',
       notch_freq:50,
     },
-    dataParams:{
-      data:[],
-      sFreq: 0,
-      chNames: [],
-    },
-    processParams:{
-      precessed:false,
-  },
+    signalsData:signalsDataTemplate,
+    processParams:processParamsTemplate,
   },
   {
     id: null,
@@ -164,14 +178,8 @@ export default [
       channels:'EEG 016,EEG 017',
       filter_method:'fir',
     },
-    dataParams:{
-      data:[],
-      sFreq: 0,
-      chNames: [],
-    },
-    processParams:{
-      precessed:false,
-  },
+    signalsData:signalsDataTemplate,
+    processParams:processParamsTemplate,
   },
   {
     id: null,
@@ -188,14 +196,8 @@ export default [
       channels:'EEG 016,EEG 017',
       filter_method:'fir',
     },
-    dataParams:{
-      data:[],
-      sFreq: 0,
-      chNames: [],
-    },
-    processParams:{
-      precessed:false,
-  },
+    signalsData:signalsDataTemplate,
+    processParams:processParamsTemplate,
   },
   {
     id: null,
@@ -212,14 +214,8 @@ export default [
       channels:'EEG 016,EEG 017',
       filter_method:'fir',
     },
-    dataParams:{
-      data:[],
-      sFreq: 0,
-      chNames: [],
-    },
-    processParams:{
-      precessed:false,
-  },
+    signalsData:signalsDataTemplate,
+    processParams:processParamsTemplate,
   },
   {
     id: null,
@@ -236,14 +232,8 @@ export default [
       channels:'EEG 016,EEG 017',
       filter_method:'fir',
     },
-    dataParams:{
-      data:[],
-      sFreq: 0,
-      chNames: [],
-    },
-    processParams:{
-      precessed:false,
-  },
+    signalsData:signalsDataTemplate,
+    processParams:processParamsTemplate,
   },
   {
     id: null,
@@ -263,14 +253,8 @@ export default [
       channels:'EEG 016,EEG 017',
       filter_method:'fir'
     },
-    dataParams:{
-      data:[],
-      sFreq: 0,
-      chNames: [],
-    },
-    processParams:{
-      precessed:false,
-  },
+    signalsData:signalsDataTemplate,
+    processParams:processParamsTemplate,
   },
   ////////
   //METHODS//

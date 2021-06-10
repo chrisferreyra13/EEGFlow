@@ -5,12 +5,12 @@ import {
 	CCardGroup,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import {fetchSignal} from '../../redux/actions/Diagram'
+import {fetchSignal} from '../../../redux/actions/Diagram'
 import {connect} from 'react-redux'
-import ChartChannel from './ChartChannel'
-import ChartChannels from './ChartChannels'
-import {SamplesToTimes} from '../../tools/Signal'
-import { node } from 'prop-types'
+import ChartChannelTime from '../ChartChannelTime'
+import ChartChannelsTime from '../ChartChannelsTime'
+import {PrepareDataForPlot} from '../../../tools/Signal'
+
 
 
 //import  CanvasJSReact from '../../canvasjs/canvasjs.react'
@@ -23,11 +23,11 @@ class ChartTemporal extends Component {
 		let params={}
 		if(nodePlot.params.channels==null){ 
 			params={ //Default params
-				channels:['EEG 016','EEG 017'], //Para ChartTemporal, los canales son una lista de strings
-				minTimeWindow:null,
-				maxTimeWindow:null,
-				largeSize:'on',
-				mediumSize:'off',
+				channels:['EEG 016'], //Para ChartTemporal, los canales son una lista de strings
+				minXWindow:null,
+     			maxXWindow:null,
+				largeSize:'off',
+				mediumSize:'on',
 				smallSize:'off',
 				
 			}
@@ -61,21 +61,27 @@ class ChartTemporal extends Component {
 			}
 		}
 
-		let data=[]
+		let data=[];
 		let dataReady=false;
-
+		const dataType='TIME_SERIES';
 		if(nodePlot.inputData.fetchInput){
 			const nodeInput=this.props.elements.find((elem) => elem.id==nodePlot.inputData.inputNodeId)
-			if(!nodeInput.dataParams.dataReady){
-				this.props.fetchSignal(nodeInput.params.id,nodeInput.params.channels,nodeInput.id)
-				
+			const signalData=nodeInput.signalsData.find(d => d.dataType==dataType)
+			if(signalData==undefined){
+				this.props.fetchSignal(nodeInput.params.id,nodeInput.params.channels,nodeInput.id,dataType)
 			}
-
+			else{
+				if(!signalData.dataReady){
+					this.props.fetchSignal(nodeInput.params.id,nodeInput.params.channels,nodeInput.id,dataType)
+					
+				}
+			}
 		}
 
 		this.state={
 			dataReady:dataReady,
-			nodePlot:nodePlot,
+			inputNodeId:nodePlot.inputData.inputNodeId,
+			dataType:dataType,
 			params:params,
 			style:style,
 			data:data,
@@ -84,48 +90,33 @@ class ChartTemporal extends Component {
 
     }
 
-	preprocessData(dataParams){
+	preprocessData(signalData){
 		if(this.state.dataReady==true){
 			return
 		}
-
-		let data=[];
-		let limit = dataParams.data[0].length;
-		let dataPoints = [];
-		let minTimeIndex=0;
-		let maxTimeIndex=limit;
-		if(this.state.params.minTimeWindow!=null){
-			minTimeIndex=Math.round(this.state.params.minTimeWindow*dataParams.sFreq)
-			if(minTimeIndex>=limit) minTimeIndex=0; //Se paso, tira error
+		let dataX=[]
+		let limit = signalData.data[0].length;
+		let minIndex=0;
+		let maxIndex=limit;
+		if(this.state.params.minXWindow!=null){
+			minIndex=Math.round(this.state.params.minXWindow*signalData.sFreq)
+			if(minIndex>=limit) minIndex=0; //Se paso, tira error
 		}
-		if(this.state.params.maxTimeWindow!=null){
-			maxTimeIndex=Math.round(this.state.params.maxTimeWindow*dataParams.sFreq)
-			if(maxTimeIndex>limit) maxTimeIndex=limit; //Se paso, tira error
-		}
+		if(this.state.params.maxXWindow!=null){
+			maxIndex=Math.round(this.state.params.maxXWindow*signalData.sFreq)
+			if(maxIndex>limit) maxIndex=limit; //Se paso, tira error
+    	}
 
-		if(this.state.params.channels.length!=0){ //Por seguridad, ver else
-			// Si no coinciden hay error, tenerlo en cuenta para hacer una excepcion
-			
-			const idxs=this.state.params.channels.map((ch) => dataParams.chNames.findIndex((chName) => ch===chName))
-			for(var j = 0; j < this.state.params.channels.length; j += 1){
-				for (var i = minTimeIndex; i < maxTimeIndex; i += 1) {
-					dataPoints.push({
-					x: SamplesToTimes(i,dataParams.sFreq,3),
-					y: Math.pow(10,6)*dataParams.data[idxs[j]][i]
-				});
-				}
-				data.push(dataPoints)
-				dataPoints=[]
-			}
-		}/*else{
-			for (var i = minTimeIndex; i < maxTimeIndex; i += 1) {
-				dataPoints.push({
-				x: SamplesToTimes(i,dataParams.sFreq,3),
-				y: Math.pow(10,6)*dataParams.data[1][i]
-				});
-			}
-			data=dataPoints
-		}*/
+		let data=PrepareDataForPlot(
+			dataX, //if empty [] --> make x in time 
+			signalData.data,
+			signalData.sFreq,
+			signalData.chNames,
+			this.state.params.channels,
+			minIndex,
+			maxIndex,
+			Math.pow(10,6)
+			)
 
 		this.setState({
 			data:data,
@@ -135,10 +126,12 @@ class ChartTemporal extends Component {
 	}
 
     render() {
-
-		if(this.props.inputsReady.includes(this.state.nodePlot.inputData.inputNodeId)){
-			let nodeInput=this.props.elements.find((elem) => elem.id==this.state.nodePlot.inputData.inputNodeId)
-			this.preprocessData(nodeInput.dataParams)
+		const nodeInput=this.props.elements.find((elem) => elem.id==this.state.inputNodeId)
+		const signalData=nodeInput.signalsData.find(d => d.dataType==this.state.dataType)
+		if(signalData!=undefined){
+			if(this.props.inputsReady.includes(signalData.id)){
+				this.preprocessData(signalData)
+			}
 		}
 
 		return (
@@ -148,12 +141,12 @@ class ChartTemporal extends Component {
 						{ this.state.dataReady ?
 							<div style={this.state.style}>
 								{this.state.params.channels.length==1 ?
-								<ChartChannel
+								<ChartChannelTime
 								data={this.state.data[0]}
 								chartStyle={{height: '100%', width:'100%'}}
 								channel={this.state.params.channels[0]} //Lo dejamos por las dudas --->//==undefined ? nodeInput.dataParams.chNames[0] : this.state.params.channels[0]}
 								/> :
-								<ChartChannels 
+								<ChartChannelsTime
 								data={this.state.data}
 								chartStyle={{height: '100%', width:'100%'}}
 								channels={this.state.params.channels}
@@ -187,7 +180,7 @@ const mapStateToProps = (state) => {
   
 const mapDispatchToProps = (dispatch) => {
 	return {
-		fetchSignal: (id,channels,nodeId) => dispatch(fetchSignal(id,channels,nodeId)),
+		fetchSignal: (id,channels,nodeId,dataType) => dispatch(fetchSignal(id,channels,nodeId,dataType)),
 	};
 };
 export default connect(mapStateToProps, mapDispatchToProps)(ChartTemporal)
