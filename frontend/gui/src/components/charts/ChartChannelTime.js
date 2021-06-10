@@ -30,12 +30,12 @@ class ChartChannel extends Component {
             fillStyle: new SolidFill({ color: ColorHEX('#5aafc7') })
         }))
 
-        const intervalMin=Math.min.apply(Math, this.props.data.map(function(o) { return o.y; }))
-        const intervalMax=Math.max.apply(Math, this.props.data.map(function(o) { return o.y; }))
+        const yMin=Math.min.apply(Math, this.props.data.map(function(o) { return o.y; }))
+        const yMax=Math.max.apply(Math, this.props.data.map(function(o) { return o.y; }))
         this.chart
             .getDefaultAxisY()
             .setTitle('uV')
-            .setInterval(intervalMin-0.30*Math.abs(intervalMin), (intervalMax+0.30*Math.abs(intervalMax)))
+            .setInterval(yMin-0.30*Math.abs(yMin), (yMax+0.30*Math.abs(yMax)))
             //.setScrollStrategy(AxisScrollStrategies.expansion)
         this.chart
         .getDefaultAxisX()

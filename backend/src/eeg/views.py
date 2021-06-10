@@ -35,7 +35,8 @@ import numpy as np
 
 ####VARIABLES####
 LOAD_RESTORE_PARAM_NAME = 'id'
-
+# OUTPUT_FORMATS={'PLOT_TIME_SERIES':0,'PLOT_PSD':1,'PLOT_TIME_FREQUENCY':2}
+ALLOWED_FORMATS=['TIME_SERIES','PSD'] 
 ####FUNCTIONS###
 
 ####VIEWS####
@@ -56,9 +57,16 @@ class RunProcess(APIView):
 
         input=None
         output=None
-        process_result_ids={}
+        
         num_step=1
         num_of_steps=len(process)
+        # Preparing output format...
+        process_result_ids={}
+        # process_step_types=[step["elementType"] for step in process]
+        # output_format_step=process[len(process)-1]["elementType"]
+        # result_step=process[process[len(process)-2]]
+        
+
         print('[INFO]: Running process...')
         for step in process:
             print('[INFO]: STEP {}/{} | PARAMS:{}'.format(num_step,num_of_steps,step['params']))
@@ -72,6 +80,7 @@ class RunProcess(APIView):
             else:
                 if step['save_output']==True:
                     process_result_id=make_output_raw_file(request,process_name=step['elementType'],raw_output=output)
+
                     if type(process_result_id).__name__=='Response':
                         return process_result_id # Hubo un error
                     else:
@@ -179,8 +188,7 @@ class GetTimeSeries(APIView):
             return Response('Invalid file extension',
                         status=status.HTTP_406_NOT_ACCEPTABLE)
         
-        #return requested channels
-        
+        #get requested channels
         if 'channels' not in request.query_params:
             channels=None
         else:
@@ -193,37 +201,104 @@ class GetTimeSeries(APIView):
                 except:
                     return Response('An invalid list of channels has been provided.',
                         status=status.HTTP_400_BAD_REQUEST)
-        
-        
 
         if channels==None: # Si es None, agarro todos
             channels_idxs=mne.pick_types(raw.info,eeg=True) #Retorna los indices internos de raw
             eeg_info=mne.pick_info(raw.info, sel=channels_idxs)
-            ch_names=eeg_info["ch_names"]
+            returned_channels=eeg_info["ch_names"]
             
         else:
+            returned_channels=channels
             ch_names=raw.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
             if set(channels).issubset(set(ch_names)):
                 channels_idxs=mne.pick_channels(ch_names, include=channels) #Retorna los indices internos de raw
             else:
                 return Response('An invalid list of channels has been provided.',
-                            status=status.HTTP_400_BAD_REQUEST) 
+                            status=status.HTTP_400_BAD_REQUEST)
 
-        time_series=raw.get_data(picks=channels_idxs) # agarro los canales
-        
-
-        if channels!=None:
-            returned_channels=channels
-        else:
-            returned_channels=ch_names
-
+        time_series=raw.get_data(picks=channels_idxs) # Take the requested channels
         response=Response({
             'signal':time_series,
             'sampling_freq':raw.info['sfreq'],
             'ch_names': returned_channels,
-        })
+            })
+
+        
         return response
 
+class GetPSD(APIView):
+    def get(self, request, format=None):
+
+        if LOAD_RESTORE_PARAM_NAME not in request.query_params:
+            return Response('ID parameter is missing.',
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        id=request.query_params[LOAD_RESTORE_PARAM_NAME]
+
+        # Check if is a number or an id result and get the filepath
+        media_path=MEDIA_TEMP
+        if id.isnumeric():
+            file_info=get_file_info(id)
+            if type(file_info).__name__=='Response':
+                return file_info
+
+            try:
+                tu = get_upload(file_info.upload_id)
+            except FileNotFoundError:
+                Response('Not found', status=status.HTTP_404_NOT_FOUND)
+
+            filepath=os.path.join(tu.upload_id,tu.upload_name)
+            media_path=MEDIA_TEMP
+
+        else:
+            filepath=get_temp_output_filepath(request,process_result_id=id)
+            media_path=MEDIA_PROC_TEMP_OUTPUT_PATH
+
+        # Get the raw
+        try:
+            raw=get_raw(media_path,filepath)
+        except TypeError:
+            return Response('Invalid file extension',
+                        status=status.HTTP_406_NOT_ACCEPTABLE)
+        
+        #get requested channels
+        if 'channels' not in request.query_params:
+            channels=None
+        else:
+            channels=request.query_params['channels']
+            if (not channels) or (channels == ''):    # Si no envian nada, lo aplico en todos los canales
+                channels=None
+            else:
+                try:
+                    channels=channels.split(',') #Los canales vienen en un string separados por comas
+                except:
+                    return Response('An invalid list of channels has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+
+        if channels==None: # Si es None, agarro todos
+            channels_idxs=mne.pick_types(raw.info,eeg=True) #Retorna los indices internos de raw
+            eeg_info=mne.pick_info(raw.info, sel=channels_idxs)
+            returned_channels=eeg_info["ch_names"]
+            
+        else:
+            returned_channels=channels
+            ch_names=raw.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
+            if set(channels).issubset(set(ch_names)):
+                channels_idxs=mne.pick_channels(ch_names, include=channels) #Retorna los indices internos de raw
+            else:
+                return Response('An invalid list of channels has been provided.',
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        psds,freqs=psd(raw,picks=channels_idxs,type='welch')
+        
+        response=Response({
+            'signal':psds,
+            'freqs':freqs,
+            'sampling_freq':raw.info['sfreq'],
+            'ch_names': returned_channels,
+            })
+        
+        return response
 class GetEvents(APIView):
 
     def get(self, request, format=None):

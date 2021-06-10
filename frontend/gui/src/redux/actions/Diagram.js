@@ -346,10 +346,11 @@ export const runSingleProcess= (params) => async (dispatch) => {
 }
 
 export const FETCH_SIGNAL_REQUEST = 'FETCH_SIGNAL_REQUEST'
-function requestSignal(nodeId) {
+function requestSignal(nodeId, dataType) {
   return {
     type: FETCH_SIGNAL_REQUEST,
-    nodeId:nodeId
+    nodeId:nodeId,
+    dataType:dataType
   }
 }
 
@@ -358,7 +359,8 @@ function receiveSignal(payload) {
   return {
     type: FETCH_SIGNAL_RECEIVE,
     signalData:payload["signalData"],
-    nodeId:payload["nodeId"]
+    nodeId:payload["nodeId"],
+    dataType:payload["dataType"]
     
   }
 }
@@ -372,8 +374,19 @@ function errorFetchingSignal(payload){
     }
 }
 
-export const fetchSignal = (id,channels,nodeId) => async (dispatch) => {
-    let endpoint=API_ROOT+'time_series/?'
+function selectSignalType(type){
+    switch(type){
+        case 'TIME_SERIES':
+            return 'time_series/?'
+        case 'PSD':
+            return 'psd/?'
+        default:
+            return 'time_series/?'
+    }
+}
+
+export const fetchSignal = (id, channels, nodeId, dataType) => async (dispatch) => {
+    let endpoint=API_ROOT+selectSignalType(dataType)
 
     if(channels==undefined){
         channels=''
@@ -381,7 +394,7 @@ export const fetchSignal = (id,channels,nodeId) => async (dispatch) => {
 
     let url = endpoint + new URLSearchParams({
         id: id,
-        channels: channels,
+        channels: channels
         })
     
     let header= new Headers()
@@ -392,17 +405,16 @@ export const fetchSignal = (id,channels,nodeId) => async (dispatch) => {
     cache: 'default'
     };
 
-    dispatch(requestSignal(nodeId))
+    dispatch(requestSignal(nodeId,dataType))
     try {
         //await fetcher(url,initFetch)
         await fetch(url,initFetch)
         .then(res => res.json())
-        .then(signalData => dispatch(receiveSignal({signalData, 'nodeId':nodeId})))
+        .then(signalData => dispatch(receiveSignal({signalData, 'nodeId':nodeId, 'dataType':dataType})))
     }
     catch (error){
         dispatch(errorFetchingSignal({error, 'nodeId':nodeId}))
     }
     
-
 }
 

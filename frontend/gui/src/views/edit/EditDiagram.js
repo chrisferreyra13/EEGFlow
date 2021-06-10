@@ -172,10 +172,10 @@ class EditDiagram extends Component{
 
 function purge(elements){
   return elements.map((item) => {
-    if (item.dataParams == undefined){return item}
+    if (item.signalsData == undefined){return item}
       return {
         ...item,
-        dataParams:{}
+        signalsData:[]
       }
 })
 }

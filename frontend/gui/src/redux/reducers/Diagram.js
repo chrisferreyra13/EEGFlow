@@ -14,9 +14,9 @@ import {
     SET_NODE_FILE_ID,
     PROCESS_IS_COMPLETED,
 } from '../actions/Diagram';
-
 import allowedElements from './_elements';
 
+import {v4 as uuidv4} from 'uuid';
 
 const initialState={
     elements:[{
@@ -30,15 +30,9 @@ const initialState={
         params:{
             id:'40',
         },
-        dataParams:{
-            dataReady:false,
-            data: [],
-            sFreq: 0,
-            chNames: [],
-            
-        },
+        signalsData:[],
         processParams:{
-            precessed:false,
+            processed:false,
         },
     },
     {
@@ -54,15 +48,15 @@ const initialState={
             inputNodeId:'1',
         },
         params:{
-            channels:'EEG 016,EEG 017',
-            minTimeWindow:null,
-            maxTimeWindow:null,
-            largeSize:'on',
-            mediumSize:'off',
+            channels:'EEG 016',
+            minXWindow:null,
+            maxXWindow:null,
+            largeSize:'off',
+            mediumSize:'on',
             smallSize:'off',
         },
         processParams:{
-            precessed:false,
+            processed:false,
         },
         
     },
@@ -86,6 +80,8 @@ export const diagram= (state=initialState, {type, ...rest})=>{
     let processes_status;
     let inputsReady;
     let processed;
+    let newSignalsData;
+    let newSignalData;
     switch(type){
         case ADD_NODE: 
             var stateCopy=Object.assign({},state);
@@ -131,19 +127,22 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                 idCount:state.idCount-rest.nodesIds.length
             })
             */
+            elements=unpurge(state.elements,rest.newElements)
             return Object.assign({},state,{
-                elements: rest.newElements,
+                elements: elements,
                 nodesCount:state.nodesCount-rest.numOfNodesRemoved
             })
         
         case ADD_EDGE:
+            elements=unpurge(state.elements,rest.newElements)
             return Object.assign({},state,{
-                elements: rest.newElements,
-            })
-            
+                elements: elements,
+                })
+  
         case CHANGE_EDGE:
+            elements=unpurge(state.elements,rest.newElements)
             return Object.assign({},state,{
-                elements: rest.newElements,
+                elements: elements,
             })
 
         case SET_NODE_FILE_ID:
@@ -251,54 +250,100 @@ export const diagram= (state=initialState, {type, ...rest})=>{
             })
         
         case FETCH_SIGNAL_REQUEST:
+            inputsReady=JSON.parse(JSON.stringify(state.inputsReady))
+            let index=0;
+            newSignalsData=[]
+            let signalData;
             elements=state.elements.map((item) => {
+                if(item.signalsData!=undefined && item.signalsData.length!=0)
+                    signalData=item.signalsData.find(d => d.dataType==rest.dataType)
+                    if(signalData!=undefined){
+                        if(signalData.dataReady==false){
+                            index=inputsReady.findIndex(id => id==signalData.id)
+                            if(index!=-1){
+                                inputsReady.splice(index,1)
+                            }
+                        }
+                    }
+
                 if (item.id == rest.nodeId) {
+                    if(item.signalsData.length==0){
+                        newSignalsData.push({dataReady:false})
+                    }
+                    else{
+                        newSignalsData=item.signalsData.map(d => {
+                            if(d.dataType==rest.dataType){
+                                d.dataReady=false
+                            }
+                            return d
+                        })
+                    }
                     return {
                         ...item,
-                        dataParams:{
-                            dataReady:false,
-                        }
+                        signalsData:newSignalsData,
                     }
                 }else{
                     return item
                 }
             })
+            /*
+            inputsReady=inputsReady.filter((nodeId) => { // elimino si quedo uno viejo
+                if(nodesWithData.includes(nodeId)){return true}
+                else {return false}
+            })
+            inputsReady=[...new Set(inputsReady)] //elimino las copias
+            */
 
             return Object.assign({},state,{
                 elements: elements,
+                inputsReady:inputsReady
                 })
 
         case FETCH_SIGNAL_RECEIVE:
             inputsReady=JSON.parse(JSON.stringify(state.inputsReady))
-            let nodesWithData=[]
-
+            let exists=false
+            newSignalsData=[]
+            newSignalData={
+                id:uuidv4(),
+                data:rest.signalData['signal'],
+                dataType:rest.dataType,
+                sFreq:rest.signalData['sampling_freq'],
+                chNames:rest.signalData['ch_names'],
+                dataReady:true,
+            }
+            if(rest.signalData["freqs"]!=undefined){
+                newSignalData['freqs']=rest.signalData['freqs']
+            }
+            
             elements=state.elements.map((item) => {
-                if(item.dataParams!=undefined)
-                    if(item.dataParams.dataReady==true){nodesWithData.push(item.id)}
-
-                if (item.id == rest.nodeId) {
-                    inputsReady.push(item.id)
-                    nodesWithData.push(item.id)
+                if (item.id == rest.nodeId){
+                    /*if(item.signalsData.length==0){
+                        inputsReady.push(newSignalData.id)
+                        item.signalsData.push(newSignalData)
+                    }*/
+                    //else
+                    newSignalsData=item.signalsData.map(d => { 
+                        if(d.dataType==rest.dataType){
+                            inputsReady.push(newSignalData.id)
+                            d=newSignalData
+                            exists=true
+                        }
+                        return d
+                    })
+                    if(!exists){
+                        inputsReady.push(newSignalData.id)
+                        newSignalsData.push(newSignalData)
+                    }
+                    
                     return {
                         ...item,
-                        dataParams:{
-                            data:rest.signalData['signal'],
-                            sFreq:rest.signalData['sampling_freq'],
-                            chNames:rest.signalData['ch_names'],
-                            dataReady:true,
-                        }
+                        signalsData:newSignalsData
                     }
                 }
                 else{
                     return item
                 } 
             })
-            
-            inputsReady=inputsReady.filter((nodeId) => { // elimino si quedo uno viejo
-                if(nodesWithData.includes(nodeId)){return true}
-                else {return false}
-            })
-            inputsReady=[...new Set(inputsReady)] //elimino las copias
 
             return Object.assign({},state,{
                 elements: elements,
@@ -340,3 +385,19 @@ function updateObjectInArray(array, action) {
       }
     })
   }
+
+function unpurge(stateElements,newElements){
+    let elements=newElements.map((item) => {
+        if(item.signalsData!=undefined){
+            return {
+                ...item,
+                signalsData:stateElements.find((n) => n.id==item.id).signalsData
+            }
+        }else{
+            return item
+        }
+        
+    })
+
+    return elements
+}

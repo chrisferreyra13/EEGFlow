@@ -17,7 +17,7 @@ import { addNode } from '../redux/actions/Diagram'
 //import CIcon from '@coreui/icons-react'
 
 
-const TheSidebar = ({show, addNode, enableChartTemporal, enableForm, diagramView, linkDiagram}) => {
+const TheSidebar = ({show, addNode, enableForm, diagramView, linkDiagram}) => {
   const dispatch = useDispatch()
   //const show = useSelector(state => state.sidebarShow)
   const onDragStart = (event, nodeType) => {
@@ -71,7 +71,7 @@ const TheSidebar = ({show, addNode, enableChartTemporal, enableForm, diagramView
             modifiers={[{name: 'flip', enabled: false }]}
           >
             <CDropdownItem onClick={() => onClick('ENABLE_PLOT_TIME_SERIES_FORM','PLOT_TIME_SERIES')} onDragStart={(event) => onDragStart(event, 'PLOT_TIME_SERIES')} draggable>Temporal</CDropdownItem>
-            <CDropdownItem onClick={() => onClick(null,'PLOT_FOURIER')} onDragStart={(event) => onDragStart(event, 'PLOT_FOURIER')} draggable>Fourier</CDropdownItem>
+            <CDropdownItem onClick={() => onClick(null,'PLOT_PSD')} onDragStart={(event) => onDragStart(event, 'PLOT_PSD')} draggable>PSD</CDropdownItem>
             <CDropdownItem onClick={() => onClick(null,'PLOT_TIME_FREQUENCY')} onDragStart={(event) => onDragStart(event, 'PLOT_TIME_FREQUENCY')} draggable>Tiempo - Frecuencia</CDropdownItem>
             <CDropdownItem disable="true">Topografico</CDropdownItem>
           </CDropdownMenu>
