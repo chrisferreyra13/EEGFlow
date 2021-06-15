@@ -380,6 +380,8 @@ function selectSignalType(type){
             return 'time_series/?'
         case 'PSD':
             return 'psd/?'
+        case 'TIME_FREQUENCY':
+            return 'time_frequency/?'
         default:
             return 'time_series/?'
     }

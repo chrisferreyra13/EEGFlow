@@ -7,6 +7,7 @@ urlpatterns = [
     url(r'^process/$', RunProcess.as_view(),name='RunProcess'),
     url(r'^time_series/$', GetTimeSeries.as_view(), name='GetTimeSeries'),
     url(r'^psd/$', GetPSD.as_view(), name='GetPSD'),
+    url(r'^time_frequency/$', GetTimeFrequency.as_view(), name='GetTimeFrequency'),
     url(r'^events/$', GetEvents.as_view(), name='GetEvents'),
     url(r'^methods/filters/notch/$', NotchFilterView.as_view(),name='NotchFilter'),
     url(r'^methods/filters/custom/$', CustomFilterView.as_view(),name='CustomFilter'),

@@ -1,3 +1,4 @@
+import re
 import mne
 import os
 import numpy as np
@@ -10,6 +11,31 @@ def convert_power_to_db(x):
     For Power and Energy, use 10*log10(x). For amplitude, use 20*log10(x) ;)
     '''
     return 10*np.log10(x)
+
+def time_frequency(instance, picks=None,type='morlet',return_itc=True): # Instance can be epochs or raw
+    freqs = np.logspace(*np.log10([6, 35]), num=8)
+    n_cycles = freqs / 2.
+    
+    if type=='morlet':
+        power,itc=mne.time_frequency.tfr_morlet(
+            instance,
+            picks=picks,
+            freqs=freqs,
+            n_cycles=n_cycles,
+            use_fft=True,
+            return_itc=True,
+            decim=3,
+            n_jobs=1
+        )
+    elif type=='multitaper':
+        print('hola')
+
+    elif type=='stockwell':
+        print('hola')
+
+    if return_itc:
+        return power, itc
+    else: return power
 
 def psd(instance, picks=None,type='welch', window='boxcar'): # Instance can be epochs or raw
     tmin=instance.times.min()
