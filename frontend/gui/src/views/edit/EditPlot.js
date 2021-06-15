@@ -8,6 +8,7 @@ import { enableChartTemporal } from '../../redux/actions/SideBar'
 
 const ChartTemporal = lazy(() => import('../../components/charts/containers/ChartTemporal.js'))
 const ChartSpectrum = lazy(() => import('../../components/charts/containers/ChartSpectrum.js'))
+const ChartTimeFrequency = lazy(() => import('../../components/charts/containers/ChartTimeFrequency.js'))
 //const FormContainer = lazy(() => import('../../components/forms/FormContainer.js'))
 
 class EditPlot extends Component {
@@ -38,6 +39,7 @@ class EditPlot extends Component {
     const charts = {
       PLOT_TIME_SERIES: {content:ChartTemporal},
       PLOT_PSD: {content:ChartSpectrum},
+      PLOT_TIME_FREQUENCY: {content:ChartTimeFrequency},
       //COMPLETAR
       //Aca van los otros tipos de charts
       //

@@ -51,9 +51,7 @@ const initialState={
             channels:'EEG 016',
             minXWindow:null,
             maxXWindow:null,
-            largeSize:'off',
-            mediumSize:'on',
-            smallSize:'off',
+            size:null,
         },
         processParams:{
             processed:false,
@@ -112,7 +110,7 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                 idx=stateCopy.elements.findIndex(elem => elem.id==rest.id)
             }
             for(let prop of propierties){
-                stateCopy.elements[idx][prop]=rest.propierties[prop];
+                stateCopy.elements[idx]["params"][prop]=rest.propierties[prop];
             }
             return Object.assign({},state,{
                 elements:stateCopy.elements
@@ -268,7 +266,7 @@ export const diagram= (state=initialState, {type, ...rest})=>{
 
                 if (item.id == rest.nodeId) {
                     if(item.signalsData.length==0){
-                        newSignalsData.push({dataReady:false})
+                        newSignalsData.push({dataType:rest.dataType,dataReady:false})
                     }
                     else{
                         newSignalsData=item.signalsData.map(d => {

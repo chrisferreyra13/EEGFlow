@@ -57,7 +57,7 @@ class Form extends Component{
 
   onClickOkForm = (formData)  => {
     this.props.updateForm(formData)
-    this.props.updateNodePropierties(this.props.nodeId,{'params':formData})
+    this.props.updateNodePropierties(this.props.nodeId,formData) //{'params':formData}
     const element=this.props.elements.find(element => element.formType==this.props.formType)
     if(this.props.diagramView==false){
       runSingleProcess({'elementType': element.elementType, 'params':formData})

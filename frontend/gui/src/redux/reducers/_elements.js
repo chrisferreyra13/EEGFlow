@@ -44,9 +44,7 @@ export default [
       channels:null,
       minXWindow:null,
       maxXWindow:null,
-      largeSize:null,
-      mediumSize:null,
-      smallSize:null,
+      size:null,
     },
     inputData:{
       fetchInput:false,
@@ -65,12 +63,10 @@ export default [
     },
     position: { x: 450, y: 80 },
     params:{
-      channels:'EEG 016',
+      channels:'EEG 016,EEG 017',
       minXWindow:null,
       maxXWindow:null,
-      largeSize:'on',
-      mediumSize:'off',
-      smallSize:'off',
+      size:null,
     },
     inputData:{
       fetchInput:false,
@@ -93,9 +89,7 @@ export default [
       channels:null,
       minXWindow:null,
       maxXWindow:null,
-      largeSize:null,
-      mediumSize:null,
-      smallSize:null,
+      size:null,
     },
     inputData:{
       fetchInput:false,

@@ -4,11 +4,12 @@ import {
     emptyFill,
     emptyLine,
     SolidFill,
-    ColorHEX,
+    ColorHSV,
     AxisTickStrategies,
     SolidLine,
     translatePoint,
     Themes,
+    LegendBoxPositionXY
 } from "@arction/lcjs"
 
 // TODO: Poner los estilos en un css
@@ -54,15 +55,20 @@ class ChartPSD extends Component {
         this.series = channels.map((ch, i) => {
             const series = this.chart
                 .addLineSeries()
+                .setName(ch)
                 .setStrokeStyle(new SolidLine({
-                    thickness: 2,
-                    fillStyle: new SolidFill({ color: ColorHEX('#5aafc7') })
+                    thickness: 1,
+                    fillStyle: new SolidFill({color: ColorHSV( i * 20,0.9 )})
                 }))
                 // Specify data to be cleaned after a buffer of approx. 10 seconds.
                 // Regardless of this value, data has to be out of view to be cleaned in any case.
                 //.setMaxPointCount(approxPointsPerSecondChannel * 10)
             return series
         })
+
+        this.chart.addLegendBox()
+            .setPosition({ x: 90, y: 40 })
+            .add(this.chart)
         
         this.series.forEach((series, i) => {
             if(channels.length==1){
