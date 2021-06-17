@@ -42,8 +42,8 @@ export default [
     position: { x: 450, y: 80 },
     params:{
       channels:null,
-      minXWindow:null,
-      maxXWindow:null,
+      minTimeWindow:null,
+      maxTimeWindow:null,
       size:null,
     },
     inputData:{
@@ -57,13 +57,14 @@ export default [
     id: null,
     type: 'output',
     elementType: 'PLOT_PSD',
+    formType:'ENABLE_PLOT_PSD_FORM',
     targetPosition: 'left',
     data: {
       label: 'PSD'
     },
     position: { x: 450, y: 80 },
     params:{
-      channels:'EEG 016,EEG 017',
+      channels:['EEG 016','EEG 017'],
       minXWindow:null,
       maxXWindow:null,
       size:null,
@@ -151,7 +152,7 @@ export default [
     position: { x: 450, y: 80 },
     params:{
       id:null,
-      channels:'EEG 016,EEG 017',
+      channels:['EEG 016','EEG 017'],
       notch_freq:50,
     },
     signalsData:signalsDataTemplate,
@@ -169,7 +170,7 @@ export default [
     position: { x: 450, y: 80 },
     params:{
       id:null,
-      channels:'EEG 016,EEG 017',
+      channels:['EEG 016','EEG 017'],
       filter_method:'fir',
     },
     signalsData:signalsDataTemplate,
@@ -187,7 +188,7 @@ export default [
     position: { x: 450, y: 80 },
     params:{
       id:null,
-      channels:'EEG 016,EEG 017',
+      channels:['EEG 016','EEG 017'],
       filter_method:'fir',
     },
     signalsData:signalsDataTemplate,
@@ -205,7 +206,7 @@ export default [
     position: { x: 450, y: 80 },
     params:{
       id:null,
-      channels:'EEG 016,EEG 017',
+      channels:['EEG 016','EEG 017'],
       filter_method:'fir',
     },
     signalsData:signalsDataTemplate,
@@ -223,7 +224,7 @@ export default [
     position: { x: 450, y: 80 },
     params:{
       id:null,
-      channels:'EEG 016,EEG 017',
+      channels:['EEG 016','EEG 017'],
       filter_method:'fir',
     },
     signalsData:signalsDataTemplate,
@@ -244,7 +245,7 @@ export default [
       id:null,
       low_freq:3,
       high_freq:8,
-      channels:'EEG 016,EEG 017',
+      channels:['EEG 016','EEG 017'],
       filter_method:'fir'
     },
     signalsData:signalsDataTemplate,

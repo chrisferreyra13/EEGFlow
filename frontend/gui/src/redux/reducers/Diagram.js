@@ -48,7 +48,7 @@ const initialState={
             inputNodeId:'1',
         },
         params:{
-            channels:'EEG 016',
+            channels:['EEG 016','EEG 017'],
             minXWindow:null,
             maxXWindow:null,
             size:null,

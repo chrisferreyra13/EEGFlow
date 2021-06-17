@@ -1,5 +1,6 @@
 import React, {Component} from 'react'
-
+import { connect } from 'react-redux';
+import Select from 'react-select'
 import {
   CCol,
   CFormGroup,
@@ -12,18 +13,29 @@ import {
 class ChartTemporalForm extends Component{
   constructor(props){
     super(props);
+
+    const options = this.props.channels
+
     this.state={
       default:{
         channels:"",
-        minTimeWindow:0,
-        maxTimeWindow:0,
+        minTimeWindow:null,
+        maxTimeWindow:null,
         size:'s'
-      }
+      },
+      options:options.map(ch => {
+        return {value:ch,label:ch}
+      })
     }
 
     this.handleChange = this.handleChange.bind(this);
     this.handleChangeInputRadio = this.handleChangeInputRadio.bind(this);
+    this.handleMultiSelect=this.handleMultiSelect.bind(this);
 
+  }
+
+  handleMultiSelect(options,id){
+    this.props.onChange(id, options.map((option) => option.value));
   }
 
   handleChange(event,id) {
@@ -54,9 +66,10 @@ class ChartTemporalForm extends Component{
     return (
       <div> 
         <CFormGroup row>
-          <CCol md="6">
+          <CCol md="12">
             <CLabel htmlFor="freq-inf">Canales</CLabel>
-            <CInput id="channels" placeholder="Ch1,Ch2,Ch3" required value={value('channels')} onChange={(event) => this.handleChange(event,'channels')}/>
+            <Select options={this.state.options} isMulti onChange={(options) => this.handleMultiSelect(options,'channels')}/>
+            {/*<CInput id="channels" placeholder="Ch1,Ch2,Ch3" required value={value('channels')} onChange={(event) => this.handleChange(event,'channels')}/>*/}
           </CCol>
         </CFormGroup>
         <CFormGroup row>
@@ -64,18 +77,10 @@ class ChartTemporalForm extends Component{
             <CLabel htmlFor="timeWindow">Ventana de tiempo:</CLabel>
               <CFormGroup row>
                 <CCol md="6">
-                    <CLabel htmlFor="minXWindow">Tiempo mínimo (seg)</CLabel>
+                    <CInput id="minTimeWindow" placeholder={"tiempo mínimo (seg)"} type="number" min="0" step="0.5" required value={value('minTimeWindow')} onChange={(event) => this.handleChange(event,'minTimeWindow')}/>
                 </CCol>
                 <CCol md="6">
-                    <CInput id="minXWindow" type="number" min="0" step="0.5" required value={value('minXWindow')} onChange={(event) => this.handleChange(event,'minXWindow')}/>
-                </CCol>
-              </CFormGroup>
-              <CFormGroup row>
-                <CCol md="6">
-                  <CLabel htmlFor="maxXWindow">Tiempo máximo (seg)</CLabel>
-                </CCol>
-                <CCol md="6">
-                  <CInput id="maxXWindow" type="number" min="0" step="0.5" required value={value('maxXWindow')} onChange={(event) => this.handleChange(event,'maxXWindow')}/>
+                  <CInput id="maxTimeWindow" placeholder={"tiempo máximo (seg)"} type="number" min="0" step="0.5" required value={value('maxTimeWindow')} onChange={(event) => this.handleChange(event,'maxXWindmaxTimeWindowow')}/>
                 </CCol>
               </CFormGroup>
           </CCol>
@@ -106,5 +111,14 @@ class ChartTemporalForm extends Component{
   }
 
 };
-
-export default ChartTemporalForm
+const mapStateToProps = (state) => {
+	return{
+	  elements:state.diagram.elements,
+    channels:state.file.fileInfo.channels
+	};
+}
+  
+const mapDispatchToProps = (dispatch) => {
+	return {}
+};
+export default connect(mapStateToProps, mapDispatchToProps)(ChartTemporalForm)

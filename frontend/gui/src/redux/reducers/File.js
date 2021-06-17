@@ -7,7 +7,15 @@ import {
 
 const initialStateFile={
     fileId: '40',
-    fileInfo: [],
+    fileInfo:{
+        projectId:"",
+        projectName:"",
+        projectExperimenter:"",
+        measurementDate:"",
+        numberOfChannels:"",
+        customRefApplied:"",
+        channels:[]
+    },
     isFetching: false,
 }
 
@@ -24,9 +32,18 @@ export const file = (state = initialStateFile, { type, ...rest }) => {
               isFetching: true
           })
         case FETCH_FILE_INFO_RECEIVE:
+            let fileInfo={
+                projectId:rest.fileInfo["proj_id"],
+                projectName:rest.fileInfo["proj_name"],
+                projectExperimenter:rest.fileInfo["proj_experimenter"],
+                measurementDate:rest.fileInfo["meas_date"],
+                numberOfChannels:rest.fileInfo["nchan"],
+                customRefApplied:rest.fileInfo["custom_ref_applied"],
+                channels:rest.fileInfo["ch_names"].split(','),
+            }
           return Object.assign({},state, {
               isFetching: false,
-              fileInfo: rest.fileInfo,
+              fileInfo: fileInfo,
           })
         case FETCH_FILE_INFO_FAILURE:
             return {...state, ...rest}

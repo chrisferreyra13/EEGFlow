@@ -140,7 +140,7 @@ class FileInfoView(APIView):
             'meas_date':eeg_info['meas_date'],
             'nchan':eeg_info['nchan'],
             'ch_names':ch_names,
-            'custom_ref_applied':eeg_info['custom_ref_applied']
+            'custom_ref_applied':eeg_info['custom_ref_applied'],
             }
         
         serializer=FileInfoSerializer(data=eeg)
