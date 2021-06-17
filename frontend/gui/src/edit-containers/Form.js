@@ -21,6 +21,7 @@ import { runSingleProcess, updateNodePropierties } from '../redux/actions/Diagra
 const EventsForm = lazy(()=>import('../components/forms/EventsForm.js'))
 const CustomFilterForm = lazy(()=>import('../components/forms/CustomFilterForm.js'))
 const ChartTemporalForm = lazy(()=>import('../components/forms/ChartTemporalForm.js'))
+const ChartPSDForm = lazy(()=>import('../components/forms/ChartPSDForm.js'))
 
 class Form extends Component{ 
   constructor(props){
@@ -122,7 +123,8 @@ const formSelection = (formType) => {
   const forms = {
     ENABLE_EVENT_FORM: {title:'Editar Eventos',content:EventsForm},
     ENABLE_CUSTOM_FILTER_FORM: {title:'Seleccionar Frecuencias',content:CustomFilterForm},
-    ENABLE_PLOT_TIME_SERIES_FORM: {title:'Seleccionar Frecuencias',content:ChartTemporalForm},
+    ENABLE_PLOT_TIME_SERIES_FORM: {title:'Grafico en Tiempo',content:ChartTemporalForm},
+    ENABLE_PLOT_PSD_FORM: {title:'Densidad Espectral de Potencia',content:ChartPSDForm},
   };
 
   return forms[formType];

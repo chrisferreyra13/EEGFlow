@@ -18,19 +18,19 @@ function requestFileInfo() {
 }
 
 export const FETCH_FILE_INFO_RECEIVE = 'FETCH_FILE_INFO_RECEIVE'
-function receiveFileInfo(json) {
+function receiveFileInfo(payload) {
   return {
     type: FETCH_FILE_INFO_RECEIVE,
-    fileInfo: json,
+    fileInfo: payload,
     
   }
 }
 
 export const FETCH_FILE_INFO_FAILURE = 'FETCH_FILE_INFO_FAILURE'
-function errorFetchingFileInfo(error){
+function errorFetchingFileInfo(payload){
     return {
         type: FETCH_FILE_INFO_FAILURE,
-        error
+        error:payload
     }
 }
 

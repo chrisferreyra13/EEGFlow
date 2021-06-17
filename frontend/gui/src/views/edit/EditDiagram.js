@@ -20,11 +20,17 @@ import './dnd.css';
 import { updateAfterDeleteElements, updateNodePropierties, addNode, addNewEdge, changeEdge, runProcess, cancelProcess} from '../../redux/actions/Diagram'
 import { diagramView, linkDiagram } from '../../redux/actions/EditSession';
 import { enableForm } from '../../redux/actions/Form'
+import {getFileInfo} from '../../redux/actions/File'
 
 class EditDiagram extends Component{
   constructor(props){
     super(props)
     this.props.diagramView(true);
+
+    //Ver si lo dejamos en el futuro, para hacer pruebas es util
+    if(this.props.fileInfo.channels.length==0){
+      this.props.getFileInfo(this.props.fileId)
+    }
     
     this.state={
       contentHeight:Math.floor(window.innerHeight*0.75),
@@ -183,6 +189,7 @@ function purge(elements){
 
 const mapStateToProps = (state) => {
   return {
+    fileInfo:state.file.fileInfo,
     fileId: state.file.fileId,
     elements:state.diagram.elements,
   };
@@ -199,7 +206,8 @@ const mapDispatchToProps = (dispatch) => {
     enableForm: (id,formType) => dispatch(enableForm(id,formType)),
     runProcess: (elements) => dispatch(runProcess(elements)),
     cancelProcess: () => dispatch(cancelProcess()),
-    linkDiagram: () => dispatch(linkDiagram())
+    linkDiagram: () => dispatch(linkDiagram()),
+    getFileInfo: (fileId) => dispatch(getFileInfo(fileId)),
   };
 };
 

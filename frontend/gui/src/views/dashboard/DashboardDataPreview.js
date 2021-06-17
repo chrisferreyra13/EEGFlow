@@ -125,12 +125,12 @@ class DashboardDataPreview extends Component{
     }
     else {
       listGroup= <CListGroup>
-                  <CListGroupItem>ID de proyecto: {this.props.fileInfo['proj_id']}</CListGroupItem>
-                  <CListGroupItem>Nombre de proyecto: {this.props.fileInfo['proj_name']}</CListGroupItem>
-                  <CListGroupItem>Experimentador: {this.props.fileInfo['proj_experimenter']}</CListGroupItem>
-                  <CListGroupItem>Fecha de medicion: {this.props.fileInfo['meas_date']}</CListGroupItem>
-                  <CListGroupItem>Numero de canales: {this.props.fileInfo['nchan']}</CListGroupItem>
-                  <CListGroupItem>Referencia: {this.props.fileInfo['custom_ref_applied'] ? 'Verdadero' : 'Falso'}</CListGroupItem>
+                  <CListGroupItem>ID de proyecto: {this.props.fileInfo.projectId}</CListGroupItem>
+                  <CListGroupItem>Nombre de proyecto: {this.props.fileInfo.projectName}</CListGroupItem>
+                  <CListGroupItem>Experimentador: {this.props.fileInfo.projectExperimenter}</CListGroupItem>
+                  <CListGroupItem>Fecha de medicion: {this.props.fileInfo.measurementDate}</CListGroupItem>
+                  <CListGroupItem>Numero de canales: {this.props.fileInfo.numberOfChannels}</CListGroupItem>
+                  <CListGroupItem>Referencia: {this.props.fileInfo.customRefApplied ? 'Verdadero' : 'Falso'}</CListGroupItem>
                 </CListGroup>;
     }
 

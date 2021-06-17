@@ -30,11 +30,11 @@ class ChartTemporal extends Component {
 				
 			}
 		}else{
-			const channels=nodePlot.params.channels.split(',') // En params se guarda como ch separado por comas
 			params={
-				...nodePlot.params,
-				channels:channels,
-				
+				channels:nodePlot.params.channels,
+				minXWindow:nodePlot.params.minTimeWindow,
+				maxXWindow:nodePlot.params.maxTimeWindow,
+				size:nodePlot.params.size
 			}
 				
 		}

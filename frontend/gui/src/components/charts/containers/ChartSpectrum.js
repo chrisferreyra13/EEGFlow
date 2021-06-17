@@ -25,19 +25,17 @@ class ChartSpectrum extends Component {
 			params={ //Default params
 				channels:['EEG 016'], //Para ChartTemporal, los canales son una lista de strings
 				minXWindow:null,
-      			maxXWindow:null,
-				largeSize:'on',
-				mediumSize:'off',
-				smallSize:'off',
+				maxXWindow:null,
+				size:'m'
 				
 			}
 		}else{
-			const channels=nodePlot.params.channels.split(',') // En params se guarda como ch separado por comas
 			params={
-				...nodePlot.params,
-				channels:channels,
-				
-			}	
+				channels:nodePlot.params.channels,
+				minXWindow:nodePlot.params.minFreqWindow,
+				maxXWindow:nodePlot.params.maxFreqWindow,
+				size:nodePlot.params.size
+			}
 		}
 
 		this.preprocessData=this.preprocessData.bind(this);
