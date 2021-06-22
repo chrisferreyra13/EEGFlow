@@ -75,6 +75,31 @@ def make_process_result_file(request,process_name,content):
 
     return process_result_id
 
+def check_params(request,params_names=None,params_values=None):
+    if params_names==None:
+        params_names=['save_output','return_output']    # Default params
+    if params_values==None:
+        params_values=[False]*len(params_names) # Default list
+
+    params=dict(zip(params_names,params_values))
+    p=False
+    for param_name in params_names:
+        if param_name in request.query_params:
+            p=request.query_params[param_name]
+            if p!='':
+                if type(params[param_name])==int:
+                    try:
+                        p=int(p)
+                        params[param_name]=p
+                    except:
+                        return Response('An invalid {} field has been provided.'.format(param_name),
+                                status=status.HTTP_400_BAD_REQUEST)
+                elif type(params[param_name])==str:
+                    params[param_name]=p
+    
+    return params
+
+
 def check_process_params(request,params_names=None,params_values=None):
     if params_names==None:
         params_names=['save_output','return_output']    # Default params
@@ -146,3 +171,24 @@ def get_file_info(id):
         return Response('Not found', status=status.HTTP_404_NOT_FOUND)
 
     return file_info
+
+def get_request_channels(params):
+    if 'channels' not in params:
+        channels=None
+    else:
+        channels=params["channels"]
+        if type(channels)==str:
+            if (not channels) or (channels == ''):    # Si no envian nada, lo aplico en todos los canales
+                channels=None
+            else:
+                try:
+                    channels=channels.split(',')
+                except:
+                    return Response('An invalid list of channels has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+        elif type(channels)==list:
+            if len(channels)==0:
+                return Response('An invalid list of channels has been provided.',
+                    status=status.HTTP_400_BAD_REQUEST)
+
+    return channels

@@ -73,18 +73,10 @@ def filter_step(input=None,params=None,step_type=None):
             high_freq=params['high_freq']
  
     #SELECT CHANNELS
-    if 'channels' not in params:
-        channels=None
-    else:
-        channels=params['channels']
-        if (not channels) or (channels == ''):    # Si no envian nada, lo aplico en todos los canales
-            channels=None
-        else:
-            try:
-                channels=channels.split(',') #Los canales vienen en un string separados por comas
-            except:
-                return Response('An invalid list of channels has been provided.',
-                    status=status.HTTP_400_BAD_REQUEST)   
+    #get requested channels
+    channels=get_request_channels(params)
+    if type(channels)==Response:
+        return channels    
 
     # PROCESS
     if step_type=='NOTCH':

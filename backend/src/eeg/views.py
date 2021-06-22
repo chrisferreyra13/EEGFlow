@@ -1,6 +1,7 @@
 
 #----IMPORTS----#
 
+from datetime import time
 import os
 from django.http.response import HttpResponseBadRequest
 
@@ -73,8 +74,10 @@ class RunProcess(APIView):
             output=steps[step['elementType']](input=input,params=step['params'],step_type=step['elementType'])
 
             if type(output).__name__=='Response':
+                if type(output.data)==str: #Es un error
+                    return output
+
                 output.data['process_result_ids']=process_result_ids
-                
                 print('[INFO]: RESPONSE: {}'.format(output.data))
                 return output
             else:
@@ -189,18 +192,9 @@ class GetTimeSeries(APIView):
                         status=status.HTTP_406_NOT_ACCEPTABLE)
         
         #get requested channels
-        if 'channels' not in request.query_params:
-            channels=None
-        else:
-            channels=request.query_params['channels']
-            if (not channels) or (channels == ''):    # Si no envian nada, lo aplico en todos los canales
-                channels=None
-            else:
-                try:
-                    channels=channels.split(',') #Los canales vienen en un string separados por comas
-                except:
-                    return Response('An invalid list of channels has been provided.',
-                        status=status.HTTP_400_BAD_REQUEST)
+        channels=get_request_channels(request.query_params)
+        if type(channels)==Response:
+            return channels
 
         if channels==None: # Si es None, agarro todos
             channels_idxs=mne.pick_types(raw.info,eeg=True) #Retorna los indices internos de raw
@@ -262,18 +256,9 @@ class GetTimeFrequency(APIView):
                         status=status.HTTP_406_NOT_ACCEPTABLE)
         
         #get requested channels
-        if 'channels' not in request.query_params:
-            channels=None
-        else:
-            channels=request.query_params['channels']
-            if (not channels) or (channels == ''):    # Si no envian nada, lo aplico en todos los canales
-                channels=None
-            else:
-                try:
-                    channels=channels.split(',') #Los canales vienen en un string separados por comas
-                except:
-                    return Response('An invalid list of channels has been provided.',
-                        status=status.HTTP_400_BAD_REQUEST)
+        channels=get_request_channels(request.query_params)
+        if type(channels)==Response:
+            return channels  
 
         if channels==None: # Si es None, agarro todos
             channels_idxs=mne.pick_types(raw.info,eeg=True) #Retorna los indices internos de raw
@@ -340,18 +325,9 @@ class GetPSD(APIView):
                         status=status.HTTP_406_NOT_ACCEPTABLE)
         
         #get requested channels
-        if 'channels' not in request.query_params:
-            channels=None
-        else:
-            channels=request.query_params['channels']
-            if (not channels) or (channels == ''):    # Si no envian nada, lo aplico en todos los canales
-                channels=None
-            else:
-                try:
-                    channels=channels.split(',') #Los canales vienen en un string separados por comas
-                except:
-                    return Response('An invalid list of channels has been provided.',
-                        status=status.HTTP_400_BAD_REQUEST)
+        channels=get_request_channels(request.query_params)
+        if type(channels)==Response:
+            return channels 
 
         if channels==None: # Si es None, agarro todos
             channels_idxs=mne.pick_types(raw.info,eeg=True) #Retorna los indices internos de raw
@@ -367,7 +343,82 @@ class GetPSD(APIView):
                 return Response('An invalid list of channels has been provided.',
                             status=status.HTTP_400_BAD_REQUEST)
 
-        psds,freqs=psd(raw,picks=channels_idxs,type='welch')
+        #get type of psd
+        if 'type' not in request.query_params:
+            type_of_psd='welch'
+        else:
+            type_of_psd=request.query_params['type']
+            if (not type_of_psd) or (type_of_psd == ''):    # Por defecto uso welch
+                type_of_psd='welch'
+            else:
+                if type_of_psd not in ["welch","multitaper"]:
+                    return Response('An invalid type of psd has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+
+        #get time and freq window
+        if 'time_window' not in request.query_params:
+            time_window=[raw.times.min(),raw.times.max()]
+        else:
+            time_window=request.query_params['time_window']
+            if (not time_window) or (time_window == []) or (time_window == ''):    # Por defecto uso toda la duracion de la señal
+                time_window=[raw.times.min(),raw.times.max()]
+            else:
+                try:
+                    time_window=[float(t) for t in time_window.split(',')]
+                except:
+                    return Response('An invalid time window has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+                
+                if time_window[0]>time_window[1]:
+                    return Response('An invalid time window has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+
+        if 'freq_window' not in request.query_params:
+            freq_window=[0,raw.info["sfreq"]/2] #Mas o menos todo el rango de frecuencias
+        else:
+            freq_window=request.query_params['freq_window']
+            if (not freq_window) or (freq_window == []) or (freq_window == ''):    # Por defecto todo el rango de frecuencias
+                freq_window=[0,raw.info["sfreq"]/2]
+            else:
+                try:
+                    freq_window=[float(f) for f in freq_window.split(',')]
+                except:
+                    return Response('An invalid frequency window has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+                
+                if freq_window[0]>freq_window[1]:
+                    return Response('An invalid frequency window has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+
+        if type_of_psd=='welch':
+            fields=["n_fft","n_overlap","n_per_seg","window","average"]
+            defaults=[256,0,None,'boxcar',None]
+            welch_params=check_params(request,params_names=fields,params_values=defaults)
+            psds,freqs=psd(
+                raw,
+                freq_window=freq_window,time_window=time_window,
+                picks=channels_idxs,
+                type=type_of_psd,
+                n_fft=welch_params["n_fft"],
+                n_overlap=welch_params["n_overlap"],
+                n_per_seg=None,#welch_params["n_per_seg"],
+                window=welch_params["window"],
+                average=welch_params["average"],
+            )
+        elif type_of_psd=='multitaper':
+            fields=["bandwidth","adaptative","low_bias","normalization"]
+            defaults=[4,False,False,'length']
+            multitaper_params=check_params(request,params_names=fields,params_values=defaults)
+            psds,freqs=psd(
+                raw,
+                freq_window=freq_window,time_window=time_window,
+                picks=channels_idxs,
+                type=type_of_psd,
+                bandwidth=multitaper_params["bandwidth"],
+                adaptative=multitaper_params["adaptative"],
+                low_bias=multitaper_params["low_bias"],
+                normalization=multitaper_params["normalization"],
+            )
         
         response=Response({
             'signal':psds,
@@ -415,18 +466,10 @@ class NotchFilterView(APIView):
     def get(self, request, format=None):
 
         # CHECK REQUEST PARAMS    
-        if 'channels' not in request.query_params:
-            channels=None   # Si no envian nada se lo aplico a todos los canales
-        else:
-            channels=request.query_params['channels']
-            if (channels=='') or (not channels):
-                channels=None
-            else:
-                try:
-                    channels=channels.split(',')
-                except:
-                    return Response('An invalid list of channels has been provided.',
-                        status=status.HTTP_400_BAD_REQUEST)
+        #get requested channels
+        channels=get_request_channels(request.query_params)
+        if type(channels)==Response:
+            return channels  
         
         
         if 'notch_freq' not in request.query_params:
@@ -527,18 +570,10 @@ class CustomFilterView(APIView):
         except FileNotFoundError:
             Response('Not found', status=status.HTTP_404_NOT_FOUND)
         
-        if 'channels' not in request.query_params:
-            channels=None
-        else:
-            channels=request.query_params['channels']
-            if (not channels) or (channels == ''):    # Si no envian nada, lo aplico en todos los canales
-                channels=None
-            else:
-                try:
-                    channels=channels.split(',')
-                except:
-                    return Response('An invalid list of channels has been provided.',
-                        status=status.HTTP_400_BAD_REQUEST)
+        #get requested channels
+        channels=get_request_channels(request.query_params)
+        if type(channels)==Response:
+            return channels  
 
         if 'low_freq' not in request.query_params:
             low_freq=None
@@ -628,18 +663,10 @@ class PeakView(APIView):
         except FileNotFoundError:
             Response('Not found', status=status.HTTP_404_NOT_FOUND)
         
-        if 'channels' not in request.query_params:
-            channels=None
-        else:
-            channels=request.query_params['channels']
-            if (not channels) or (channels == ''):    # Si no envian nada, lo aplico en todos los canales
-                channels=None
-            else:
-                try:
-                    channels=channels.split(',')
-                except:
-                    return Response('An invalid list of channels has been provided.',
-                        status=status.HTTP_400_BAD_REQUEST)
+        #get requested channels
+        channels=get_request_channels(request.query_params)
+        if type(channels)==Response:
+            return channels 
 
         if 'thresh' not in request.query_params:
             thresh=None # Default

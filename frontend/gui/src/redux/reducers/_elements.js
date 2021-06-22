@@ -65,8 +65,10 @@ export default [
     position: { x: 450, y: 80 },
     params:{
       channels:['EEG 016','EEG 017'],
-      minXWindow:null,
-      maxXWindow:null,
+      minFreqWindow:null,
+      maxFreqWindow:null,
+      minTimeWindow:null,
+      maxTimeWindow:null,
       size:null,
     },
     inputData:{

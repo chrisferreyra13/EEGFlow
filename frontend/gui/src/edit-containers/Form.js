@@ -124,7 +124,7 @@ const formSelection = (formType) => {
     ENABLE_EVENT_FORM: {title:'Editar Eventos',content:EventsForm},
     ENABLE_CUSTOM_FILTER_FORM: {title:'Seleccionar Frecuencias',content:CustomFilterForm},
     ENABLE_PLOT_TIME_SERIES_FORM: {title:'Grafico en Tiempo',content:ChartTemporalForm},
-    ENABLE_PLOT_PSD_FORM: {title:'Densidad Espectral de Potencia',content:ChartPSDForm},
+    ENABLE_PLOT_PSD_FORM: {title:'Densidad Espectral de Potencia (PSD)',content:ChartPSDForm},
   };
 
   return forms[formType];

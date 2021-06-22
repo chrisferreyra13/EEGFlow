@@ -37,26 +37,32 @@ def time_frequency(instance, picks=None,type='morlet',return_itc=True): # Instan
         return power, itc
     else: return power
 
-def psd(instance, picks=None,type='welch', window='boxcar'): # Instance can be epochs or raw
-    tmin=instance.times.min()
-    tmax=instance.times.max()
-    sfreq=instance.info["sfreq"]
-    fmin=0
-    fmax=40.0 #sfreqs/2
-    
+def psd(instance,freq_window,time_window=[None,None], picks=None,type='welch',**kwargs): # Instance can be epochs or raw   
     if type=='welch':
         psds,freqs=mne.time_frequency.psd_welch(
             instance,
+            tmin=time_window[0], tmax=time_window[1],
+            fmin=freq_window[0], fmax=freq_window[1],
             picks=picks,
-            n_fft=int(sfreq * (tmax - tmin)),
-            n_overlap=0, n_per_seg=None,
-            tmin=tmin, tmax=tmax,
-            fmin=fmin, fmax=fmax,
-            window=window,
+            n_fft=kwargs["n_fft"],
+            n_overlap=kwargs["n_overlap"],
+            n_per_seg=kwargs["n_per_seg"],
+            average=kwargs["average"],
+            window=kwargs["window"],
             verbose=False
         )
     elif type=='multitaper':
-        print('hola')
+        psds,freqs=mne.time_frequency.psd_welch(
+            instance,
+            tmin=time_window[0], tmax=time_window[1],
+            fmin=freq_window[0], fmax=freq_window[1],
+            picks=picks,
+            bandwidth=kwargs["bandwidth"],
+            adaptive=kwargs["adaptive"],
+            low_bias=kwargs["low_bias"],
+            normalization=kwargs["normalization"],
+            verbose=False
+        )
     
     psds_db=[]
     #psd_db=[]

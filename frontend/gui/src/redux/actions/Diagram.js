@@ -374,7 +374,7 @@ function errorFetchingSignal(payload){
     }
 }
 
-function selectSignalType(type){
+/*function selectSignalType(type){
     switch(type){
         case 'TIME_SERIES':
             return 'time_series/?'
@@ -385,27 +385,65 @@ function selectSignalType(type){
         default:
             return 'time_series/?'
     }
-}
+}*/
 
-export const fetchSignal = (id, channels, nodeId, dataType) => async (dispatch) => {
-    let endpoint=API_ROOT+selectSignalType(dataType)
+export const fetchSignal = (id, channels, plotParams, nodeId, dataType) => async (dispatch) => {
+    let endpoint=API_ROOT;
+    let requestParams;
+    switch(dataType){
+        case 'TIME_SERIES':
+            endpoint=endpoint+'time_series/?'
+            requestParams={
+                id:id,
+                channels: channels==undefined ? '': channels
+            }
+            break
+        case 'PSD':
+            endpoint=endpoint+ 'psd/?'
+            requestParams={
+                id:id,
+                time_window:[plotParams.minTimeWindow,plotParams.maxTimeWindow],
+                freq_window:[plotParams.minFreqWindow,plotParams.maxFreqWindow],
+                channels: channels==undefined ? '': channels
+            }
+            console.log(plotParams["type"])
+            if(plotParams["type"]=='welch'){
+                requestParams["n_fft"]=plotParams["n_fft"]
+                requestParams["n_per_seg"]=plotParams["n_per_seg"]
+                requestParams["n_overlap"]=plotParams["n_overlap"]
+                requestParams["window"]=plotParams["window"]
+                requestParams["average"]=plotParams["average"]
+            }else{
+                requestParams["bandwidth"]=plotParams["bandwidth"]
+                requestParams["adaptative"]=plotParams["adaptative"]
+                requestParams["normalization"]=plotParams["normalization"]
+                requestParams["low_bias"]=plotParams["low_bias"]
+            }
+            
 
-    if(channels==undefined){
-        channels=''
+            break
+        case 'TIME_FREQUENCY':
+            endpoint=endpoint+ 'time_frequency/?'
+            break
+        default:
+            endpoint=endpoint+ 'time_series/?'
+            requestParams={
+                id:id,
+                channels: channels==undefined ? '': channels
+            }
+            break
     }
 
-    let url = endpoint + new URLSearchParams({
-        id: id,
-        channels: channels
-        })
+
+    let url = endpoint + new URLSearchParams(requestParams)
     
     let header= new Headers()
-    let initFetch={
-    method: 'GET',
-    headers: header,
-    mode: 'cors',
-    cache: 'default'
-    };
+    var initFetch={
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+      };
 
     dispatch(requestSignal(nodeId,dataType))
     try {
