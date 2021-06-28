@@ -11,7 +11,7 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { fetchEvents } from '../../redux/actions/Events';
-import {SamplesToTimes} from '../../tools/Signal';
+import {SamplesToTimes} from '../../tools/Utils';
 
 class EventsForm extends Component{
   constructor(props){

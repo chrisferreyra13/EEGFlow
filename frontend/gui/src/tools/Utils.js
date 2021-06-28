@@ -27,7 +27,6 @@ export function PrepareDataForPlot(dataX,dataY,sFreq, dataChannels,plotChannels,
                 if(dataX.length==0){
                     x=SamplesToTimes(i,sFreq,3)
                 }else{x=dataX[i]}
-                
                 dataPoints.push({
                 x: x,
                 y: gain*dataY[idxs[j]][i]

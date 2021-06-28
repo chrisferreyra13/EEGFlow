@@ -9,7 +9,8 @@ import {fetchSignal} from '../../../redux/actions/Diagram'
 import {connect} from 'react-redux'
 import ChartPSD from '../ChartPSD'
 
-import {PrepareDataForPlot} from '../../../tools/Signal'
+import {PrepareDataForPlot} from '../../../tools/Utils'
+import { node } from 'prop-types'
 
 
 
@@ -32,8 +33,8 @@ class ChartSpectrum extends Component {
 		}else{
 			params={
 				channels:nodePlot.params.channels,
-				minXWindow:nodePlot.params.minFreqWindow,
-				maxXWindow:nodePlot.params.maxFreqWindow,
+				minXWindow:parseFloat(nodePlot.params.minFreqWindow),
+				maxXWindow:parseFloat(nodePlot.params.maxFreqWindow),
 				size:nodePlot.params.size
 			}
 		}
@@ -41,35 +42,47 @@ class ChartSpectrum extends Component {
 		this.preprocessData=this.preprocessData.bind(this);
 
 		let style={} //Seteando las dimensiones del grafico en base a los parametros
-		//Cambiar esto, no va a funcionar, el form solo envia uno de los 3, los otros 2 quedan undefined
-		if(params.largeSize==='on'){// TODO: Mejorar esto, no funciona el dividir de forma inteligente
-			style={
-				height:'75vh',
-			}
-		}else if(params.mediumSize==='on'){
-			style={
-				height:'60vh',
-				width:'600px'
-			}
-		}else{
-			style={
-				height:'40vh',
-				width:'600px'
-			}
+		
+		switch(params.size){
+			case 'l':	// TODO: Mejorar esto, no funciona el dividir de forma inteligente
+				style={
+					height:'75vh',
+				}
+				break;
+			case 'm':
+				style={
+					height:'60vh',
+					width:'600px'
+				}
+				break;
+			case 's':
+				style={
+					height:'40vh',
+					width:'600px'
+				}
+				break;
 		}
 
 		let data=[];
 		let dataReady=false;
+		let channels;
 		const dataType='PSD';
 		if(nodePlot.inputData.fetchInput){
 			const nodeInput=this.props.elements.find((elem) => elem.id==nodePlot.inputData.inputNodeId)
 			const signalData=nodeInput.signalsData.find(d => d.dataType==dataType)
+
+			if(nodeInput.params.channels==undefined){
+				channels=nodePlot.params.channels
+			}
+			else{
+				channels=nodeInput.params.channels
+			}
 			if(signalData==undefined){
-				this.props.fetchSignal(nodeInput.params.id,nodeInput.params.channels,nodePlot.params,nodeInput.id,dataType)
+				this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType)
 			}
 			else{
 				if(!signalData.dataReady){
-					this.props.fetchSignal(nodeInput.params.id,nodeInput.params.channels,nodePlot.params,nodeInput.id,dataType)
+					this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType)
 					
 				}
 			}
@@ -95,12 +108,18 @@ class ChartSpectrum extends Component {
 		let minIndex=0;
 		let limit=dataParams.freqs.length;
 		let maxIndex=limit;
+		let target;
+		let goal;
 		if(this.state.params.minXWindow!=null){
-			minIndex=this.state.params.minXWindow
+			goal=this.state.params.minXWindow
+			target=dataParams.freqs.reduce((prev, curr) => Math.abs(curr - goal) < Math.abs(prev - goal) ? curr : prev);
+			minIndex=dataParams.freqs.findIndex(f => f==target)
 			if(minIndex>=limit) minIndex=0; //Se paso, tira error
 		}
 		if(this.state.params.maxXWindow!=null){
-			maxIndex=this.state.params.maxXWindow
+			goal=this.state.params.maxXWindow
+			target=dataParams.freqs.reduce((prev, curr) => Math.abs(curr - goal) < Math.abs(prev - goal) ? curr : prev);
+			maxIndex=dataParams.freqs.findIndex(f => f==target)
 			if(maxIndex>limit) maxIndex=limit; //Se paso, tira error
     	}
     	
@@ -124,12 +143,15 @@ class ChartSpectrum extends Component {
     render() {
 
 		const nodeInput=this.props.elements.find((elem) => elem.id==this.state.inputNodeId)
-		const signalData=nodeInput.signalsData.find(d => d.dataType==this.state.dataType)
-		if(signalData!=undefined){
-			if(this.props.inputsReady.includes(signalData.id)){
-				this.preprocessData(signalData)
+		if(nodeInput!=undefined){
+			const signalData=nodeInput.signalsData.find(d => d.dataType==this.state.dataType)
+			if(signalData!=undefined){
+				if(this.props.inputsReady.includes(signalData.id)){
+					this.preprocessData(signalData)
+				}
 			}
 		}
+		
 
 		return (
 			<>

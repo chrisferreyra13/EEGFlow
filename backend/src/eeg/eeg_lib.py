@@ -37,10 +37,10 @@ def time_frequency(instance, picks=None,type='morlet',return_itc=True): # Instan
         return power, itc
     else: return power
 
-def psd(instance,freq_window,time_window=[None,None], picks=None,type='welch',**kwargs): # Instance can be epochs or raw   
-    if type=='welch':
+def psd(instance,freq_window,time_window=[None,None], picks=None,type_of_psd='welch',**kwargs): # Instance can be epochs or raw   
+    if type_of_psd=='welch':
         psds,freqs=mne.time_frequency.psd_welch(
-            instance,
+            inst=instance,
             tmin=time_window[0], tmax=time_window[1],
             fmin=freq_window[0], fmax=freq_window[1],
             picks=picks,
@@ -51,9 +51,10 @@ def psd(instance,freq_window,time_window=[None,None], picks=None,type='welch',**
             window=kwargs["window"],
             verbose=False
         )
-    elif type=='multitaper':
+        
+    elif type_of_psd=='multitaper':
         psds,freqs=mne.time_frequency.psd_welch(
-            instance,
+            inst=instance,
             tmin=time_window[0], tmax=time_window[1],
             fmin=freq_window[0], fmax=freq_window[1],
             picks=picks,

@@ -9,7 +9,7 @@ import {fetchSignal} from '../../../redux/actions/Diagram'
 import {connect} from 'react-redux'
 import ChartPSD from '../ChartPSD'
 
-import {PrepareDataForPlot} from '../../../tools/Signal'
+import {PrepareDataForPlot} from '../../../tools/Utils'
 
 
 

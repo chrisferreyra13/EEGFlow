@@ -9,7 +9,7 @@ import {fetchSignal} from '../../../redux/actions/Diagram'
 import {connect} from 'react-redux'
 import ChartChannelTime from '../ChartChannelTime'
 import ChartChannelsTime from '../ChartChannelsTime'
-import {PrepareDataForPlot} from '../../../tools/Signal'
+import {PrepareDataForPlot} from '../../../tools/Utils'
 
 
 
