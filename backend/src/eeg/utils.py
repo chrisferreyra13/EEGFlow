@@ -86,7 +86,8 @@ def check_params(request,params_names=None,params_values=None):
     for param_name in params_names:
         if param_name in request.query_params:
             p=request.query_params[param_name]
-            if p!='':
+            
+            if p!='' and p!='undefined' and p!=None:
                 if type(params[param_name])==int:
                     try:
                         p=int(p)

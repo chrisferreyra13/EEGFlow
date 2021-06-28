@@ -408,16 +408,16 @@ export const fetchSignal = (id, channels, plotParams, nodeId, dataType) => async
             }
             console.log(plotParams["type"])
             if(plotParams["type"]=='welch'){
-                requestParams["n_fft"]=plotParams["n_fft"]
-                requestParams["n_per_seg"]=plotParams["n_per_seg"]
-                requestParams["n_overlap"]=plotParams["n_overlap"]
-                requestParams["window"]=plotParams["window"]
-                requestParams["average"]=plotParams["average"]
+                requestParams["n_fft"]=plotParams["n_fft"] == undefined ? '': plotParams["n_fft"]
+                requestParams["n_per_seg"]=plotParams["n_per_seg"] == undefined ? '': plotParams["n_per_seg"]
+                requestParams["n_overlap"]=plotParams["n_overlap"]== undefined ? '': plotParams["n_overlap"]
+                requestParams["window"]=plotParams["window"]== undefined ? '': plotParams["window"]
+                requestParams["average"]=plotParams["average"]== undefined ? '': plotParams["average"]
             }else{
-                requestParams["bandwidth"]=plotParams["bandwidth"]
-                requestParams["adaptative"]=plotParams["adaptative"]
-                requestParams["normalization"]=plotParams["normalization"]
-                requestParams["low_bias"]=plotParams["low_bias"]
+                requestParams["bandwidth"]=plotParams["bandwidth"]== undefined ? '': plotParams["bandwidth"]
+                requestParams["adaptative"]=plotParams["adaptative"]== undefined ? '': plotParams["adaptative"]
+                requestParams["normalization"]=plotParams["normalization"]== undefined ? '': plotParams["normalization"]
+                requestParams["low_bias"]=plotParams["low_bias"]== undefined ? '': plotParams["low_bias"]
             }
             
 
