@@ -5,12 +5,13 @@ import {
 	CCardGroup,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import {fetchSignal} from '../../../redux/actions/Diagram'
+import {fetchSignal,deleteItemInputsReady} from '../../../redux/actions/Diagram'
 import {connect} from 'react-redux'
 import ChartPSD from '../ChartPSD'
 
 import {PrepareDataForPlot} from '../../../tools/Utils'
 import { node } from 'prop-types'
+import {updatePlotParams} from '../../../redux/actions/Plot' 
 
 
 
@@ -35,7 +36,7 @@ class ChartSpectrum extends Component {
 				channels:nodePlot.params.channels,
 				minXWindow:parseFloat(nodePlot.params.minFreqWindow),
 				maxXWindow:parseFloat(nodePlot.params.maxFreqWindow),
-				size:nodePlot.params.size
+				size:nodePlot.params.size==null ? 'm' : nodePlot.params.size
 			}
 		}
 
@@ -66,6 +67,7 @@ class ChartSpectrum extends Component {
 		let data=[];
 		let dataReady=false;
 		let channels;
+		let oldSignalId=null;
 		const dataType='PSD';
 		if(nodePlot.inputData.fetchInput){
 			const nodeInput=this.props.elements.find((elem) => elem.id==nodePlot.inputData.inputNodeId)
@@ -79,10 +81,15 @@ class ChartSpectrum extends Component {
 			}
 			if(signalData==undefined){
 				this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType)
+				this.props.updatePlotParams({...nodePlot.params})
 			}
 			else{
-				if(!signalData.dataReady){
+				if(!signalData.dataReady || JSON.stringify(this.props.prevParams)!==JSON.stringify(nodePlot.params)){
+					this.props.deleteItemInputsReady(signalData.id)
+					oldSignalId=signalData.id
 					this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType)
+					this.props.updatePlotParams({...nodePlot.params})
+
 					
 				}
 			}
@@ -95,6 +102,7 @@ class ChartSpectrum extends Component {
 			params:params,
 			style:style,
 			data:data,
+			oldSignalId:oldSignalId,
 
 		}
     }
@@ -133,9 +141,14 @@ class ChartSpectrum extends Component {
 			maxIndex,
 			1//Math.pow(10,6)
 			)
+		
 		this.setState({
 			data:data,
 			dataReady:true,
+			params:{
+				...this.state.params,
+				channels:this.state.params.channels.filter(c => dataParams.chNames.includes(c))
+			} 
 		})
 
 	}
@@ -146,7 +159,7 @@ class ChartSpectrum extends Component {
 		if(nodeInput!=undefined){
 			const signalData=nodeInput.signalsData.find(d => d.dataType==this.state.dataType)
 			if(signalData!=undefined){
-				if(this.props.inputsReady.includes(signalData.id)){
+				if(this.props.inputsReady.includes(signalData.id) && this.state.oldSignalId!=signalData.id){
 					this.preprocessData(signalData)
 				}
 			}
@@ -185,14 +198,16 @@ class ChartSpectrum extends Component {
 const mapStateToProps = (state) => {
 	return{
 	  elements:state.diagram.elements,
-	  inputsReady: state.diagram.inputsReady
-	  
+	  inputsReady: state.diagram.inputsReady,
+	  prevParams:state.plotParams.psd
 	};
 }
   
 const mapDispatchToProps = (dispatch) => {
 	return {
 		fetchSignal: (id,channels,plotParams,nodeId,type) => dispatch(fetchSignal(id,channels,plotParams,nodeId,type)),
+		updatePlotParams: (params) => dispatch(updatePlotParams(params)),
+		deleteItemInputsReady: (id) => dispatch(deleteItemInputsReady(id)),
 	};
 };
 export default connect(mapStateToProps, mapDispatchToProps)(ChartSpectrum)

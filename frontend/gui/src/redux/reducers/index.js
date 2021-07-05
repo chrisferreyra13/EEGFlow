@@ -8,6 +8,7 @@ import {form} from './Form'
 import {events} from './Events'
 import {diagram} from './Diagram'
 import {editSession} from './EditSession'
+import {plotParams} from './Plot'
 
 const rootReducer = combineReducers({
     changeStateSidebar,
@@ -19,6 +20,7 @@ const rootReducer = combineReducers({
     events,
     diagram,
     editSession,
+    plotParams,
 });
 
 export default rootReducer

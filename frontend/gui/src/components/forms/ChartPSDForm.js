@@ -10,7 +10,6 @@ import {
   CInputCheckbox
 } from '@coreui/react'
 
-
 class ChartPSDForm extends Component{
   constructor(props){
     super(props);
@@ -211,8 +210,8 @@ class ChartPSDForm extends Component{
                 <CFormGroup row>
                   <CCol md="6">
                     <CFormGroup variant="custom-checkbox" inline>
-                      <CInputCheckbox custom id="adaptative" name="inline-checkbox1" value="true"/>
-                      <CLabel variant="custom-checkbox" htmlFor="adaptative">Pesos adaptativos</CLabel>
+                      <CInputCheckbox custom id="adaptive" name="inline-checkbox1" value="true"/>
+                      <CLabel variant="custom-checkbox" htmlFor="adaptive">Pesos adaptativos</CLabel>
                     </CFormGroup>
                   </CCol>
                   <CCol md="6">
@@ -262,7 +261,7 @@ class ChartPSDForm extends Component{
 const mapStateToProps = (state) => {
 	return{
 	  elements:state.diagram.elements,
-    channels:state.file.fileInfo.channels
+    channels:state.file.fileInfo.channels,
 	};
 }
   

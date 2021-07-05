@@ -53,7 +53,7 @@ def psd(instance,freq_window,time_window=[None,None], picks=None,type_of_psd='we
         )
         
     elif type_of_psd=='multitaper':
-        psds,freqs=mne.time_frequency.psd_welch(
+        psds,freqs=mne.time_frequency.psd_multitaper(
             inst=instance,
             tmin=time_window[0], tmax=time_window[1],
             fmin=freq_window[0], fmax=freq_window[1],
@@ -113,7 +113,7 @@ def notch_filter(raw,notch_freq=50,channels=None):
     return raw_filtered
 
 
-def custom_filter(raw,low_freq=None,high_freq=None,channels=None, filter_method='fir'):
+def custom_filter(raw,low_freq=None,high_freq=None,channels=None, filter_method='fir',**kwargs):
 
     raw_eeg=raw.copy().pick_types(eeg=True)
     raw_eeg.load_data()
@@ -123,7 +123,27 @@ def custom_filter(raw,low_freq=None,high_freq=None,channels=None, filter_method=
     else:
         channels_idxs=mne.pick_channels(raw_eeg.info['ch_names'], include=channels)
     
-    raw_filtered=raw_eeg.filter(l_freq=low_freq, h_freq=high_freq, picks=channels_idxs, method=filter_method)
+
+    if filter_method=='fir':
+        raw_filtered=raw_eeg.filter(
+            l_freq=low_freq, 
+            h_freq=high_freq, 
+            picks=channels_idxs, 
+            method=filter_method,
+            l_trans_bandwidth=kwargs["l_trans_bandwidth"], 
+            h_trans_bandwidth=kwargs["h_trans_bandwidth"],
+            phase=kwargs["phase"],
+            fir_window=kwargs["fir_window"],
+            fir_design=kwargs["fir_design"],
+            )
+    else:
+        raw_filtered=raw_eeg.filter(
+            l_freq=low_freq, 
+            h_freq=high_freq, 
+            picks=channels_idxs, 
+            method=filter_method,
+            iir_params=kwargs["iir_params"]
+            )
 
     return raw_filtered
 

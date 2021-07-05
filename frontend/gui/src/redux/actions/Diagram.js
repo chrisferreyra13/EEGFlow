@@ -54,10 +54,10 @@ export function setNodeFileId(fileId){
 
 
 export const FETCH_RUN_PROCESS_REQUEST='FETCH_RUN_PROCESS_REQUEST'
-export function runProcessRequest(json){
+export function runProcessRequest(process){
     return{
         type:FETCH_RUN_PROCESS_REQUEST,
-        process:json
+        process:process
     }
 }
 export const FETCH_RUN_PROCESS_RECEIVE='FETCH_RUN_PROCESS_RECEIVE'
@@ -85,10 +85,10 @@ export function processesToStart(len){
 }
 
 export const PROCESS_IS_COMPLETED='PROCESS_IS_COMPLETED'
-export function processIsCompleted(processId){
+export function processIsCompleted(process){
     return{
         type: PROCESS_IS_COMPLETED,
-        processId
+        process:process
     }
 }
 
@@ -404,9 +404,9 @@ export const fetchSignal = (id, channels, plotParams, nodeId, dataType) => async
                 id:id,
                 time_window:[plotParams.minTimeWindow,plotParams.maxTimeWindow],
                 freq_window:[plotParams.minFreqWindow,plotParams.maxFreqWindow],
-                channels: channels==undefined ? '': channels
+                channels: channels==undefined ? '': channels,
+                type: plotParams["type"]==undefined ? '': plotParams["type"]
             }
-            console.log(plotParams["type"])
             if(plotParams["type"]=='welch'){
                 requestParams["n_fft"]=plotParams["n_fft"] == undefined ? '': plotParams["n_fft"]
                 requestParams["n_per_seg"]=plotParams["n_per_seg"] == undefined ? '': plotParams["n_per_seg"]
@@ -415,7 +415,7 @@ export const fetchSignal = (id, channels, plotParams, nodeId, dataType) => async
                 requestParams["average"]=plotParams["average"]== undefined ? '': plotParams["average"]
             }else{
                 requestParams["bandwidth"]=plotParams["bandwidth"]== undefined ? '': plotParams["bandwidth"]
-                requestParams["adaptative"]=plotParams["adaptative"]== undefined ? '': plotParams["adaptative"]
+                requestParams["adaptive"]=plotParams["adaptive"]== undefined ? '': plotParams["adaptive"]
                 requestParams["normalization"]=plotParams["normalization"]== undefined ? '': plotParams["normalization"]
                 requestParams["low_bias"]=plotParams["low_bias"]== undefined ? '': plotParams["low_bias"]
             }
@@ -458,3 +458,10 @@ export const fetchSignal = (id, channels, plotParams, nodeId, dataType) => async
     
 }
 
+export const DELETE_ITEM_INPUTS_READY='DELETE_ITEM_INPUTS_READY'
+export function deleteItemInputsReady(id){
+    return{
+        type:DELETE_ITEM_INPUTS_READY,
+        id:id
+    }
+}

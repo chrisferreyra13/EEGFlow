@@ -4,8 +4,8 @@ from cconsciente.settings.base import MEDIA_TEMP, MEDIA_STORED, MEDIA_PROC_TEMP_
 
 LOAD_RESTORE_PARAM_NAME = 'id'
 
-def time_series_step(input=None,params=None,step_type=None):
-
+def time_series_step(**kwargs):
+    params=kwargs["params"]
     if LOAD_RESTORE_PARAM_NAME not in params: # Return if not fileid for processing
             return Response('ID parameter is missing.',
                             status=status.HTTP_400_BAD_REQUEST)
@@ -30,14 +30,17 @@ def time_series_step(input=None,params=None,step_type=None):
 
     return raw
 
-def result_step(input=None,params=None,step_type=None):
+def result_step(**kwargs):
     return Response({
             'process_status':'SUCCESFULL',
-            'result':step_type
+            'result':kwargs["step_type"]
         })
 
-def filter_step(input=None,params=None,step_type=None):
-    
+def filter_step(**kwargs):
+    input=kwargs["input"]
+    params=kwargs["params"]
+    step_type=kwargs["step_type"]
+
     #SELECT FREQ
     if step_type=='BETA':
         low_freq=13.0
@@ -91,13 +94,57 @@ def filter_step(input=None,params=None,step_type=None):
             filter_method='fir'
         else:
             filter_method=params['filter_method']
-            
-        try:
-            output=custom_filter(input,low_freq,high_freq,channels,filter_method)
+            if (not filter_method) or (filter_method == ''):    # Por defecto uso fir
+                filter_method='fir'
+            else:
+                if filter_method not in ["fir","iir"]:
+                    return Response('An invalid type of filter has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+        
+        if filter_method=='fir':
+            fields=["l_trans_bandwidth","h_trans_bandwidth","phase","fir_window","fir_design"] #TODO: Add "pad" param
+            # defaults:
+            # l_trans_bandwidth: auto = min(max(l_freq * 0.25, 2), l_freq)
+            # h_trans_bandwidth: auto = min(max(h_freq * 0.25, 2.), info['sfreq'] / 2. - h_freq)
+            defaults=["auto","auto","zero","hamming","firwin"]
+            fir_params=check_params(params,params_names=fields,params_values=defaults)
+            if type(fir_params)==Response: return fir_params
+            try:
+                output=custom_filter(
+                    raw=input,
+                    low_freq=low_freq,
+                    high_freq=high_freq,
+                    channels=channels,
+                    filter_method=filter_method,
+                    l_trans_bandwidth=fir_params["l_trans_bandwidth"], 
+                    h_trans_bandwidth=fir_params["h_trans_bandwidth"],
+                    phase=fir_params["phase"],
+                    fir_window=fir_params["fir_window"],
+                    fir_design=fir_params["fir_design"],
+                    )
 
-        except TypeError:
-            return Response('Invalid data',
-                        status=status.HTTP_406_NOT_ACCEPTABLE)
+            except TypeError:
+                return Response('Invalid data for FIR filter',
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        else:
+            fields=["iir_params"]
+            defaults=[None]
+            iir_params=check_params(params,params_names=fields,params_values=defaults)
+            if type(iir_params)==Response: return iir_params
+            try:
+                output=custom_filter(
+                    raw=input,
+                    low_freq=low_freq,
+                    high_freq=high_freq,
+                    channels=channels,
+                    filter_method=filter_method,
+                    iir_params=iir_params["iir_params"]
+                    )
+
+            except TypeError:
+                return Response('Invalid data for IIR filter',
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
 
 
     return output
