@@ -24,7 +24,7 @@ export default [
     data: {
       label: 'Señal en tiempo'
     },
-    position: { x: 450, y: 80 },
+    position: { x: 550, y: 80 },
     params:paramsTemplate,
     signalsData:signalsDataTemplate,
     isFetching:false,
@@ -39,7 +39,7 @@ export default [
     data: {
       label: 'Grafico en tiempo'
     },
-    position: { x: 450, y: 80 },
+    position: { x: 550, y: 80 },
     params:{
       channels:null,
       minTimeWindow:null,
@@ -62,7 +62,7 @@ export default [
     data: {
       label: 'PSD'
     },
-    position: { x: 450, y: 80 },
+    position: { x: 550, y: 80 },
     params:{
       channels:['EEG 016','EEG 017'],
       minFreqWindow:null,
@@ -87,7 +87,7 @@ export default [
     data: {
       label: 'Tiempo - Frecuencia'
     },
-    position: { x: 450, y: 80 },
+    position: { x: 550, y: 80 },
     params:{
       channels:null,
       minXWindow:null,
@@ -113,7 +113,7 @@ export default [
     data: {
       label: 'Eventos'
     },
-    position: { x: 450, y: 80 },
+    position: { x: 550, y: 80 },
     params:null,
   },
   {
@@ -125,7 +125,7 @@ export default [
     data: {
       label: 'Ventana Temporal'
     },
-    position: { x: 450, y: 80 },
+    position: { x: 550, y: 80 },
     params:null,
   },
   {
@@ -137,7 +137,7 @@ export default [
     data: {
       label: 'Eliminar'
     },
-    position: { x: 450, y: 80 },
+    position: { x: 550, y: 80 },
     params:null,
   },
   /////////////////////////
@@ -151,7 +151,7 @@ export default [
     data: {
       label: 'Filtro Notch'
     },
-    position: { x: 450, y: 80 },
+    position: { x: 550, y: 80 },
     params:{
       id:null,
       channels:['EEG 016','EEG 017'],
@@ -169,7 +169,7 @@ export default [
     data: {
       label: 'Filtro Beta'
     },
-    position: { x: 450, y: 80 },
+    position: { x: 550, y: 80 },
     params:{
       id:null,
       channels:['EEG 016','EEG 017'],
@@ -187,7 +187,7 @@ export default [
     data: {
       label: 'Filtro Alpha'
     },
-    position: { x: 450, y: 80 },
+    position: { x: 550, y: 80 },
     params:{
       id:null,
       channels:['EEG 016','EEG 017'],
@@ -205,7 +205,7 @@ export default [
     data: {
       label: 'Filtro Theta'
     },
-    position: { x: 450, y: 80 },
+    position: { x: 550, y: 80 },
     params:{
       id:null,
       channels:['EEG 016','EEG 017'],
@@ -223,7 +223,7 @@ export default [
     data: {
       label: 'Filtro Delta'
     },
-    position: { x: 450, y: 80 },
+    position: { x: 550, y: 80 },
     params:{
       id:null,
       channels:['EEG 016','EEG 017'],
@@ -242,7 +242,7 @@ export default [
     data: {
       label: 'Filtro Personalizado'
     },
-    position: { x: 450, y: 80 },
+    position: { x: 550, y: 80 },
     params:{
       id:null,
       low_freq:3,
@@ -264,7 +264,7 @@ export default [
     data: {
       label: 'ICA'
     },
-    position: { x: 450, y: 80 },
+    position: { x: 550, y: 80 },
     params:null,
   },
   {
@@ -276,7 +276,7 @@ export default [
     data: {
       label: 'Pico maximo'
     },
-    position: { x: 450, y: 80 },
+    position: { x: 550, y: 80 },
     params:null,
   }
   ////////

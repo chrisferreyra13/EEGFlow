@@ -64,16 +64,28 @@ class ChartTemporal extends Component {
 
 		let data=[];
 		let dataReady=false;
+		let channels;
+		let oldSignalId=null;
 		const dataType='TIME_SERIES';
 		if(nodePlot.inputData.fetchInput){
 			const nodeInput=this.props.elements.find((elem) => elem.id==nodePlot.inputData.inputNodeId)
 			const signalData=nodeInput.signalsData.find(d => d.dataType==dataType)
-			if(signalData==undefined){
-				this.props.fetchSignal(nodeInput.params.id,nodeInput.params.channels,nodePlot.params,nodeInput.id,dataType)
+			if(nodeInput.params.channels==undefined){
+				channels=nodePlot.params.channels
 			}
 			else{
-				if(!signalData.dataReady){
-					this.props.fetchSignal(nodeInput.params.id,nodeInput.params.channels,nodePlot.params,nodeInput.id,dataType)
+				channels=nodeInput.params.channels
+			}
+			if(signalData==undefined){
+				this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType)
+				//this.props.updatePlotParams({...nodePlot.params})
+			}
+			else{
+				if(!signalData.dataReady){ //|| JSON.stringify(this.props.prevParams)!==JSON.stringify(nodePlot.params)){
+					this.props.deleteItemInputsReady(signalData.id)
+					oldSignalId=signalData.id
+					this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType)
+					//this.props.updatePlotParams({...nodePlot.params})	
 				}
 			}
 		}
@@ -85,6 +97,7 @@ class ChartTemporal extends Component {
 			params:params,
 			style:style,
 			data:data,
+			oldSignalId:oldSignalId,
 
 		}
 
@@ -127,10 +140,12 @@ class ChartTemporal extends Component {
 
     render() {
 		const nodeInput=this.props.elements.find((elem) => elem.id==this.state.inputNodeId)
-		const signalData=nodeInput.signalsData.find(d => d.dataType==this.state.dataType)
-		if(signalData!=undefined){
-			if(this.props.inputsReady.includes(signalData.id)){
-				this.preprocessData(signalData)
+		if(nodeInput!=undefined){
+			const signalData=nodeInput.signalsData.find(d => d.dataType==this.state.dataType)
+			if(signalData!=undefined){
+				if(this.props.inputsReady.includes(signalData.id) && this.state.oldSignalId!=signalData.id){
+					this.preprocessData(signalData)
+				}
 			}
 		}
 

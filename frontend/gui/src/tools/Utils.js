@@ -20,8 +20,14 @@ export function PrepareDataForPlot(dataX,dataY,sFreq, dataChannels,plotChannels,
     if(plotChannels.length!=0){ //Por seguridad, ver else
         // Si no coinciden hay error, tenerlo en cuenta para hacer una excepcion
         let x=0
-        const idxs=plotChannels.map((ch) => dataChannels.findIndex((chName) => ch===chName))
-        for(var j = 0; j < plotChannels.length; j += 1){
+        const idxs=[];
+        let idx=-1;
+        plotChannels.forEach((ch) => {
+            idx=dataChannels.findIndex((chName) => ch===chName)
+            if(idx!=-1)
+                idxs.push(idx)
+        })
+        for(var j = 0; j < idxs.length; j += 1){
             for (var i = minIndex; i < maxIndex; i += 1) {
 
                 if(dataX.length==0){

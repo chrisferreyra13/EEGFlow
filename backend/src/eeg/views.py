@@ -408,7 +408,7 @@ class GetPSD(APIView):
                 average=welch_params["average"],
             ) 
         elif type_of_psd=='multitaper':
-            fields=["bandwidth","adaptative","low_bias","normalization"]
+            fields=["bandwidth","adaptive","low_bias","normalization"]
             defaults=[4,False,False,'length']
             multitaper_params=check_params(request,params_names=fields,params_values=defaults)
             if type(multitaper_params)==Response: return multitaper_params
@@ -419,7 +419,7 @@ class GetPSD(APIView):
                 picks=channels_idxs,
                 type_of_psd=type_of_psd,
                 bandwidth=multitaper_params["bandwidth"],
-                adaptative=multitaper_params["adaptative"],
+                adaptive=multitaper_params["adaptive"],
                 low_bias=multitaper_params["low_bias"],
                 normalization=multitaper_params["normalization"],
             )

@@ -13,6 +13,7 @@ import {
     FETCH_SIGNAL_FAILURE,
     SET_NODE_FILE_ID,
     PROCESS_IS_COMPLETED,
+    DELETE_ITEM_INPUTS_READY,
 } from '../actions/Diagram';
 import allowedElements from './_elements';
 
@@ -39,6 +40,7 @@ const initialState={
         id: '2',
         type: 'output',
         elementType: 'PLOT_TIME_SERIES',
+        formType:'ENABLE_PLOT_TIME_SERIES_FORM',
         targetPosition:'left',
         data: { label: 'Grafico en tiempo' },
         position: { x: 500, y: 20 },
@@ -51,7 +53,7 @@ const initialState={
             channels:['EEG 016','EEG 017'],
             minXWindow:null,
             maxXWindow:null,
-            size:null,
+            size:'l',
         },
         processParams:{
             processed:false,
@@ -90,7 +92,7 @@ export const diagram= (state=initialState, {type, ...rest})=>{
             stateCopy.elements[stateCopy.elements.length-1].id=(stateCopy.lastId).toString();
             var position=stateCopy.elements[nodeIndex].position
             stateCopy.elements[stateCopy.elements.length-1].position=Object.assign({},position,{
-                                                                        x: position.x+200,
+                                                                        x: position.x+250,
                                                                         y: position.y+100
                                                                     })
 
@@ -350,7 +352,12 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                 
         case FETCH_SIGNAL_FAILURE:
             return {...state, ...rest}
-
+        
+        case DELETE_ITEM_INPUTS_READY:
+            inputsReady=JSON.parse(JSON.stringify(state.inputsReady))
+            return Object.assign({}, state, {
+                inputsReady:inputsReady.filter(id => id!=rest.id)
+            })
 
         default:
             return state
