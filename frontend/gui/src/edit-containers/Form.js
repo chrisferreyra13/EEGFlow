@@ -20,6 +20,7 @@ import { runSingleProcess, updateNodePropierties } from '../redux/actions/Diagra
 
 const EventsForm = lazy(()=>import('../components/forms/EventsForm.js'))
 const CustomFilterForm = lazy(()=>import('../components/forms/CustomFilterForm.js'))
+const CommonFilterForm = lazy(()=>import('../components/forms/CommonFilterForm.js'))
 const ChartTemporalForm = lazy(()=>import('../components/forms/ChartTemporalForm.js'))
 const ChartPSDForm = lazy(()=>import('../components/forms/ChartPSDForm.js'))
 
@@ -77,7 +78,7 @@ class Form extends Component{
               {form.title}
             </CCardHeader>       
             <CCardBody>
-              <form.content onChange={this.handleFieldChange} values={this.state.values} onMountForm={this.handleMountForm}/>
+              <form.content nodeId={this.props.nodeId} onChange={this.handleFieldChange} values={this.state.values} onMountForm={this.handleMountForm}/>
             </CCardBody>
             <CCardFooter>
               <CRow>
@@ -123,6 +124,7 @@ const formSelection = (formType) => {
   const forms = {
     ENABLE_EVENT_FORM: {title:'Editar Eventos',content:EventsForm},
     ENABLE_CUSTOM_FILTER_FORM: {title:'Seleccionar Frecuencias',content:CustomFilterForm},
+    ENABLE_COMMON_FILTER_FORM: {title:'Filtro',content:CommonFilterForm},
     ENABLE_PLOT_TIME_SERIES_FORM: {title:'Grafico en Tiempo',content:ChartTemporalForm},
     ENABLE_PLOT_PSD_FORM: {title:'Densidad Espectral de Potencia (PSD)',content:ChartPSDForm},
   };

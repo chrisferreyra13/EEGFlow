@@ -112,7 +112,12 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                 idx=stateCopy.elements.findIndex(elem => elem.id==rest.id)
             }
             for(let prop of propierties){
-                stateCopy.elements[idx]["params"][prop]=rest.propierties[prop];
+                if(prop=='position'){
+                    stateCopy.elements[idx][prop]=rest.propierties[prop];
+                }else{
+                    stateCopy.elements[idx]['params'][prop]=rest.propierties[prop];
+                }
+                
             }
             return Object.assign({},state,{
                 elements:stateCopy.elements

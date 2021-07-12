@@ -65,15 +65,31 @@ def filter_step(**kwargs):
             notch_freq=params['notch_freq']
     
     elif step_type=='CUSTOM_FILTER':
-        if 'low_freq' not in params:
+        if 'l_freq' not in params:
             low_freq=None
         else:
-            low_freq=params['low_freq']
+            low_freq=params['l_freq']
+            if (not low_freq) or (low_freq == ''):
+                low_freq=None
+            else:
+                try:
+                    low_freq=float(low_freq)
+                except:
+                    return Response('An invalid low cutoff frequency has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
 
-        if 'high_freq' not in params:
+        if 'h_freq' not in params:
             high_freq=None
         else:
-            high_freq=params['high_freq']
+            high_freq=params['h_freq']
+            if (not high_freq) or (high_freq == ''): 
+                high_freq=None
+            else:
+                try:
+                    high_freq=float(high_freq)
+                except:
+                    return Response('An invalid high cutoff frequency has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
  
     #SELECT CHANNELS
     #get requested channels
@@ -90,10 +106,10 @@ def filter_step(**kwargs):
                         status=status.HTTP_406_NOT_ACCEPTABLE)
     
     else:
-        if 'filter_method' not in params:
+        if 'type' not in params:
             filter_method='fir'
         else:
-            filter_method=params['filter_method']
+            filter_method=params['type']
             if (not filter_method) or (filter_method == ''):    # Por defecto uso fir
                 filter_method='fir'
             else:
@@ -108,6 +124,11 @@ def filter_step(**kwargs):
             # h_trans_bandwidth: auto = min(max(h_freq * 0.25, 2.), info['sfreq'] / 2. - h_freq)
             defaults=["auto","auto","zero","hamming","firwin"]
             fir_params=check_params(params,params_names=fields,params_values=defaults)
+            if fir_params["l_trans_bandwidth"]!='auto':
+                fir_params["l_trans_bandwidth"]=float(fir_params["l_trans_bandwidth"])
+            if fir_params["h_trans_bandwidth"]!='auto':
+                fir_params["h_trans_bandwidth"]=float(fir_params["h_trans_bandwidth"])
+
             if type(fir_params)==Response: return fir_params
             try:
                 output=custom_filter(
@@ -160,4 +181,5 @@ steps={
     'DELTA':filter_step,
     'THETA':filter_step,
     'NOTCH':filter_step,
+    'CUSTOM_FILTER':filter_step
 }

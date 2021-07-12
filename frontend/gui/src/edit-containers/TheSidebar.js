@@ -47,7 +47,7 @@ const TheSidebar = ({show, addNode, enableForm, diagramView, linkDiagram}) => {
     <CSidebar show={show} onShowChange={(val) => dispatch({type: 'set', sidebarShow: val })}>
       <div className="text-center"> {/* Aca antes habia un <td> pero no le gustaba del todo*/}
           <h6>  </h6>
-          <h1> Cconsciente. </h1>
+          <h1> Cconsciente </h1>
       </div>
       {/*<CSidebarNav>
 
@@ -101,15 +101,15 @@ const TheSidebar = ({show, addNode, enableForm, diagramView, linkDiagram}) => {
             placement="right-start"
             modifiers={[{name: 'flip', enabled: false }]}
           >
-            <CDropdownItem onClick={() => onClick('ENABLE_FILTER_SELECTOR_FORM','CUSTOM_FILTER')} onDragStart={(event) => onDragStart(event, 'CUSTOM_FILTER')} draggable>Seleccionar frecuencias</CDropdownItem>
+            <CDropdownItem onClick={() => onClick('ENABLE_CUSTOM_FILTER_FORM','CUSTOM_FILTER')} onDragStart={(event) => onDragStart(event, 'CUSTOM_FILTER')} draggable>Seleccionar frecuencias</CDropdownItem>
             <CDropdownDivider/>
             {/*<CDropdownHeader>Frecuentes</CDropdownHeader>*/}
             {/* ESTO VA EN CDdropdownItem onClick={() => addNode('default')}*/}
             <CDropdownItem onClick={() => onClick(null,'NOTCH')} onDragStart={(event) => onDragStart(event, 'NOTCH')} draggable>Notch</CDropdownItem>
-            <CDropdownItem onClick={() => onClick(null,'BETA')} onDragStart={(event) => onDragStart(event, 'BETA')} draggable>Beta</CDropdownItem>
-            <CDropdownItem onClick={() => onClick(null,'ALPHA')} onDragStart={(event) => onDragStart(event, 'ALPHA')} draggable>Alpha</CDropdownItem>
-            <CDropdownItem onClick={() => onClick(null,'THETA')} onDragStart={(event) => onDragStart(event, 'THETA')} draggable>Theta</CDropdownItem>
-            <CDropdownItem onClick={() => onClick(null,'DELTA')} onDragStart={(event) => onDragStart(event, 'DELTA')} draggable>Delta</CDropdownItem>
+            <CDropdownItem onClick={() => onClick('ENABLE_COMMON_FILTER_FORM','BETA')} onDragStart={(event) => onDragStart(event, 'BETA')} draggable>Beta</CDropdownItem>
+            <CDropdownItem onClick={() => onClick('ENABLE_COMMON_FILTER_FORM','ALPHA')} onDragStart={(event) => onDragStart(event, 'ALPHA')} draggable>Alpha</CDropdownItem>
+            <CDropdownItem onClick={() => onClick('ENABLE_COMMON_FILTER_FORM','THETA')} onDragStart={(event) => onDragStart(event, 'THETA')} draggable>Theta</CDropdownItem>
+            <CDropdownItem onClick={() => onClick('ENABLE_COMMON_FILTER_FORM','DELTA')} onDragStart={(event) => onDragStart(event, 'DELTA')} draggable>Delta</CDropdownItem>
           </CDropdownMenu>
         </CDropdown>
 
