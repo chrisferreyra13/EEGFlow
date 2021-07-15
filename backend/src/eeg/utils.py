@@ -88,14 +88,14 @@ def check_params(query_params,params_names=None,params_values=None):
             p=query_params[param_name]
             
             if p!='' and p!='undefined' and p!=None:
-                if type(params[param_name])==int:
+                if type(params[param_name])==int or params[param_name]==None:
                     try:
                         p=int(p)
                         params[param_name]=p
                     except:
                         return Response('An invalid {} field has been provided.'.format(param_name),
                                 status=status.HTTP_400_BAD_REQUEST)
-                elif type(params[param_name])==str:
+                elif type(params[param_name])==str or params[param_name]==None:
                     params[param_name]=p
     
     return params

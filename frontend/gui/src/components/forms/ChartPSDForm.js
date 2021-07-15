@@ -118,10 +118,10 @@ class ChartPSDForm extends Component{
             <CLabel htmlFor="timeWindow">Ventana de tiempo:</CLabel>
               <CFormGroup row>
                 <CCol md="6">
-                    <CInput id="minTimeWindow" placeholder={"tiempo mínimo (seg)"} type="number" min="0" step="0.5" required value={this.getValue('minTimeWindow')} onChange={(event) => this.handleChange(event,'minTimeWindow')}/>
+                    <CInput id="minTimeWindow" placeholder={"tiempo mínimo (seg)"} type="number" min="0" step="0.01" required value={this.getValue('minTimeWindow')} onChange={(event) => this.handleChange(event,'minTimeWindow')}/>
                 </CCol>
                 <CCol md="6">
-                  <CInput id="maxTimeWindow" placeholder={"tiempo máximo (seg)"} type="number" min="0" step="0.5" required value={this.getValue('maxTimeWindow')} onChange={(event) => this.handleChange(event,'maxTimeWindow')}/>
+                  <CInput id="maxTimeWindow" placeholder={"tiempo máximo (seg)"} type="number" min="0" step="0.01" required value={this.getValue('maxTimeWindow')} onChange={(event) => this.handleChange(event,'maxTimeWindow')}/>
                 </CCol>
               </CFormGroup>
           </CCol>
@@ -131,10 +131,10 @@ class ChartPSDForm extends Component{
             <CLabel htmlFor="frequencyWindow">Ventana de frecuencias:</CLabel>
               <CFormGroup row>
                 <CCol md="6">
-                    <CInput id="minFreqWindow" placeholder={"frecuencia mínima (Hz)"} type="number" min="0" step="0.5" required value={this.getValue('minFreqWindow')} onChange={(event) => this.handleChange(event,'minFreqWindow')}/>
+                    <CInput id="minFreqWindow" placeholder={"frecuencia mínima (Hz)"} type="number" min="0" step="0.01" required value={this.getValue('minFreqWindow')} onChange={(event) => this.handleChange(event,'minFreqWindow')}/>
                 </CCol>
                 <CCol md="6">
-                  <CInput id="maxFreqWindow" placeholder={"frecuencia máxima (Hz)"} type="number" min="0" step="0.5" required value={this.getValue('maxFreqWindow')} onChange={(event) => this.handleChange(event,'maxFreqWindow')}/>
+                  <CInput id="maxFreqWindow" placeholder={"frecuencia máxima (Hz)"} type="number" min="0" step="0.01" required value={this.getValue('maxFreqWindow')} onChange={(event) => this.handleChange(event,'maxFreqWindow')}/>
                 </CCol>
               </CFormGroup>
           </CCol>

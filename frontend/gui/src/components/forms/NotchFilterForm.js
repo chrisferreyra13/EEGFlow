@@ -10,18 +10,11 @@ import {
   CInputCheckbox
 } from '@coreui/react'
 
-class CommonFilterForm extends Component{
+class NotchFilterForm extends Component{
   constructor(props){
     super(props);
 
-    const node=this.props.elements.find(n => n.id==this.props.nodeId)
-    const freqRange={
-      BETA:'Beta (13 - 30 Hz)',
-      ALPHA:'Alpha (8 - 13 Hz)',
-      THETA:'Theta (4 - 8 Hz)',
-      DELTA:'Delta (0.2 - 4 Hz)',
-    }
-
+    //const node=this.props.elements.find(n => n.id==this.props.nodeId)
     const channelsOptions = this.props.channels
     const windowOptions=[ //agregar si es necesario
         {value:'blackman',label:'blackman'},
@@ -41,7 +34,12 @@ class CommonFilterForm extends Component{
     this.state={
       default:{
         channels:null,
-        type:'fir'
+        type:'fir',
+        notch_freqs:null,
+        notch_widths:null,
+        trans_bandwidth:null,
+        mt_bandwidth:null,
+        p_value:null
       },
       channelsOptions:channelsOptions.map(ch => {
         return {value:ch,label:ch}
@@ -49,7 +47,6 @@ class CommonFilterForm extends Component{
       windowOptions:windowOptions,
       phaseOptions:phaseOptions,
       firDesignOptions:firDesignOptions,
-      freqRange:freqRange[node.elementType]
     }
 
     this.handleChange = this.handleChange.bind(this);
@@ -84,7 +81,7 @@ class CommonFilterForm extends Component{
   }
   componentDidMount(){
     this.props.onMountForm();
-    this.checkRadioButton('type',['fir','iir'])
+    this.checkRadioButton('type',['fir','iir','spectrum_fit'])
   }
   getValue(inputId){
     if(Object.keys(this.props.values).length === 0 && this.props.values.constructor === Object){
@@ -104,15 +101,30 @@ class CommonFilterForm extends Component{
     return (
       <div>
         <CFormGroup row>
-            <CCol md="12">
-                <CLabel htmlFor="description">Filtro {this.state.freqRange}</CLabel>
-            </CCol>
-        </CFormGroup> 
-        <CFormGroup row>
           <CCol md="12">
             <CLabel htmlFor="freq-inf">Canales</CLabel>
             <Select options={this.state.channelsOptions} isMulti value={this.getValue("channels")==null ? null : this.getValue("channels").map(ch => {return {value:ch, label:ch}})} onChange={(options) => this.handleMultiSelect(options,'channels')}/>
             {/*<CInput id="channels" placeholder="Ch1,Ch2,Ch3" required value={value('channels')} onChange={(event) => this.handleChange(event,'channels')}/>*/}
+          </CCol>
+        </CFormGroup>
+        <CFormGroup row>
+          <CCol md="12">
+            <CLabel htmlFor="notch_freqs">Frecuencias de interes:</CLabel>
+              <CFormGroup row>
+                <CCol md="12">
+                    <CInput id="notch_freqs" placeholder={"50,63.5"} required value={this.getValue('notch_freqs')} onChange={(event) => this.handleChange(event,'notch_freqs')}/>
+                </CCol>
+              </CFormGroup>
+          </CCol>
+        </CFormGroup>
+        <CFormGroup row>
+          <CCol md="12">
+            <CLabel htmlFor="notch_widths">Ancho de cada banda de parada (Hz):</CLabel>
+              <CFormGroup row>
+                <CCol md="12">
+                    <CInput id="notch_widths" placeholder={"default: 'freqs/200'"} type="number" min="0" step="0.01" value={this.getValue('notch_widths')} onChange={(event) => this.handleChange(event,'notch_widths')}/>
+                </CCol>
+              </CFormGroup>
           </CCol>
         </CFormGroup>
         <CFormGroup row>
@@ -128,25 +140,40 @@ class CommonFilterForm extends Component{
                     <CInputRadio custom id="iir" name="filter-method" value="iir" onChange={(event) => this.handleChangeInputRadio(event,'iir','type')}/>
                     <CLabel variant="custom-checkbox" htmlFor="iir">IIR</CLabel>
                 </CFormGroup>
+                <CFormGroup variant="custom-radio" inline>
+                    <CInputRadio custom id="spectrum_fit" name="filter-method" value="spectrum_fit" onChange={(event) => this.handleChangeInputRadio(event,'spectrum_fit','type')}/>
+                    <CLabel variant="custom-checkbox" htmlFor="spectrum_fit">Ajuste del espectro</CLabel>
+                </CFormGroup>
             </CCol>
         </CFormGroup>
           {
+            this.getValue('type')=='spectrum_fit' ?
+            <div>
+              <CFormGroup row>
+                  <CCol md="7">
+                      <CLabel htmlFor="mt_bandwidth">Ancho de banda multitaper (Hz):</CLabel>
+                  </CCol>
+                  <CCol md="4">
+                      <CInput id="mt_bandwidth" placeholder={"default: 'auto"} type="number" min="0" step="0.01" value={this.getValue('mt_bandwidth')} onChange={(event) => this.handleChange(event,'mt_bandwidth')}/>
+                  </CCol>
+              </CFormGroup>
+              <CFormGroup row>
+                  <CCol md="7">
+                      <CLabel htmlFor="p_value">Valor de P:</CLabel>
+                  </CCol>
+                  <CCol md="4">
+                      <CInput id="p_value" placeholder={"default: 'auto'"} type="number" min="0" step="0.01" value={this.getValue('p_value')} onChange={(event) => this.handleChange(event,'p_value')}/>
+                  </CCol>
+              </CFormGroup>
+            </div>:
             this.getValue('type')=='fir' ?
             <div>
                 <CFormGroup row>
                     <CCol md="7">
-                        <CLabel htmlFor="l_trans_bandwidth">Ancho de banda de transición inf. (Hz):</CLabel>
+                        <CLabel htmlFor="trans_bandwidth">Ancho de banda de transición (Hz):</CLabel>
                     </CCol>
                     <CCol md="4">
-                        <CInput id="l_trans_bandwidth" placeholder={"default: 'auto'"} type="number" min="0" step="0.01" value={this.getValue('l_trans_bandwidth')} onChange={(event) => this.handleChange(event,'l_trans_bandwidth')}/>
-                    </CCol>
-                </CFormGroup>
-                <CFormGroup row>
-                    <CCol md="7">
-                        <CLabel htmlFor="h_trans_bandwidth">Ancho de banda de transición sup. (Hz):</CLabel>
-                    </CCol>
-                    <CCol md="4">
-                        <CInput id="h_trans_bandwidth" placeholder={"default: 'auto'"} type="number" min="0" step="0.01" value={this.getValue('h_trans_bandwidth')} onChange={(event) => this.handleChange(event,'h_trans_bandwidth')}/>
+                        <CInput id="trans_bandwidth" placeholder={"Ninguno"} type="number" min="0" step="0.01" required value={this.getValue('trans_bandwidth')} onChange={(event) => this.handleChange(event,'trans_bandwidth')}/>
                     </CCol>
                 </CFormGroup>
                 <CFormGroup row>
@@ -191,11 +218,11 @@ class CommonFilterForm extends Component{
 const mapStateToProps = (state) => {
 	return{
 	    elements:state.diagram.elements,
-        channels:state.file.fileInfo.channels,
+      channels:state.file.fileInfo.channels,
 	};
 }
   
 const mapDispatchToProps = (dispatch) => {
 	return {}
 };
-export default connect(mapStateToProps, mapDispatchToProps)(CommonFilterForm)
+export default connect(mapStateToProps, mapDispatchToProps)(NotchFilterForm)
