@@ -146,6 +146,7 @@ export default [
     id: null,
     type: 'default',
     elementType: 'NOTCH',
+    formType:'ENABLE_NOTCH_FILTER_FORM',
     targetPosition: 'left',
     sourcePosition: 'right',
     data: {
@@ -154,8 +155,6 @@ export default [
     position: { x: 550, y: 80 },
     params:{
       id:null,
-      channels:['EEG 016','EEG 017'],
-      notch_freq:50,
     },
     signalsData:signalsDataTemplate,
     processParams:processParamsTemplate,

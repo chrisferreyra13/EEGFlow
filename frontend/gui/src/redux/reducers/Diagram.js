@@ -204,18 +204,28 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                 if(rest.process["process_node_ids"].includes(item.id)){processed=true}
                 else{processed=false}
 
-                if(rest.process["process_result_ids"].hasOwnProperty(item.id)){
+                if(rest.process["process_result_ids"]!=undefined){
+                    if(rest.process["process_result_ids"].hasOwnProperty(item.id)){
+                        return {
+                            ...item,
+                            params:{
+                                ...item.params,
+                                id:rest.process["process_result_ids"][item.id]
+                            },
+                            processParams:{
+                                processed:processed
+                            }
+                        }
+                    }
+                }else{
                     return {
                         ...item,
-                        params:{
-                            ...item.params,
-                            id:rest.process["process_result_ids"][item.id]
-                        },
                         processParams:{
                             processed:processed
                         }
                     }
                 }
+                
                 if (item.id==rest.process["node_output_id"]){
                     return {
                         ...item,
