@@ -10,11 +10,18 @@ import {
   CInputCheckbox
 } from '@coreui/react'
 
-class CustomFilterForm extends Component{
+class CommonFilterForm extends Component{
   constructor(props){
     super(props);
 
-    //const node=this.props.elements.find(n => n.id==this.props.nodeId)
+    const node=this.props.elements.find(n => n.id==this.props.nodeId)
+    const freqRange={
+      BETA:'Beta (13 - 30 Hz)',
+      ALPHA:'Alpha (8 - 13 Hz)',
+      THETA:'Theta (4 - 8 Hz)',
+      DELTA:'Delta (0.2 - 4 Hz)',
+    }
+
     const channelsOptions = this.props.channels
     const windowOptions=[ //agregar si es necesario
         {value:'blackman',label:'blackman'},
@@ -34,9 +41,7 @@ class CustomFilterForm extends Component{
     this.state={
       default:{
         channels:null,
-        type:'fir',
-        l_freq:null,
-        h_freq:null
+        type:'fir'
       },
       channelsOptions:channelsOptions.map(ch => {
         return {value:ch,label:ch}
@@ -44,6 +49,7 @@ class CustomFilterForm extends Component{
       windowOptions:windowOptions,
       phaseOptions:phaseOptions,
       firDesignOptions:firDesignOptions,
+      freqRange:freqRange[node.elementType]
     }
 
     this.handleChange = this.handleChange.bind(this);
@@ -98,23 +104,15 @@ class CustomFilterForm extends Component{
     return (
       <div>
         <CFormGroup row>
+            <CCol md="12">
+                <CLabel htmlFor="description">Filtro {this.state.freqRange}</CLabel>
+            </CCol>
+        </CFormGroup> 
+        <CFormGroup row>
           <CCol md="12">
             <CLabel htmlFor="freq-inf">Canales</CLabel>
             <Select options={this.state.channelsOptions} isMulti value={this.getValue("channels")==null ? null : this.getValue("channels").map(ch => {return {value:ch, label:ch}})} onChange={(options) => this.handleMultiSelect(options,'channels')}/>
             {/*<CInput id="channels" placeholder="Ch1,Ch2,Ch3" required value={value('channels')} onChange={(event) => this.handleChange(event,'channels')}/>*/}
-          </CCol>
-        </CFormGroup>
-        <CFormGroup row>
-          <CCol md="12">
-            <CLabel htmlFor="frequencyWindow">Ancho de banda:</CLabel>
-              <CFormGroup row>
-                <CCol md="6">
-                    <CInput id="minFreqWindow" placeholder={"f. corte inf. (Hz)"} type="number" min="0" step="0.01" required value={this.getValue('l_freq')} onChange={(event) => this.handleChange(event,'l_freq')}/>
-                </CCol>
-                <CCol md="6">
-                  <CInput id="maxFreqWindow" placeholder={"f. corte sup (Hz)"} type="number" min="0" step="0.01" required value={this.getValue('h_freq')} onChange={(event) => this.handleChange(event,'h_freq')}/>
-                </CCol>
-              </CFormGroup>
           </CCol>
         </CFormGroup>
         <CFormGroup row>
@@ -200,4 +198,4 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
 	return {}
 };
-export default connect(mapStateToProps, mapDispatchToProps)(CustomFilterForm)
+export default connect(mapStateToProps, mapDispatchToProps)(CommonFilterForm)

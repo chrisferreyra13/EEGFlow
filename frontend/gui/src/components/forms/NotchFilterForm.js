@@ -10,7 +10,7 @@ import {
   CInputCheckbox
 } from '@coreui/react'
 
-class CustomFilterForm extends Component{
+class NotchFilterForm extends Component{
   constructor(props){
     super(props);
 
@@ -35,8 +35,11 @@ class CustomFilterForm extends Component{
       default:{
         channels:null,
         type:'fir',
-        l_freq:null,
-        h_freq:null
+        notch_freqs:null,
+        notch_widths:null,
+        trans_bandwidth:null,
+        mt_bandwidth:null,
+        p_value:null
       },
       channelsOptions:channelsOptions.map(ch => {
         return {value:ch,label:ch}
@@ -78,7 +81,7 @@ class CustomFilterForm extends Component{
   }
   componentDidMount(){
     this.props.onMountForm();
-    this.checkRadioButton('type',['fir','iir'])
+    this.checkRadioButton('type',['fir','iir','spectrum_fit'])
   }
   getValue(inputId){
     if(Object.keys(this.props.values).length === 0 && this.props.values.constructor === Object){
@@ -106,13 +109,20 @@ class CustomFilterForm extends Component{
         </CFormGroup>
         <CFormGroup row>
           <CCol md="12">
-            <CLabel htmlFor="frequencyWindow">Ancho de banda:</CLabel>
+            <CLabel htmlFor="notch_freqs">Frecuencias de interes:</CLabel>
               <CFormGroup row>
-                <CCol md="6">
-                    <CInput id="minFreqWindow" placeholder={"f. corte inf. (Hz)"} type="number" min="0" step="0.01" required value={this.getValue('l_freq')} onChange={(event) => this.handleChange(event,'l_freq')}/>
+                <CCol md="12">
+                    <CInput id="notch_freqs" placeholder={"50,63.5"} required value={this.getValue('notch_freqs')} onChange={(event) => this.handleChange(event,'notch_freqs')}/>
                 </CCol>
-                <CCol md="6">
-                  <CInput id="maxFreqWindow" placeholder={"f. corte sup (Hz)"} type="number" min="0" step="0.01" required value={this.getValue('h_freq')} onChange={(event) => this.handleChange(event,'h_freq')}/>
+              </CFormGroup>
+          </CCol>
+        </CFormGroup>
+        <CFormGroup row>
+          <CCol md="12">
+            <CLabel htmlFor="notch_widths">Ancho de cada banda de parada (Hz):</CLabel>
+              <CFormGroup row>
+                <CCol md="12">
+                    <CInput id="notch_widths" placeholder={"default: 'freqs/200'"} type="number" min="0" step="0.01" value={this.getValue('notch_widths')} onChange={(event) => this.handleChange(event,'notch_widths')}/>
                 </CCol>
               </CFormGroup>
           </CCol>
@@ -130,25 +140,40 @@ class CustomFilterForm extends Component{
                     <CInputRadio custom id="iir" name="filter-method" value="iir" onChange={(event) => this.handleChangeInputRadio(event,'iir','type')}/>
                     <CLabel variant="custom-checkbox" htmlFor="iir">IIR</CLabel>
                 </CFormGroup>
+                <CFormGroup variant="custom-radio" inline>
+                    <CInputRadio custom id="spectrum_fit" name="filter-method" value="spectrum_fit" onChange={(event) => this.handleChangeInputRadio(event,'spectrum_fit','type')}/>
+                    <CLabel variant="custom-checkbox" htmlFor="spectrum_fit">Ajuste del espectro</CLabel>
+                </CFormGroup>
             </CCol>
         </CFormGroup>
           {
+            this.getValue('type')=='spectrum_fit' ?
+            <div>
+              <CFormGroup row>
+                  <CCol md="7">
+                      <CLabel htmlFor="mt_bandwidth">Ancho de banda multitaper (Hz):</CLabel>
+                  </CCol>
+                  <CCol md="4">
+                      <CInput id="mt_bandwidth" placeholder={"default: 'auto"} type="number" min="0" step="0.01" value={this.getValue('mt_bandwidth')} onChange={(event) => this.handleChange(event,'mt_bandwidth')}/>
+                  </CCol>
+              </CFormGroup>
+              <CFormGroup row>
+                  <CCol md="7">
+                      <CLabel htmlFor="p_value">Valor de P:</CLabel>
+                  </CCol>
+                  <CCol md="4">
+                      <CInput id="p_value" placeholder={"default: 'auto'"} type="number" min="0" step="0.01" value={this.getValue('p_value')} onChange={(event) => this.handleChange(event,'p_value')}/>
+                  </CCol>
+              </CFormGroup>
+            </div>:
             this.getValue('type')=='fir' ?
             <div>
                 <CFormGroup row>
                     <CCol md="7">
-                        <CLabel htmlFor="l_trans_bandwidth">Ancho de banda de transición inf. (Hz):</CLabel>
+                        <CLabel htmlFor="trans_bandwidth">Ancho de banda de transición (Hz):</CLabel>
                     </CCol>
                     <CCol md="4">
-                        <CInput id="l_trans_bandwidth" placeholder={"default: 'auto'"} type="number" min="0" step="0.01" value={this.getValue('l_trans_bandwidth')} onChange={(event) => this.handleChange(event,'l_trans_bandwidth')}/>
-                    </CCol>
-                </CFormGroup>
-                <CFormGroup row>
-                    <CCol md="7">
-                        <CLabel htmlFor="h_trans_bandwidth">Ancho de banda de transición sup. (Hz):</CLabel>
-                    </CCol>
-                    <CCol md="4">
-                        <CInput id="h_trans_bandwidth" placeholder={"default: 'auto'"} type="number" min="0" step="0.01" value={this.getValue('h_trans_bandwidth')} onChange={(event) => this.handleChange(event,'h_trans_bandwidth')}/>
+                        <CInput id="trans_bandwidth" placeholder={"Ninguno"} type="number" min="0" step="0.01" required value={this.getValue('trans_bandwidth')} onChange={(event) => this.handleChange(event,'trans_bandwidth')}/>
                     </CCol>
                 </CFormGroup>
                 <CFormGroup row>
@@ -193,11 +218,11 @@ class CustomFilterForm extends Component{
 const mapStateToProps = (state) => {
 	return{
 	    elements:state.diagram.elements,
-        channels:state.file.fileInfo.channels,
+      channels:state.file.fileInfo.channels,
 	};
 }
   
 const mapDispatchToProps = (dispatch) => {
 	return {}
 };
-export default connect(mapStateToProps, mapDispatchToProps)(CustomFilterForm)
+export default connect(mapStateToProps, mapDispatchToProps)(NotchFilterForm)

@@ -98,7 +98,7 @@ def get_events(filepath):
     events = mne.find_events(raw) #, stim_channel='STI 014') Si no pongo un canal especifico, busca en distintos canales
     return events
 
-def notch_filter(raw,notch_freq=50,channels=None):
+def notch_filter(raw,notch_freqs=[50.0],channels=None, filter_method='fir',**kwargs):
     
     raw_eeg=raw.copy().pick_types(eeg=True)
     raw_eeg.load_data()
@@ -108,7 +108,34 @@ def notch_filter(raw,notch_freq=50,channels=None):
     else:
         channels_idxs=mne.pick_channels(raw_eeg.info['ch_names'], include=channels)
 
-    raw_filtered=raw_eeg.notch_filter(freqs=(notch_freq),picks=channels_idxs)
+    if filter_method=='spectrum_fit':
+        raw_filtered=raw_eeg.notch_filter(
+            freqs=None, #tuple(notch_freqs),
+            picks=channels_idxs, 
+            method=filter_method,
+            notch_widths=kwargs["notch_widths"],
+            mt_bandwidth=kwargs["mt_bandwidth"],
+            p_value=kwargs["p_value"],
+            )
+    elif filter_method=='fir':
+        raw_filtered=raw_eeg.notch_filter(
+            freqs=tuple(notch_freqs),
+            picks=channels_idxs, 
+            method=filter_method,
+            notch_widths=kwargs["notch_widths"], 
+            trans_bandwidth=kwargs["trans_bandwidth"],
+            phase=kwargs["phase"],
+            fir_window=kwargs["fir_window"],
+            fir_design=kwargs["fir_design"],
+            )
+    else:
+        raw_filtered=raw_eeg.notch_filter(
+            freqs=tuple(notch_freqs),
+            picks=channels_idxs, 
+            method=filter_method,
+            notch_widths=kwargs["notch_widths"], 
+            iir_params=kwargs["iir_params"]
+            )
 
     return raw_filtered
 
