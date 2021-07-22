@@ -75,7 +75,7 @@ def make_process_result_file(request,process_name,content):
 
     return process_result_id
 
-def check_params(request,params_names=None,params_values=None):
+def check_params(query_params,params_names=None,params_values=None):
     if params_names==None:
         params_names=['save_output','return_output']    # Default params
     if params_values==None:
@@ -84,18 +84,18 @@ def check_params(request,params_names=None,params_values=None):
     params=dict(zip(params_names,params_values))
     p=False
     for param_name in params_names:
-        if param_name in request.query_params:
-            p=request.query_params[param_name]
+        if param_name in query_params:
+            p=query_params[param_name]
             
             if p!='' and p!='undefined' and p!=None:
-                if type(params[param_name])==int:
+                if type(params[param_name])==int or params[param_name]==None:
                     try:
                         p=int(p)
                         params[param_name]=p
                     except:
                         return Response('An invalid {} field has been provided.'.format(param_name),
                                 status=status.HTTP_400_BAD_REQUEST)
-                elif type(params[param_name])==str:
+                elif type(params[param_name])==str or params[param_name]==None:
                     params[param_name]=p
     
     return params

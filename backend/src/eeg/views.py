@@ -393,7 +393,7 @@ class GetPSD(APIView):
         if type_of_psd=='welch':
             fields=["n_fft","n_overlap","n_per_seg","window","average"]
             defaults=[int(raw.info["sfreq"]*(time_window[1]-time_window[0])/2),0,None,'boxcar','mean']
-            welch_params=check_params(request,params_names=fields,params_values=defaults)
+            welch_params=check_params(request.query_params,params_names=fields,params_values=defaults)
             if type(welch_params)==Response: return welch_params
 
             psds,freqs=psd(
@@ -410,7 +410,7 @@ class GetPSD(APIView):
         elif type_of_psd=='multitaper':
             fields=["bandwidth","adaptive","low_bias","normalization"]
             defaults=[4,False,False,'length']
-            multitaper_params=check_params(request,params_names=fields,params_values=defaults)
+            multitaper_params=check_params(request.query_params,params_names=fields,params_values=defaults)
             if type(multitaper_params)==Response: return multitaper_params
 
             psds,freqs=psd(
