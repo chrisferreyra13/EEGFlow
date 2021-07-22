@@ -12,11 +12,11 @@ def convert_power_to_db(x):
     '''
     return 10*np.log10(x)
 
-def time_frequency(instance, picks=None,type='morlet',return_itc=True): # Instance can be epochs or raw
+def time_frequency(instance, picks=None,type_of_tf='morlet',return_itc=True): # Instance can be epochs or raw
     freqs = np.logspace(*np.log10([6, 35]), num=8)
     n_cycles = freqs / 2.
     
-    if type=='morlet':
+    if type_of_tf=='morlet':
         power,itc=mne.time_frequency.tfr_morlet(
             instance,
             picks=picks,
@@ -27,10 +27,10 @@ def time_frequency(instance, picks=None,type='morlet',return_itc=True): # Instan
             decim=3,
             n_jobs=1
         )
-    elif type=='multitaper':
+    elif type_of_tf=='multitaper':
         print('hola')
 
-    elif type=='stockwell':
+    elif type_of_tf=='stockwell':
         print('hola')
 
     if return_itc:
