@@ -7,7 +7,7 @@ import {
     FETCH_RUN_PROCESS_REQUEST,
     FETCH_RUN_PROCESS_RECEIVE,
     FETCH_RUN_PROCESS_FAILURE,
-    PROCESSES_TO_START,
+    PROCESS_TO_START,
     FETCH_SIGNAL_REQUEST,
     FETCH_SIGNAL_RECEIVE,
     FETCH_SIGNAL_FAILURE,
@@ -72,7 +72,7 @@ const initialState={
     ],
     nodesCount: 2,
     lastId: 2,
-    processes_status:[], //[TOSTART, PROCESSING, SUCCESFULL, FAIL]
+    processes_status:{}, //[TOSTART, PROCESSING, SUCCESFULL, FAIL]
     inputsReady:[]
 }
 
@@ -172,26 +172,25 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                 elements: elements,
             })
 
-        case PROCESSES_TO_START:
+        case PROCESS_TO_START:
             let i=0
-            processes_status=[]
-            for(i;i<rest.numberOfProcesses;i++){
-                processes_status.push('TOSTART')
-            }
+            processes_status={}
+            processes_status[rest['processId']]='TOSTART'
+            
             return Object.assign({},state,{
                 processes_status: processes_status, //PROCESSING
             })
         
         case PROCESS_IS_COMPLETED:
-            processes_status=[]
+            processes_status={}
             processes_status=JSON.parse(JSON.stringify(state.processes_status))
             processes_status[rest.process['process_id']]='SUCCESFULL'
             return Object.assign({},state,{
-                processes_status: processes_status, //PROCESSING
+                processes_status: processes_status, //SUCCESFULL
             })
 
         case FETCH_RUN_PROCESS_REQUEST:
-            processes_status=[]
+            processes_status={}
             processes_status=JSON.parse(JSON.stringify(state.processes_status))
             processes_status[rest.process['process_id']]='PROCESSING'
             return Object.assign({},state,{
@@ -249,7 +248,7 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                 }
             })
             // Seteo process en SUCCESFULL
-            processes_status=[]
+            processes_status={}
             processes_status=JSON.parse(JSON.stringify(state.processes_status))
             processes_status[rest.process['process_id']]=rest.process["process_status"]
              
@@ -259,7 +258,7 @@ export const diagram= (state=initialState, {type, ...rest})=>{
             })
 
         case FETCH_RUN_PROCESS_FAILURE:
-            processes_status=[]
+            processes_status={}
             processes_status=JSON.parse(JSON.stringify(state.processes_status))
             processes_status[rest.process['process_id']]=rest.process["process_status"]
             return Object.assign({},state,{

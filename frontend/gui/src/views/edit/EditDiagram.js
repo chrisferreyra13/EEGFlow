@@ -142,13 +142,19 @@ class EditDiagram extends Component{
   }
 
   componentDidUpdate(prevProps){
-    if(prevProps.inputsReady!==this.props.inputsReady){
+    if(prevProps.processes_status!==this.props.processes_status){
       this.setElements(this.state.elements.map(elem => {
-        if(this.props.inputsReady.includes(elem.id)){
-          return {
-            ...elem,
-            style:{ borderColor: '#2eb85c', boxShadow: '0px 0px 0.5px #2eb85c' },
-          }
+        if(Object.keys(this.props.processes_status).includes(elem.id)){
+          if(this.props.processes_status[elem.id]=='SUCCESFULL')
+            return {
+              ...elem,
+              style:{ borderColor: '#2eb85c', boxShadow: '0px 0px 0.5px #2eb85c' },
+            }
+          else
+            return {
+              ...elem,
+              style:{},
+            }
         }else{
           return elem
         }
@@ -209,6 +215,7 @@ const mapStateToProps = (state) => {
     fileInfo:state.file.fileInfo,
     fileId: state.file.fileId,
     elements:state.diagram.elements,
+    processes_status:state.diagram.processes_status
   };
 }
 

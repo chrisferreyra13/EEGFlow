@@ -76,11 +76,11 @@ export function runProcessFailure(json){
     }
 }
 
-export const PROCESSES_TO_START='PROCESSES_TO_START'
-export function processesToStart(len){
+export const PROCESS_TO_START='PROCESS_TO_START'
+export function processToStart(id){
     return{
-        type: PROCESSES_TO_START,
-        numberOfProcesses:len
+        type: PROCESS_TO_START,
+        processId:id
     }
 }
 
@@ -207,7 +207,7 @@ export const runProcess= (elements) => async (dispatch) => {
     //let header= new Headers()
     let url=null
     let initFetch=null
-    cont=0
+    let process_id=0
     url = API_ROOT+'process/?'
     initFetch={
         method: 'POST',
@@ -217,14 +217,16 @@ export const runProcess= (elements) => async (dispatch) => {
         },
         };
 
-    dispatch(processesToStart(processes.length))
+    
     for(process of processes){
+        process_id=process[process.length-1].id
+        dispatch(processToStart({'process_id':process_id}))
         initFetch={...initFetch, body:JSON.stringify({"process": process}),}
         if(process.every((n) => n.processed==true)){
-            dispatch(processIsCompleted({'process_id':cont}))
+            dispatch(processIsCompleted({'process_id':process_id}))
         }
         else{
-            dispatch(runProcessRequest({'process_id':cont}))
+            dispatch(runProcessRequest({'process_id':process_id}))
             try {
                 fetch(url,initFetch)
                 .then(res => res.json())
@@ -233,7 +235,7 @@ export const runProcess= (elements) => async (dispatch) => {
                     dispatch(runProcessReceive({
                         'process_status':json["process_status"],
                         'process_result_ids':json["process_result_ids"],
-                        'process_id':cont,
+                        'process_id':process_id,
                         'process_node_ids':process.map((node)=> node.id),
                         'node_output_id':process[process.length-1].id,
                         'node_input_id':process[process.length-2].id
@@ -244,7 +246,7 @@ export const runProcess= (elements) => async (dispatch) => {
             }
             catch (error){
                 dispatch(runProcessFailure({
-                    'process_id':cont,
+                    'process_id':process_id,
                     'process_status':'FAIL',
                 }))
             }
