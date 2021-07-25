@@ -43,6 +43,7 @@ const initialState={
         formType:'ENABLE_PLOT_TIME_SERIES_FORM',
         targetPosition:'left',
         data: { label: 'Grafico en tiempo' },
+        //style: { borderColor: '#2eb85c', boxShadow: '0px 0px 0.5px #2eb85c' },
         position: { x: 500, y: 20 },
         draggable:true,
         inputData:{
@@ -229,6 +230,7 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                 if (item.id==rest.process["node_output_id"]){
                     return {
                         ...item,
+                        style: { borderColor: '#2eb85c', boxShadow: '0px 0px 0.5px #2eb85c' },
                         inputData:{
                             fetchInput:true,
                             inputNodeId:rest.process["node_input_id"], //Ya puedo ir a buscar el resultado
