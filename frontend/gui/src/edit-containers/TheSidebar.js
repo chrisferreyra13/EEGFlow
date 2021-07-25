@@ -8,6 +8,8 @@ import {
   CDropdownItem,
   CDropdownMenu,
   CDropdownToggle,
+  CCol,
+  CRow
 } from '@coreui/react'
 
 import { enableChartTemporal } from '../redux/actions/SideBar'
@@ -62,22 +64,22 @@ const TheSidebar = ({show, addNode, enableForm, diagramView, linkDiagram}) => {
         />
         
         </CSidebarNav>*/}
-      <CDropdown className="m-1 d-inline-block">
-        <CDropdownToggle color="secondary">
-          Graficos
-        </CDropdownToggle>
-          <CDropdownMenu
-            placement="right-start"
-            modifiers={[{name: 'flip', enabled: false }]}
-          >
-            <CDropdownItem onClick={() => onClick('ENABLE_PLOT_TIME_SERIES_FORM','PLOT_TIME_SERIES')} onDragStart={(event) => onDragStart(event, 'PLOT_TIME_SERIES')} draggable>Temporal</CDropdownItem>
-            <CDropdownItem onClick={() => onClick('ENABLE_PLOT_PSD_FORM','PLOT_PSD')} onDragStart={(event) => onDragStart(event, 'PLOT_PSD')} draggable>PSD</CDropdownItem>
-            <CDropdownItem onClick={() => onClick(null,'PLOT_TIME_FREQUENCY')} onDragStart={(event) => onDragStart(event, 'PLOT_TIME_FREQUENCY')} draggable>Tiempo - Frecuencia</CDropdownItem>
-            <CDropdownItem disable="true">Topografico</CDropdownItem>
-          </CDropdownMenu>
+        <CDropdown className="m-1 d-inline-block" variant="btn-group">
+          <CDropdownToggle color="secondary">
+            Graficos
+          </CDropdownToggle>
+            <CDropdownMenu
+              placement="right-start"
+              modifiers={[{name: 'flip', enabled: false }]}
+            >
+              <CDropdownItem onClick={() => onClick('ENABLE_PLOT_TIME_SERIES_FORM','PLOT_TIME_SERIES')} onDragStart={(event) => onDragStart(event, 'PLOT_TIME_SERIES')} draggable>Temporal</CDropdownItem>
+              <CDropdownItem onClick={() => onClick('ENABLE_PLOT_PSD_FORM','PLOT_PSD')} onDragStart={(event) => onDragStart(event, 'PLOT_PSD')} draggable>PSD</CDropdownItem>
+              <CDropdownItem onClick={() => onClick(null,'PLOT_TIME_FREQUENCY')} onDragStart={(event) => onDragStart(event, 'PLOT_TIME_FREQUENCY')} draggable>Tiempo - Frecuencia</CDropdownItem>
+              <CDropdownItem disable="true">Topografico</CDropdownItem>
+            </CDropdownMenu>
         </CDropdown>
 
-        <CDropdown className="m-1 d-inline-block">
+        <CDropdown className="m-1 d-inline-block" variant="btn-group">
         <CDropdownToggle color="secondary">
           Herramientas
         </CDropdownToggle>
@@ -93,7 +95,7 @@ const TheSidebar = ({show, addNode, enableForm, diagramView, linkDiagram}) => {
           </CDropdownMenu>
         </CDropdown>
 
-        <CDropdown className="m-1 d-inline-block">
+        <CDropdown className="m-1 d-inline-block" variant="btn-group">
         <CDropdownToggle color="secondary">
           Filtros
         </CDropdownToggle>
@@ -113,7 +115,7 @@ const TheSidebar = ({show, addNode, enableForm, diagramView, linkDiagram}) => {
           </CDropdownMenu>
         </CDropdown>
 
-        <CDropdown className="m-1 d-inline-block">
+        <CDropdown className="m-1 d-inline-block" variant="btn-group">
         <CDropdownToggle color="secondary">
           Metodos
         </CDropdownToggle>
