@@ -21,6 +21,7 @@ import { updateAfterDeleteElements, updateNodePropierties, addNode, addNewEdge, 
 import { diagramView, linkDiagram } from '../../redux/actions/EditSession';
 import { enableForm } from '../../redux/actions/Form'
 import {getFileInfo} from '../../redux/actions/File'
+import { element } from 'prop-types';
 
 class EditDiagram extends Component{
   constructor(props){
@@ -140,7 +141,23 @@ class EditDiagram extends Component{
     //this.setElements([...this.props.elements]);
   }
 
+  componentDidUpdate(prevProps){
+    if(prevProps.inputsReady!==this.props.inputsReady){
+      this.setElements(this.state.elements.map(elem => {
+        if(this.props.inputsReady.includes(elem.id)){
+          return {
+            ...elem,
+            style:{ borderColor: '#2eb85c', boxShadow: '0px 0px 0.5px #2eb85c' },
+          }
+        }else{
+          return elem
+        }
+      }))
+    }  
+  }
+
   render(){
+
     return (
       <div>
         <CRow className="dndflow" style={{height:this.state.contentHeight}}>
@@ -183,7 +200,7 @@ function purge(elements){
         ...item,
         signalsData:[]
       }
-})
+  })
 }
 
 

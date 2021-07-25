@@ -131,9 +131,9 @@ def filter_step(**kwargs):
             sf_params=check_params(params,params_names=fields,params_values=defaults)
             if type(sf_params)==Response: return sf_params
 
-            if sf_params["trans_bandwidth"] is not None:
+            if sf_params["mt_bandwidth"] is not None:
                 sf_params["mt_bandwidth"]=float(sf_params["mt_bandwidth"])
-            if sf_params["trans_bandwidth"] is not None:
+            if sf_params["p_value"] is not None:
                 sf_params["p_value"]=float(sf_params["p_value"])
             
             try:

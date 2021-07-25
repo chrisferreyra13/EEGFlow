@@ -81,7 +81,7 @@ class NotchFilterForm extends Component{
   }
   componentDidMount(){
     this.props.onMountForm();
-    this.checkRadioButton('type',['fir','iir','spectrum_fit'])
+    this.checkRadioButton('type',['fir','iir'])//,'spectrum_fit'])
   }
   getValue(inputId){
     if(Object.keys(this.props.values).length === 0 && this.props.values.constructor === Object){
@@ -140,14 +140,16 @@ class NotchFilterForm extends Component{
                     <CInputRadio custom id="iir" name="filter-method" value="iir" onChange={(event) => this.handleChangeInputRadio(event,'iir','type')}/>
                     <CLabel variant="custom-checkbox" htmlFor="iir">IIR</CLabel>
                 </CFormGroup>
+                {/*
                 <CFormGroup variant="custom-radio" inline>
                     <CInputRadio custom id="spectrum_fit" name="filter-method" value="spectrum_fit" onChange={(event) => this.handleChangeInputRadio(event,'spectrum_fit','type')}/>
                     <CLabel variant="custom-checkbox" htmlFor="spectrum_fit">Ajuste del espectro</CLabel>
                 </CFormGroup>
+                */}
             </CCol>
         </CFormGroup>
           {
-            this.getValue('type')=='spectrum_fit' ?
+            /*this.getValue('type')=='spectrum_fit' ?
             <div>
               <CFormGroup row>
                   <CCol md="7">
@@ -165,7 +167,7 @@ class NotchFilterForm extends Component{
                       <CInput id="p_value" placeholder={"default: 'auto'"} type="number" min="0" step="0.01" value={this.getValue('p_value')} onChange={(event) => this.handleChange(event,'p_value')}/>
                   </CCol>
               </CFormGroup>
-            </div>:
+            </div>:*/
             this.getValue('type')=='fir' ?
             <div>
                 <CFormGroup row>
