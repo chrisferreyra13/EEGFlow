@@ -85,7 +85,7 @@ export const diagram= (state=initialState, {type, ...rest})=>{
     let newSignalData;
     switch(type){
         case ADD_NODE: 
-            var stateCopy=Object.assign({},state);
+            /*var stateCopy=Object.assign({},state);
             var nodeIndex=lastNodeIndex(stateCopy.elements)//,stateCopy.lastId)
             stateCopy.elements.push(Object.assign({},allowedElements.find(element => element.elementType===rest.elementType)));
             stateCopy.lastId=parseInt(stateCopy.elements[nodeIndex].id)+1;
@@ -96,11 +96,26 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                                                                         x: position.x+250,
                                                                         y: position.y+100
                                                                     })
+            */
+            
+            //Get the new elem from allowed elements
+            let newElement=JSON.parse(JSON.stringify(allowedElements.find(element => element.elementType===rest.elementType)))
+            //Get the last node index (the list has nodes and edges)
+            let nodeIdx=lastNodeIndex(state.elements)
+            let lastId=parseInt(JSON.parse(JSON.stringify(state.elements[nodeIdx].id)))+1;
+            // Assign new id for the new element
+            newElement.id=(lastId).toString();
 
+            //update position to be more spread
+            let position=JSON.parse(JSON.stringify(state.elements[nodeIdx].position))
+            newElement.position={
+                x: position.x+250,
+                y: position.y+100
+            }                            
             return Object.assign({},state,{
-                elements: stateCopy.elements,
-                nodesCount: stateCopy.nodesCount,
-                lastId: stateCopy.lastId
+                elements: [...state.elements, newElement],
+                nodesCount: state.nodesCount+1,
+                lastId: lastId
             })
 
         case UPDATE_NODE_PROPIERTIES:
