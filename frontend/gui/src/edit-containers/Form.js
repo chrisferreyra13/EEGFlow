@@ -47,14 +47,13 @@ class Form extends Component{
     });
   };
   handleMountForm = () =>{ //Busco los parametros del nodo
-
     const elem=this.props.elements.find(element => element.id==this.props.nodeId); // Devuelve el valor del primer elemento que cumple
     let params={};
     if(elem!=undefined){
-      if(elem.params!=null) params=elem.params;
+      if(elem.params!=null) params=elem.params; 
     }
-    this.setState({ values: params});
-
+    this.setState({ values: {...params}});
+    
   }
   
 

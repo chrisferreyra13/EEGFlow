@@ -11,6 +11,8 @@ import ChartChannelTime from '../ChartChannelTime'
 import ChartChannelsTime from '../ChartChannelsTime'
 import {PrepareDataForPlot} from '../../../tools/Utils'
 
+import {updatePlotParams} from '../../../redux/actions/Plot' 
+
 
 
 //import  CanvasJSReact from '../../canvasjs/canvasjs.react'
@@ -70,6 +72,7 @@ class ChartTemporal extends Component {
 		if(nodePlot.inputData.fetchInput){
 			const nodeInput=this.props.elements.find((elem) => elem.id==nodePlot.inputData.inputNodeId)
 			const signalData=nodeInput.signalsData.find(d => d.dataType==dataType)
+
 			if(nodeInput.params.channels==undefined){
 				channels=nodePlot.params.channels
 			}
@@ -78,14 +81,24 @@ class ChartTemporal extends Component {
 			}
 			if(signalData==undefined){
 				this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType)
-				//this.props.updatePlotParams({...nodePlot.params})
+				this.props.updatePlotParams(nodePlot.id,{...nodePlot.params})
 			}
 			else{
-				if(!signalData.dataReady){ //|| JSON.stringify(this.props.prevParams)!==JSON.stringify(nodePlot.params)){
+				if(!signalData.dataReady){
 					this.props.deleteItemInputsReady(signalData.id)
 					oldSignalId=signalData.id
 					this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType)
-					//this.props.updatePlotParams({...nodePlot.params})	
+					this.props.updatePlotParams(nodePlot.id,{...nodePlot.params})
+				}
+				else{
+					if(Object.keys(this.props.prevParams).includes(nodePlot.id)){
+						if(JSON.stringify(this.props.prevParams[nodePlot.id])!==JSON.stringify(nodePlot.params)){
+							this.props.deleteItemInputsReady(signalData.id)
+							oldSignalId=signalData.id
+							this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType)
+							this.props.updatePlotParams(nodePlot.id,{...nodePlot.params})
+						}
+					}
 				}
 			}
 		}
@@ -176,26 +189,23 @@ class ChartTemporal extends Component {
 						}
 					</CCardBody>
 				</CCard>
-
 			</>
-			
 		)
-		
     }
 }
-
 
 const mapStateToProps = (state) => {
 	return{
 	  elements:state.diagram.elements,
-	  inputsReady: state.diagram.inputsReady
-	  
+	  inputsReady: state.diagram.inputsReady,
+	  prevParams:state.plotParams.plots
 	};
 }
   
 const mapDispatchToProps = (dispatch) => {
 	return {
 		fetchSignal: (id,channels,plotParams,nodeId,type) => dispatch(fetchSignal(id,channels,plotParams,nodeId,type)),
+		updatePlotParams: (params) => dispatch(updatePlotParams(params)),
 	};
 };
 export default connect(mapStateToProps, mapDispatchToProps)(ChartTemporal)

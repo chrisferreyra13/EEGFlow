@@ -125,7 +125,7 @@ class EditDiagram extends Component{
     };
     this.props.addNode(type)
     this.props.updateNodePropierties('',propierties);
-    this.setElements([...purge(this.props.elements)]);
+    
   };
   onElementClick(event,element){
     if (event.detail===2){
@@ -159,6 +159,9 @@ class EditDiagram extends Component{
           return elem
         }
       }))
+    }
+    if(prevProps.elements!==this.props.elements){
+      this.setElements([...purge(this.props.elements)]);
     }  
   }
 
