@@ -4,6 +4,14 @@ from cconsciente.settings.base import MEDIA_TEMP, MEDIA_STORED, MEDIA_PROC_TEMP_
 
 LOAD_RESTORE_PARAM_NAME = 'id'
 
+def peak_step(**kwargs):
+    input=kwargs["input"] #objeto raw
+    params=kwargs["params"]
+    thresh=params["thresh"]
+    channels=params["channels"]
+    peaks_idx=peak_finder(input,channels,thresh)
+    return peaks_idx
+
 def time_series_step(**kwargs):
     params=kwargs["params"]
     if LOAD_RESTORE_PARAM_NAME not in params: # Return if not fileid for processing
@@ -260,5 +268,6 @@ steps={
     'DELTA':filter_step,
     'THETA':filter_step,
     'NOTCH':filter_step,
-    'CUSTOM_FILTER':filter_step
+    'CUSTOM_FILTER':filter_step,
+    'MAX_PEAK':peak_step
 }
