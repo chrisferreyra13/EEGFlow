@@ -82,7 +82,10 @@ class RunProcess(APIView):
                 return output
             else:
                 if step['save_output']==True:
-                    process_result_id=make_output_raw_file(request,process_name=step['elementType'],raw_output=output)
+                    if type(output)==dict:
+                        process_result_id=make_method_result_file(data=output["method_result"])
+                    else:
+                        process_result_id=make_output_raw_file(request,process_name=step['elementType'],raw_output=output)
 
                     if type(process_result_id).__name__=='Response':
                         return process_result_id # Hubo un error
@@ -90,9 +93,14 @@ class RunProcess(APIView):
                         process_result_ids[step["id"]]=process_result_id
                         #process_result_ids.append(process_result_id)
 
-                input=output
+                if type(output)==dict:
+                    input=output["raw"]
+                else:
+                    input=output
 
             num_step+=1
+
+
 class FileInfoView(APIView):
     
     def get(self, request, format=None):

@@ -272,7 +272,7 @@ export default [
     position: { x: 550, y: 80 },
     params:{
       thresh:null, //(max(x0) - min(x0)) / 4.
-      channels:["EEG 016","EEG 017" ],
+      channels:["EEG 001","EEG 002" ],
             
     },
     processParams:processParamsTemplate,

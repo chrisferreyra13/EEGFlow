@@ -7,10 +7,35 @@ LOAD_RESTORE_PARAM_NAME = 'id'
 def peak_step(**kwargs):
     input=kwargs["input"] #objeto raw
     params=kwargs["params"]
-    thresh=params["thresh"]
-    channels=params["channels"]
-    peaks_idx=peak_finder(input,channels,thresh)
-    return peaks_idx
+
+    #SELECT CHANNELS
+    #get requested channels
+    channels=get_request_channels(params)
+    if type(channels)==Response:
+        return channels
+
+    fields=["thresh"]
+    defaults=[None]
+    peak_params=check_params(params,params_names=fields,params_values=defaults)
+    if type(peak_params)==Response: return peak_params
+
+    if peak_params["thresh"] is not None:
+        peak_params["thresh"]=float(peak_params["thresh"])
+
+    try:
+        peaks=peak_finder(
+            raw=input,
+            channels=channels,
+            thresh=peak_params["thresh"]
+            )
+
+    except TypeError:
+        return Response('Invalid data for peak finder method',
+                    status=status.HTTP_406_NOT_ACCEPTABLE)
+
+    #TODO: agregar un save_peaks in file
+
+    return {"raw":input,"method_result":peaks}
 
 def time_series_step(**kwargs):
     params=kwargs["params"]

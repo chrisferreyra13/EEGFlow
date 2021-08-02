@@ -5,7 +5,7 @@ import {
 	CCardGroup,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import {fetchSignal} from '../../../redux/actions/Diagram'
+import {fetchSignal,deleteItemInputsReady} from '../../../redux/actions/Diagram'
 import {connect} from 'react-redux'
 import ChartChannelTime from '../ChartChannelTime'
 import ChartChannelsTime from '../ChartChannelsTime'
@@ -206,6 +206,7 @@ const mapDispatchToProps = (dispatch) => {
 	return {
 		fetchSignal: (id,channels,plotParams,nodeId,type) => dispatch(fetchSignal(id,channels,plotParams,nodeId,type)),
 		updatePlotParams: (params) => dispatch(updatePlotParams(params)),
+		deleteItemInputsReady: (id) => dispatch(deleteItemInputsReady(id)),
 	};
 };
 export default connect(mapStateToProps, mapDispatchToProps)(ChartTemporal)
