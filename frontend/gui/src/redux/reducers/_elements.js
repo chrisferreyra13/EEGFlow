@@ -270,7 +270,12 @@ export default [
       label: 'Pico maximo'
     },
     position: { x: 550, y: 80 },
-    params:null,
+    params:{
+      thresh:null, //(max(x0) - min(x0)) / 4.
+      channels:["EEG 016","EEG 017" ],
+            
+    },
+    processParams:processParamsTemplate,
   }
   ////////
 ];
