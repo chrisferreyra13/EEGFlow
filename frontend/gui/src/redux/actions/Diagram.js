@@ -104,7 +104,12 @@ export const runProcess= (elements) => async (dispatch) => {
     let target=null
     let output=null
     let input=null
+    let save_output=false
+    //SAVE LIST
+    const saveList=["MAX_PEAK"]
+
     for(i;i<elements.length;i++){
+        save_output=false
         if(elements[i].elementType==undefined){
 
             source=diagram.find(n => n.id==elements[i].source)
@@ -129,6 +134,9 @@ export const runProcess= (elements) => async (dispatch) => {
             else{
                 input=[]
             }
+            if(saveList.includes(elements[i].elementType)){
+                save_output=true
+            }
                 
             diagram.push({
                 id:elements[i].id,
@@ -138,7 +146,7 @@ export const runProcess= (elements) => async (dispatch) => {
                 output:output,
                 params:elements[i].params,
                 processed:elements[i].processParams.processed,
-                save_output:false,
+                save_output:save_output,
                 return_output:false,
             })
 

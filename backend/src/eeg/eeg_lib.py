@@ -183,11 +183,11 @@ def peak_finder(raw,channels=None,thresh=None):
     else:
         channels_idxs=mne.pick_channels(raw_eeg.info['ch_names'], include=channels)
     
-    series=raw_eeg.get_data(picks=channels_idxs)
-    peaks_idx=[]
+    time_series=raw_eeg.get_data(picks=channels_idxs)
+    peaks=[]
 
-    for serie in series:
-        idx,_=mne.preprocessing.peak_finder(serie, thresh=thresh)
-        peaks_idx.append(idx)
+    for serie in time_series:
+        locs,amplitudes=mne.preprocessing.peak_finder(serie, thresh=thresh)
+        peaks.append({"locations":locs, "amplitudes":amplitudes})
 
-    return peaks_idx
+    return peaks

@@ -153,7 +153,7 @@ def get_upload(upload_id):
     try:
         tu = get_temporary_upload(upload_id)
     except TemporaryUpload.DoesNotExist as e:
-        LOG.error('TemporaryUpload with ID [%s] not found: [%s]'
+        print('TemporaryUpload with ID [%s] not found: [%s]'
                     % (upload_id, str(e)))
         raise FileNotFoundError
 
@@ -193,3 +193,7 @@ def get_request_channels(params):
                     status=status.HTTP_400_BAD_REQUEST)
 
     return channels
+
+def make_method_result_file(data):
+
+    return '1234ABCD'
