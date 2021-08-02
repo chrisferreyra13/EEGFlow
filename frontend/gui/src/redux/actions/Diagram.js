@@ -232,6 +232,11 @@ export const runProcess= (elements) => async (dispatch) => {
                 .then(res => res.json())
                 .then(json => {
                     
+                    process=processes.filter(p => {
+                        if(p.find(n => n.id==json["output_id"])!=undefined)
+                            return true
+                        else return false
+                    })[0]
                     dispatch(runProcessReceive({
                         'process_status':json["process_status"],
                         'process_result_ids':json["process_result_ids"],

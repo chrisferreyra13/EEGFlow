@@ -71,7 +71,7 @@ class RunProcess(APIView):
         print('[INFO]: Running process...')
         for step in process:
             print('[INFO]: STEP {}/{} | PARAMS:{}'.format(num_step,num_of_steps,step['params']))
-            output=steps[step['elementType']](input=input,params=step['params'],step_type=step['elementType'])
+            output=steps[step['elementType']](input=input,params=step['params'],step_type=step['elementType'],step_id=step["id"])
 
             if type(output).__name__=='Response':
                 if type(output.data)==str: #Es un error
