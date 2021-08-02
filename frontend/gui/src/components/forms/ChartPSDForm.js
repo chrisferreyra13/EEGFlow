@@ -98,7 +98,6 @@ class ChartPSDForm extends Component{
       }else{
         return this.props.values[inputId]
       }
-        
     }
   }
 

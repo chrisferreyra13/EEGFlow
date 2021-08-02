@@ -33,7 +33,9 @@ def time_series_step(**kwargs):
 def result_step(**kwargs):
     return Response({
             'process_status':'SUCCESFULL',
-            'result':kwargs["step_type"]
+            'result':kwargs["step_type"],
+            'output_id':kwargs["step_id"]
+
         })
 
 def filter_step(**kwargs):
