@@ -5,7 +5,7 @@ import {
 	CCardGroup,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import {fetchSignal,deleteItemInputsReady} from '../../../redux/actions/Diagram'
+import {fetchSignal,deleteItemInputsReady,fetchMethodResult} from '../../../redux/actions/Diagram'
 import {connect} from 'react-redux'
 import ChartChannelTime from '../ChartChannelTime'
 import ChartChannelsTime from '../ChartChannelsTime'
@@ -13,7 +13,7 @@ import {PrepareDataForPlot} from '../../../tools/Utils'
 
 import {updatePlotParams} from '../../../redux/actions/Plot' 
 
-
+const METHOD_NODES=["MAX_PEAK","EVENTS"]
 
 //import  CanvasJSReact from '../../canvasjs/canvasjs.react'
 //import {Line} from 'react-chartjs-2'
@@ -25,7 +25,7 @@ class ChartTemporal extends Component {
 		let params={}
 		if(nodePlot.params.channels==null){ 
 			params={ //Default params
-				channels:['EEG 016'], //Para ChartTemporal, los canales son una lista de strings
+				channels:['EEG 01'], //Para ChartTemporal, los canales son una lista de strings
 				minXWindow:null,
      			maxXWindow:null,
 				size:'l'
@@ -42,6 +42,7 @@ class ChartTemporal extends Component {
 		}
 
 		this.preprocessData=this.preprocessData.bind(this);
+		this.preprocessMethodResult=this.preprocessMethodResult.bind(this);
 
 		let style={} //Seteando las dimensiones del grafico en base a los parametros
 		switch(params.size){
@@ -68,6 +69,9 @@ class ChartTemporal extends Component {
 		let dataReady=false;
 		let channels;
 		let oldSignalId=null;
+		let methodResultExists=false;
+		let methodResultReady=false;
+		let methodResult=[];
 		const dataType='TIME_SERIES';
 		if(nodePlot.inputData.fetchInput){
 			const nodeInput=this.props.elements.find((elem) => elem.id==nodePlot.inputData.inputNodeId)
@@ -82,6 +86,11 @@ class ChartTemporal extends Component {
 			if(signalData==undefined){
 				this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType)
 				this.props.updatePlotParams(nodePlot.id,{...nodePlot.params})
+
+				if(METHOD_NODES.includes(nodeInput.elementType)){
+					this.props.fetchMethodResult(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,nodeInput.elementType)
+					methodResultExists=true
+				}
 			}
 			else{
 				if(!signalData.dataReady){
@@ -89,6 +98,11 @@ class ChartTemporal extends Component {
 					oldSignalId=signalData.id
 					this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType)
 					this.props.updatePlotParams(nodePlot.id,{...nodePlot.params})
+
+					if(METHOD_NODES.includes(nodeInput.elementType)){
+						this.props.fetchMethodResult(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,nodeInput.elementType)
+						methodResultExists=true
+					}
 				}
 				else{
 					if(Object.keys(this.props.prevParams).includes(nodePlot.id)){
@@ -97,6 +111,11 @@ class ChartTemporal extends Component {
 							oldSignalId=signalData.id
 							this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType)
 							this.props.updatePlotParams(nodePlot.id,{...nodePlot.params})
+
+							if(METHOD_NODES.includes(nodeInput.elementType)){
+								this.props.fetchMethodResult(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,nodeInput.elementType)
+								methodResultExists=true
+							}
 						}
 					}
 				}
@@ -111,6 +130,9 @@ class ChartTemporal extends Component {
 			style:style,
 			data:data,
 			oldSignalId:oldSignalId,
+			methodResultReady:methodResultReady,
+			methodResult:methodResult,
+			methodResultExists:methodResultExists,
 
 		}
 
@@ -150,6 +172,24 @@ class ChartTemporal extends Component {
 		})
 
 	}
+	preprocessMethodResult(signalData){
+		if(this.state.methodResultReady==true){
+			return
+		}
+		let methodResult;
+		if(signalData.dataType="MAX_PEAK"){
+			methodResult=signalData.chNames.map((chN,i) => {
+				return {
+					channel:chN,
+					locations:signalData.data[i]["locations"]
+				}
+			})
+		}
+		this.setState({
+			methodResult:methodResult,
+			methodResultReady:true,
+		})
+	}
 
     render() {
 		const nodeInput=this.props.elements.find((elem) => elem.id==this.state.inputNodeId)
@@ -158,6 +198,14 @@ class ChartTemporal extends Component {
 			if(signalData!=undefined){
 				if(this.props.inputsReady.includes(signalData.id) && this.state.oldSignalId!=signalData.id){
 					this.preprocessData(signalData)
+				}
+			}
+			if(this.state.methodResultExists){
+				const signalData=nodeInput.signalsData.find(d => d.dataType==nodeInput.elementType)
+				if(signalData!=undefined){
+					if(this.props.inputsReady.includes(signalData.id) && this.state.oldSignalId!=signalData.id){
+						this.preprocessMethodResult(signalData)
+					}
 				}
 			}
 		}
@@ -170,11 +218,13 @@ class ChartTemporal extends Component {
 							<div style={this.state.style}>
 								{this.state.params.channels.length==1 ?
 								<ChartChannelTime
+								methodResult={this.state.methodResult}
 								data={this.state.data[0]}
 								chartStyle={{height: '100%', width:'100%'}}
 								channel={this.state.params.channels[0]} //Lo dejamos por las dudas --->//==undefined ? nodeInput.dataParams.chNames[0] : this.state.params.channels[0]}
 								/> :
 								<ChartChannelsTime
+								methodResult={this.state.methodResult}
 								data={this.state.data}
 								chartStyle={{height: '100%', width:'100%'}}
 								channels={this.state.params.channels}
@@ -205,6 +255,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
 	return {
 		fetchSignal: (id,channels,plotParams,nodeId,type) => dispatch(fetchSignal(id,channels,plotParams,nodeId,type)),
+		fetchMethodResult:(id,channels,plotParams,nodeId,type) => dispatch(fetchMethodResult(id,channels,plotParams,nodeId,type)),
 		updatePlotParams: (params) => dispatch(updatePlotParams(params)),
 		deleteItemInputsReady: (id) => dispatch(deleteItemInputsReady(id)),
 	};

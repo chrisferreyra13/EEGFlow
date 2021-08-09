@@ -11,6 +11,9 @@ import {
     FETCH_SIGNAL_REQUEST,
     FETCH_SIGNAL_RECEIVE,
     FETCH_SIGNAL_FAILURE,
+    FETCH_METHOD_RESULT_REQUEST,
+    FETCH_METHOD_RESULT_RECEIVE,
+    FETCH_METHOD_RESULT_FAILURE,
     SET_NODE_FILE_ID,
     PROCESS_IS_COMPLETED,
     DELETE_ITEM_INPUTS_READY,
@@ -51,7 +54,7 @@ const initialState={
             inputNodeId:'1',
         },
         params:{
-            channels:['EEG 016','EEG 017'],
+            channels:['EEG 001','EEG 002'],
             minXWindow:null,
             maxXWindow:null,
             size:'l',
@@ -83,6 +86,9 @@ export const diagram= (state=initialState, {type, ...rest})=>{
     let processed;
     let newSignalsData;
     let newSignalData;
+    let signalData;
+    let index;
+    let exists;
     switch(type){
         case ADD_NODE: 
             /*var stateCopy=Object.assign({},state);
@@ -282,9 +288,9 @@ export const diagram= (state=initialState, {type, ...rest})=>{
         
         case FETCH_SIGNAL_REQUEST:
             inputsReady=JSON.parse(JSON.stringify(state.inputsReady))
-            let index=0;
+            index=0;
             newSignalsData=[]
-            let signalData;
+            signalData={}
             elements=state.elements.map((item) => {
                 if(item.signalsData!=undefined && item.signalsData.length!=0)
                     signalData=item.signalsData.find(d => d.dataType==rest.dataType)
@@ -332,7 +338,7 @@ export const diagram= (state=initialState, {type, ...rest})=>{
 
         case FETCH_SIGNAL_RECEIVE:
             inputsReady=JSON.parse(JSON.stringify(state.inputsReady))
-            let exists=false
+            exists=false
             newSignalsData=[]
             newSignalData={
                 id:uuidv4(),
@@ -382,6 +388,99 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                 })
                 
         case FETCH_SIGNAL_FAILURE:
+            return {...state, ...rest}
+
+        case FETCH_METHOD_RESULT_REQUEST:
+            inputsReady=JSON.parse(JSON.stringify(state.inputsReady))
+            index=0;
+            newSignalsData=[]
+            elements=state.elements.map((item) => {
+                if(item.signalsData!=undefined && item.signalsData.length!=0)
+                    signalData=item.signalsData.find(d => d.dataType==rest.dataType)
+                    if(signalData!=undefined){
+                        if(signalData.dataReady==false){
+                            index=inputsReady.findIndex(id => id==signalData.id)
+                            if(index!=-1){
+                                inputsReady.splice(index,1)
+                            }
+                        }
+                    }
+                
+
+                if (item.id == rest.nodeId) {
+                    if(item.signalsData.length==0){
+                        newSignalsData.push({dataType:rest.dataType,dataReady:false})
+                    }
+                    else{
+                        newSignalsData=item.signalsData.map(d => {
+                            if(d.dataType==rest.dataType){
+                                d.dataReady=false
+                            }
+                            return d
+                        })
+                    }
+                    return {
+                        ...item,
+                        signalsData:newSignalsData,
+                    }
+                }else{
+                    return item
+                }
+            })
+
+            return Object.assign({},state,{
+                elements: elements,
+                inputsReady:inputsReady
+                })
+
+        case FETCH_METHOD_RESULT_RECEIVE:
+            inputsReady=JSON.parse(JSON.stringify(state.inputsReady))
+            exists=false
+            newSignalsData=[]
+            newSignalData={
+                id:uuidv4(),
+                data:rest.methodResult['data'],
+                chNames:rest.methodResult['ch_names'],
+                dataType:rest.dataType,
+                dataReady:true,
+            }
+            
+            elements=state.elements.map((item) => {
+                if (item.id == rest.nodeId){
+                    /*if(item.signalsData.length==0){
+                        inputsReady.push(newSignalData.id)
+                        item.signalsData.push(newSignalData)
+                    }*/
+                    //else
+                    newSignalsData=item.signalsData.map(d => { 
+                        if(d.dataType==rest.dataType){
+                            inputsReady.push(newSignalData.id)
+                            d=newSignalData
+                            exists=true
+                        }
+                        return d
+                    })
+                    if(!exists){
+                        inputsReady.push(newSignalData.id)
+                        newSignalsData.push(newSignalData)
+                    }
+                    
+                    return {
+                        ...item,
+                        signalsData:newSignalsData
+                    }
+                }
+                else{
+                    return item
+                } 
+            })
+
+            return Object.assign({},state,{
+                elements: elements,
+                inputsReady:inputsReady
+                })
+                
+        case FETCH_METHOD_RESULT_FAILURE:
             return {...state, ...rest}
         
         case DELETE_ITEM_INPUTS_READY:

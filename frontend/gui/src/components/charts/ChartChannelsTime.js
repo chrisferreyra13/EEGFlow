@@ -22,7 +22,8 @@ import {
     Themes,
     UIRectangle,
     UITextBox,
-    UIElementColumn
+    UIElementColumn,
+    PointShape
 } from "@arction/lcjs"
 
 // TODO: Poner los estilos en un css
@@ -79,9 +80,6 @@ class ChartChannels extends Component {
                     thickness: 2,
                     fillStyle: new SolidFill({ color: ColorHEX('#5aafc7') })
                 }))
-                // Specify data to be cleaned after a buffer of approx. 10 seconds.
-                // Regardless of this value, data has to be out of view to be cleaned in any case.
-                //.setMaxPointCount(approxPointsPerSecondChannel * 10)
             // Add Label to Y-axis that displays the Channel name.
             this.axisY.addCustomTick()
                 .setValue((i + 0.5) * channelHeight + i * channelGap)
@@ -102,29 +100,37 @@ class ChartChannels extends Component {
                 }))
             return series
         })
-
-        // Create random progressive data stream using 'xydata' library.
-        let pointsAdded = 0
-        //const randomPointGenerator = createProgressiveRandomGenerator()
-            // Generator will repeat same Y values after every 10k points.
-            //.setNumberOfPoints(10 * 1000)
+        
         this.series.forEach((series, i) => {
-            /*const streamInterval = 1000 / 60
-            const streamBatchSize = Math.ceil(approxPointsPerSecondChannel / streamInterval)*/
-            /*randomPointGenerator
-                .generate()
-                .setStreamRepeat(true)
-                .setStreamBatchSize(streamBatchSize)
-                .setStreamInterval(streamInterval)
-                .toStream()*/
-            this.props.data[i].forEach((point) => {
-                    // Increase Y coordinate based on Series index, so that Series aren't on top of each other.
-
+            this.props.data[i].forEach((point) => {    
                     point.y += ((i+0.5) * channelHeight + i * channelGap)
                     series.add(point)      
-                    pointsAdded++
-                })
+                    //pointsAdded++
+                })                         
         })
+
+        if(this.props.methodResult.length!=0){
+            this.pointSeries = channels.map((ch, i) => {
+                const series = this.chart
+                    .addPointSeries({
+                        pointShape: PointShape.Circle
+                    })
+                    .setName(ch)
+                    .setPointSize(8.0)
+
+                return series
+            })
+            //let pointsAdded = 0
+            let p;
+            this.pointSeries.forEach((series, i) => {
+                this.props.methodResult[i]["locations"].forEach(idx =>{
+                    if(idx<this.props.data[i].length){
+                        series.add(this.props.data[i][idx])  
+                    }
+                    
+                })
+            })
+        }
 
         // Style AutoCursor.
         this.chart.setAutoCursor((autoCursor) => autoCursor

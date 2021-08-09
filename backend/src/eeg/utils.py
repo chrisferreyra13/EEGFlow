@@ -1,6 +1,6 @@
 
 import os
-
+import pickle
 from django.core.files.base import ContentFile
 
 from rest_framework import status
@@ -18,7 +18,18 @@ from cconsciente.settings.base import MEDIA_TEMP, MEDIA_STORED, MEDIA_PROC_TEMP_
 
 LOAD_RESTORE_PARAM_NAME = 'id'
 
-def get_temp_output_filepath(request,process_result_id=None):
+def get_temp_method_result_filename(request,process_result_id=None):
+    
+    #TODO: check if process_result_id exists in the DB!!! Ahora cabeza
+
+    user=_get_user(request)
+    if user==None:
+        user='anon'
+
+    filename=user+'_'+process_result_id+'_method.pkl'
+    return filename
+
+def get_temp_output_filename(request,process_result_id=None):
     
     #TODO: check if process_result_id exists in the DB!!! Ahora cabeza
 
@@ -194,6 +205,28 @@ def get_request_channels(params):
 
     return channels
 
-def make_method_result_file(data):
+def make_method_result_file(request,data,process_result_id=None):
+    if process_result_id is not None:
+        user=_get_user(request)
+        if user==None:
+            user='anon'
 
-    return '1234ABCD'
+        filename=user+'_'+process_result_id+'_method.pkl'
+        filepath=os.path.join(MEDIA_PROC_TEMP_OUTPUT_PATH,filename)
+        method_result_file = open(filepath, "wb")
+        pickle.dump(data, method_result_file)
+        method_result_file.close()
+
+    return process_result_id
+
+
+def get_method_result_data(media_path,filepath=None):
+    if filepath is None:
+        raise TypeError
+
+    full_filepath=os.path.join(media_path,filepath)
+    method_result_file = open(full_filepath, "rb")
+    method_result_data = pickle.load(method_result_file)
+    method_result_file.close()
+
+    return method_result_data

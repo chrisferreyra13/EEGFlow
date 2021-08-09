@@ -259,6 +259,8 @@ export default [
     },
     position: { x: 550, y: 80 },
     params:null,
+    signalsData:signalsDataTemplate,
+    processParams:processParamsTemplate,
   },
   {
     id: null,
@@ -275,6 +277,7 @@ export default [
       channels:["EEG 001","EEG 002" ],
             
     },
+    signalsData:signalsDataTemplate,
     processParams:processParamsTemplate,
   }
   ////////

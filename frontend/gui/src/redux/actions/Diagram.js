@@ -106,7 +106,7 @@ export const runProcess= (elements) => async (dispatch) => {
     let input=null
     let save_output=false
     //SAVE LIST
-    const saveList=["MAX_PEAK"]
+    //const saveList=["MAX_PEAK"]
 
     for(i;i<elements.length;i++){
         save_output=false
@@ -134,9 +134,9 @@ export const runProcess= (elements) => async (dispatch) => {
             else{
                 input=[]
             }
-            if(saveList.includes(elements[i].elementType)){
+            /*if(saveList.includes(elements[i].elementType)){
                 save_output=true
-            }
+            }*/
                 
             diagram.push({
                 id:elements[i].id,
@@ -469,6 +469,81 @@ export const fetchSignal = (id, channels, plotParams, nodeId, dataType) => async
     }
     catch (error){
         dispatch(errorFetchingSignal({error, 'nodeId':nodeId}))
+    }
+    
+}
+
+export const FETCH_METHOD_RESULT_REQUEST = 'FETCH_METHOD_RESULT_REQUEST'
+function requestMethodResult(nodeId, dataType) {
+  return {
+    type: FETCH_METHOD_RESULT_REQUEST,
+    nodeId:nodeId,
+    dataType:dataType
+  }
+}
+
+export const FETCH_METHOD_RESULT_RECEIVE = 'FETCH_METHOD_RESULT_RECEIVE'
+function receiveMethodResult(payload) {
+  return {
+    type: FETCH_METHOD_RESULT_RECEIVE,
+    methodResult:payload["methodResult"],
+    nodeId:payload["nodeId"],
+    dataType:payload["dataType"]
+    
+  }
+}
+
+export const FETCH_METHOD_RESULT_FAILURE = 'FETCH_METHOD_RESULT_FAILURE'
+function errorFetchingMethodResult(payload){
+    return {
+        type: FETCH_METHOD_RESULT_FAILURE,
+        error:payload["error"],
+        nodeId:payload["nodeId"]
+    }
+}
+
+export const fetchMethodResult = (id, channels, plotParams, nodeId, dataType) => async (dispatch) => {
+    let endpoint=API_ROOT;
+    let requestParams;
+    switch(dataType){
+        case 'MAX_PEAK':
+            endpoint=endpoint+'methods/peaks/?'
+            requestParams={
+                id:id,
+                channels: channels==undefined ? '': channels
+            }
+            break
+        case 'EVENTS':
+            endpoint=endpoint+ 'events/?'
+            break
+        default:
+            endpoint=endpoint+ 'time_series/?'
+            requestParams={
+                id:id,
+                channels: channels==undefined ? '': channels
+            }
+            break
+    }
+
+    let url = endpoint + new URLSearchParams(requestParams)
+    
+    let header= new Headers()
+    var initFetch={
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+      };
+
+    dispatch(requestMethodResult(nodeId,dataType))
+    try {
+        //await fetcher(url,initFetch)
+        await fetch(url,initFetch)
+        .then(res => res.json())
+        .then(methodResult => dispatch(receiveMethodResult({methodResult, 'nodeId':nodeId, 'dataType':dataType})))
+    }
+    catch (error){
+        dispatch(errorFetchingMethodResult({error, 'nodeId':nodeId}))
     }
     
 }
