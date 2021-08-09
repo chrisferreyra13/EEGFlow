@@ -172,7 +172,7 @@ class ChartSpectrum extends Component {
 		}
 		return (
 			<>
-				<CCard>
+				
 					<CCardBody >
 						{ this.state.dataReady ?
 							<div style={this.state.style}>
@@ -189,7 +189,7 @@ class ChartSpectrum extends Component {
 							</div>
 						}
 					</CCardBody>
-				</CCard>
+				
 			</>
 			
 		)

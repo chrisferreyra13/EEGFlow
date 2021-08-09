@@ -56,12 +56,7 @@ class ChartTemporal extends Component {
 					width:'600px'
 				}
 				break;
-			case 's':
-				style={
-					height:'40vh',
-					width:'600px'
-				}
-				break;
+		
 		}
 
 		let data=[];
@@ -164,19 +159,20 @@ class ChartTemporal extends Component {
 
 		return (
 			<>
-				<CCard>
-					<CCardBody >
+				
+					<CCardBody style={{alignItems:'center'}}>
 						{ this.state.dataReady ?
-							<div style={this.state.style}>
+							<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
 								{this.state.params.channels.length==1 ?
 								<ChartChannelTime
 								data={this.state.data[0]}
-								chartStyle={{height: '100%', width:'100%'}}
+								chartStyle={{height: '100%', width:'100%', alignItems:'center'}}
 								channel={this.state.params.channels[0]} //Lo dejamos por las dudas --->//==undefined ? nodeInput.dataParams.chNames[0] : this.state.params.channels[0]}
 								/> :
 								<ChartChannelsTime
+								
 								data={this.state.data}
-								chartStyle={{height: '100%', width:'100%'}}
+								chartStyle={{height: '100%', width:'100%', alignItems:'center'}}
 								channels={this.state.params.channels}
 								/>
 								}
@@ -188,7 +184,7 @@ class ChartTemporal extends Component {
 							</div>
 						}
 					</CCardBody>
-				</CCard>
+				
 			</>
 		)
     }
