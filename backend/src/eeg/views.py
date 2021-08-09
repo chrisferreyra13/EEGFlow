@@ -62,11 +62,7 @@ class RunProcess(APIView):
         num_step=1
         num_of_steps=len(process)
         # Preparing output format...
-        process_result_ids={}
-        # process_step_types=[step["elementType"] for step in process]
-        # output_format_step=process[len(process)-1]["elementType"]
-        # result_step=process[process[len(process)-2]]
-        
+        process_result_ids={}      
 
         print('[INFO]: Running process...')
         for step in process:
@@ -83,7 +79,9 @@ class RunProcess(APIView):
             else:
                 if step['save_output']==True:
                     if type(output)==dict:
-                        process_result_id=make_method_result_file(data=output["method_result"])
+                        process_result_id=make_output_raw_file(request,process_name=step['elementType'],raw_output=output["raw"])
+                        make_method_result_file(request,data=output["method_result"],process_result_id=process_result_id)
+                        
                     else:
                         process_result_id=make_output_raw_file(request,process_name=step['elementType'],raw_output=output)
 
@@ -189,7 +187,7 @@ class GetTimeSeries(APIView):
             media_path=MEDIA_TEMP
 
         else:
-            filepath=get_temp_output_filepath(request,process_result_id=id)
+            filepath=get_temp_output_filename(request,process_result_id=id)
             media_path=MEDIA_PROC_TEMP_OUTPUT_PATH
 
         # Get the raw
@@ -253,7 +251,7 @@ class GetTimeFrequency(APIView):
             media_path=MEDIA_TEMP
 
         else:
-            filepath=get_temp_output_filepath(request,process_result_id=id)
+            filepath=get_temp_output_filename(request,process_result_id=id)
             media_path=MEDIA_PROC_TEMP_OUTPUT_PATH
 
         # Get the raw
@@ -322,7 +320,7 @@ class GetPSD(APIView):
             media_path=MEDIA_TEMP
 
         else:
-            filepath=get_temp_output_filepath(request,process_result_id=id)
+            filepath=get_temp_output_filename(request,process_result_id=id)
             media_path=MEDIA_PROC_TEMP_OUTPUT_PATH
 
         # Get the raw
@@ -656,7 +654,7 @@ class CustomFilterView(APIView):
         return response
 
 
-class PeakView(APIView):
+class GetPeaks(APIView):
     
     def get(self, request, format=None):
 
@@ -666,53 +664,41 @@ class PeakView(APIView):
 
         id=request.query_params[LOAD_RESTORE_PARAM_NAME]
 
-        file_info=get_file_info(id)
-        if type(file_info).__name__=='Response':
-            return file_info
+        # Check if is a number or an id result and get the filepath
 
+        filepath=get_temp_method_result_filename(request,process_result_id=id)
+        media_path=MEDIA_PROC_TEMP_OUTPUT_PATH
+
+        # Get the method result
         try:
-            tu = get_upload(file_info.upload_id)
-        except FileNotFoundError:
-            Response('Not found', status=status.HTTP_404_NOT_FOUND)
+            method_result=get_method_result_data(media_path,filepath)
+        except TypeError:
+            return Response('Invalid file extension',
+                        status=status.HTTP_406_NOT_ACCEPTABLE)
         
         #get requested channels
         channels=get_request_channels(request.query_params)
         if type(channels)==Response:
-            return channels 
+            return channels
 
-        if 'thresh' not in request.query_params:
-            thresh=None # Default
-        else:
-            thresh=request.query_params['thresh']
-            if (thresh=='') or (not thresh):
-                thresh=None
-            else:     
-                try:
-                    thresh=float(thresh)
-                except:
-                    return Response('An invalid thresh has been provided.',
-                        status=status.HTTP_400_BAD_REQUEST)
-
-        #PROCESS
-        try:
-            filepath=os.path.join(tu.upload_id,tu.upload_name)
-            raw=get_raw(MEDIA_TEMP,filepath)
-        except TypeError:
-            return Response('Invalid file extension',
-                        status=status.HTTP_406_NOT_ACCEPTABLE)
-
-        try:
-            peaks_idx=peak_finder(raw,channels,thresh)
-        except TypeError:
-            return Response('Invalid file extension',
-                        status=status.HTTP_406_NOT_ACCEPTABLE)
-
-
-        if channels==None:
-            channels='all'
+        # if channels==None: # Si es None, agarro todos
+        #     channels_idxs=mne.pick_types(raw.info,eeg=True) #Retorna los indices internos de raw
+        #     eeg_info=mne.pick_info(raw.info, sel=channels_idxs)
+        #     returned_channels=eeg_info["ch_names"]
+            
+        # else:
+        #     returned_channels=channels
+        #     ch_names=raw.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
+        #     if set(channels).issubset(set(ch_names)):
+        #         channels_idxs=mne.pick_channels(ch_names, include=channels) #Retorna los indices internos de raw
+        #     else:
+        #         return Response('An invalid list of channels has been provided.',
+        #                     status=status.HTTP_400_BAD_REQUEST)
 
         response=Response({
-            'peaks_idx': peaks_idx,
-            'used_channels': channels,
-        })
+            "data":method_result,
+            "ch_names":channels
+            })
+
+        
         return response
