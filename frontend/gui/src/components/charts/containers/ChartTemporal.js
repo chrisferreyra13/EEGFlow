@@ -76,7 +76,7 @@ class ChartTemporal extends Component {
 		const dataType='TIME_SERIES';
 		if(nodePlot.inputData.inputNodeId!=null){
 			const nodeInput=this.props.elements.find((elem) => elem.id==nodePlot.inputData.inputNodeId)
-			let signalData=nodeInput.signalsData.find(d => d.dataType==dataType)
+			//let signalData=nodeInput.signalsData.find(d => d.dataType==dataType)
 
 			if(nodeInput.params.channels==undefined){
 				channels=nodePlot.params.channels
@@ -84,8 +84,12 @@ class ChartTemporal extends Component {
 			else{
 				channels=nodeInput.params.channels
 			}
+			let signalData=nodeInput.signalsData.find(s => {
+				if(s.processId==nodePlot.processParams.processId && s.dataType==dataType)return true
+				return false
+			})
 			if(signalData==undefined){
-				this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType)
+				this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType,nodePlot.processParams.processId)
 				this.props.updatePlotParams(nodePlot.id,{...nodePlot.params})
 
 				if(METHOD_NODES.includes(nodeInput.elementType)){
@@ -97,7 +101,7 @@ class ChartTemporal extends Component {
 				if(!signalData.dataReady){
 					this.props.deleteItemInputsReady(signalData.id)
 					oldSignalId=signalData.id
-					this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType)
+					this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType,nodePlot.processParams.processId)
 					this.props.updatePlotParams(nodePlot.id,{...nodePlot.params})
 
 					if(METHOD_NODES.includes(nodeInput.elementType)){
@@ -110,7 +114,7 @@ class ChartTemporal extends Component {
 						if(JSON.stringify(this.props.prevParams[nodePlot.id])!==JSON.stringify(nodePlot.params)){
 							this.props.deleteItemInputsReady(signalData.id)
 							oldSignalId=signalData.id
-							this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType)
+							this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType,nodePlot.processParams.processId)
 							this.props.updatePlotParams(nodePlot.id,{...nodePlot.params})
 
 							if(METHOD_NODES.includes(nodeInput.elementType)){
@@ -154,6 +158,7 @@ class ChartTemporal extends Component {
 		this.state={
 			dataReady:dataReady,
 			inputNodeId:nodePlot.inputData.inputNodeId,
+			processId:nodePlot.processParams.processId,
 			dataType:dataType,
 			params:params,
 			style:style,
@@ -233,7 +238,10 @@ class ChartTemporal extends Component {
 		if(prevProps.inputsReady!==this.props.inputsReady){
 			const nodeInput=this.props.elements.find((elem) => elem.id==this.state.inputNodeId)
 			if(nodeInput!=undefined){
-				const signalData=nodeInput.signalsData.find(d => d.dataType==this.state.dataType)
+				let signalData=nodeInput.signalsData.find(s => {
+					if(s.processId==this.state.processId && s.dataType==this.state.dataType)return true
+					return false
+				})
 				if(signalData!=undefined){
 					if(this.props.inputsReady.includes(signalData.id) && this.state.oldSignalId!=signalData.id){
 						if(this.state.dataReady==false){
@@ -242,7 +250,7 @@ class ChartTemporal extends Component {
 					}
 				}
 				if(this.state.methodResultExists){
-					const signalData=nodeInput.signalsData.find(d => d.dataType==nodeInput.elementType)
+					let signalData=nodeInput.signalsData.find(d => d.dataType==nodeInput.elementType)
 					if(signalData!=undefined){
 						if(this.props.inputsReady.includes(signalData.id) && this.state.oldSignalId!=signalData.id){
 							if(this.state.methodResultReady==false || this.state.dataReady==true){
@@ -302,7 +310,7 @@ const mapStateToProps = (state) => {
   
 const mapDispatchToProps = (dispatch) => {
 	return {
-		fetchSignal: (id,channels,plotParams,nodeId,type) => dispatch(fetchSignal(id,channels,plotParams,nodeId,type)),
+		fetchSignal: (id,channels,plotParams,nodeId,type,plotProcessId) => dispatch(fetchSignal(id,channels,plotParams,nodeId,type,plotProcessId)),
 		fetchMethodResult:(id,channels,plotParams,nodeId,type) => dispatch(fetchMethodResult(id,channels,plotParams,nodeId,type)),
 		updatePlotParams: (id,params) => dispatch(updatePlotParams(id,params)),
 		deleteItemInputsReady: (id) => dispatch(deleteItemInputsReady(id)),

@@ -91,18 +91,6 @@ export const diagram= (state=initialState, {type, ...rest})=>{
     let exists;
     switch(type){
         case ADD_NODE: 
-            /*var stateCopy=Object.assign({},state);
-            var nodeIndex=lastNodeIndex(stateCopy.elements)//,stateCopy.lastId)
-            stateCopy.elements.push(Object.assign({},allowedElements.find(element => element.elementType===rest.elementType)));
-            stateCopy.lastId=parseInt(stateCopy.elements[nodeIndex].id)+1;
-            stateCopy.nodesCount=stateCopy.nodesCount+1
-            stateCopy.elements[stateCopy.elements.length-1].id=(stateCopy.lastId).toString();
-            var position=stateCopy.elements[nodeIndex].position
-            stateCopy.elements[stateCopy.elements.length-1].position=Object.assign({},position,{
-                                                                        x: position.x+250,
-                                                                        y: position.y+100
-                                                                    })
-            */
             
             //Get the new elem from allowed elements
             let newElement=JSON.parse(JSON.stringify(allowedElements.find(element => element.elementType===rest.elementType)))
@@ -254,9 +242,11 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                         inputData:{
                             fetchInput:true,
                             inputNodeId:rest.process["node_input_id"], //Ya puedo ir a buscar el resultado
+                            
                         },
                         processParams:{
-                            processed:processed
+                            processed:processed,
+                            processId: rest.process["process_id"]
                         }
                     }
                 }else{
@@ -346,6 +336,7 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                 dataType:rest.dataType,
                 sFreq:rest.signalData['sampling_freq'],
                 chNames:rest.signalData['ch_names'],
+                processId:rest.processId,
                 dataReady:true,
             }
             if(rest.signalData["freqs"]!=undefined){
@@ -359,6 +350,7 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                         item.signalsData.push(newSignalData)
                     }*/
                     //else
+                    //Reviso si existe el signalData
                     newSignalsData=item.signalsData.map(d => { 
                         if(d.dataType==rest.dataType){
                             inputsReady.push(newSignalData.id)
@@ -367,6 +359,7 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                         }
                         return d
                     })
+                    //si no existe, lo agrego
                     if(!exists){
                         inputsReady.push(newSignalData.id)
                         newSignalsData.push(newSignalData)

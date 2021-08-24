@@ -375,7 +375,8 @@ function receiveSignal(payload) {
     type: FETCH_SIGNAL_RECEIVE,
     signalData:payload["signalData"],
     nodeId:payload["nodeId"],
-    dataType:payload["dataType"]
+    dataType:payload["dataType"],
+    processId:payload["processId"]
     
   }
 }
@@ -402,7 +403,7 @@ function errorFetchingSignal(payload){
     }
 }*/
 
-export const fetchSignal = (id, channels, plotParams, nodeId, dataType) => async (dispatch) => {
+export const fetchSignal = (id, channels, plotParams, nodeId, dataType, plotProcessId) => async (dispatch) => {
     let endpoint=API_ROOT;
     let requestParams;
     switch(dataType){
@@ -465,7 +466,7 @@ export const fetchSignal = (id, channels, plotParams, nodeId, dataType) => async
         //await fetcher(url,initFetch)
         await fetch(url,initFetch)
         .then(res => res.json())
-        .then(signalData => dispatch(receiveSignal({signalData, 'nodeId':nodeId, 'dataType':dataType})))
+        .then(signalData => dispatch(receiveSignal({signalData, 'nodeId':nodeId, 'dataType':dataType, 'processId':plotProcessId})))
     }
     catch (error){
         dispatch(errorFetchingSignal({error, 'nodeId':nodeId}))
