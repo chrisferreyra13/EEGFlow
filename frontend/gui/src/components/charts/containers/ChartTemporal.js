@@ -36,7 +36,7 @@ class ChartTemporal extends Component {
 				channels:nodePlot.params.channels,
 				minXWindow:nodePlot.params.minTimeWindow,
 				maxXWindow:nodePlot.params.maxTimeWindow,
-				size:nodePlot.params.size
+				size:nodePlot.params.size==null ? 'm' : nodePlot.params.size
 			}
 				
 		}
@@ -67,15 +67,21 @@ class ChartTemporal extends Component {
 
 		let data=[];
 		let dataReady=false;
+
 		let channels;
 		let oldSignalId=null;
+
 		let methodResultExists=false;
 		let methodResultReady=false;
 		let methodResult=[];
+
+		let limit;
+		let minIndex=0;
+		let maxIndex=0;
 		const dataType='TIME_SERIES';
-		if(nodePlot.inputData.fetchInput){
+		if(nodePlot.inputData.inputNodeId!=null){
 			const nodeInput=this.props.elements.find((elem) => elem.id==nodePlot.inputData.inputNodeId)
-			const signalData=nodeInput.signalsData.find(d => d.dataType==dataType)
+			let signalData=nodeInput.signalsData.find(d => d.dataType==dataType)
 
 			if(nodeInput.params.channels==undefined){
 				channels=nodePlot.params.channels
@@ -120,8 +126,36 @@ class ChartTemporal extends Component {
 					}
 				}
 			}
-		}
 
+			//const nodeInput=this.props.elements.find((elem) => elem.id==this.state.inputNodeId)
+			
+			if(signalData!=undefined){
+				if(this.props.inputsReady.includes(signalData.id)){
+					data=this.preprocessData(signalData,params,false)
+					dataReady=true
+
+					limit = signalData.data[0].length;
+					minIndex=0;
+					maxIndex=limit;
+					if(params.minXWindow!=null){
+						minIndex=Math.round(params.minXWindow*signalData.sFreq)
+						if(minIndex>=limit) minIndex=0; //Se paso, tira error
+					}
+					if(params.maxXWindow!=null){
+						maxIndex=Math.round(params.maxXWindow*signalData.sFreq)
+						if(maxIndex>limit) maxIndex=limit; //Se paso, tira error
+					}
+				}
+			}
+			signalData=nodeInput.signalsData.find(d => d.dataType==nodeInput.elementType)
+			if(signalData!=undefined){
+				if(this.props.inputsReady.includes(signalData.id)){
+					methodResult=this.preprocessMethodResult(signalData,params,minIndex,false)
+					methodResultReady=true
+				}
+			}
+			
+		}
 		this.state={
 			dataReady:dataReady,
 			inputNodeId:nodePlot.inputData.inputNodeId,
@@ -133,25 +167,24 @@ class ChartTemporal extends Component {
 			methodResultReady:methodResultReady,
 			methodResult:methodResult,
 			methodResultExists:methodResultExists,
+			minIndex:minIndex,
+			maxIndex:maxIndex,
 
 		}
 
     }
 
-	preprocessData(signalData){
-		if(this.state.dataReady==true){
-			return
-		}
+	preprocessData(signalData, plotParams,updating){
 		let dataX=[]
 		let limit = signalData.data[0].length;
 		let minIndex=0;
 		let maxIndex=limit;
-		if(this.state.params.minXWindow!=null){
-			minIndex=Math.round(this.state.params.minXWindow*signalData.sFreq)
+		if(plotParams.minXWindow!=null){
+			minIndex=Math.round(plotParams.minXWindow*signalData.sFreq)
 			if(minIndex>=limit) minIndex=0; //Se paso, tira error
 		}
-		if(this.state.params.maxXWindow!=null){
-			maxIndex=Math.round(this.state.params.maxXWindow*signalData.sFreq)
+		if(plotParams.maxXWindow!=null){
+			maxIndex=Math.round(plotParams.maxXWindow*signalData.sFreq)
 			if(maxIndex>limit) maxIndex=limit; //Se paso, tira error
     	}
 
@@ -160,56 +193,76 @@ class ChartTemporal extends Component {
 			signalData.data,
 			signalData.sFreq,
 			signalData.chNames,
-			this.state.params.channels,
+			plotParams.channels,
 			minIndex,
 			maxIndex,
 			Math.pow(10,6)
 			)
-
-		this.setState({
-			data:data,
-			dataReady:true,
-		})
+		
+		if(updating)
+			this.setState({
+				data:data,
+				dataReady:true,
+				minIndex:minIndex,
+				maxIndex:maxIndex,
+			})
+		else return data
 
 	}
-	preprocessMethodResult(signalData){
-		if(this.state.methodResultReady==true){
-			return
-		}
-		let methodResult;
-		if(signalData.dataType="MAX_PEAK"){
-			methodResult=signalData.chNames.map((chN,i) => {
-				return {
-					channel:chN,
-					locations:signalData.data[i]["locations"]
+	preprocessMethodResult(signalData,plotParams,minIndex,updating){
+		let methodResult=[]
+		let newLocations=[]
+		if(signalData.dataType=="MAX_PEAK"){
+			signalData.chNames.forEach((chN,i) => {
+				if(plotParams.channels.includes(chN)){
+					newLocations=[];
+					signalData.data[i]["locations"].forEach(idx => {
+						if(idx>=minIndex)
+							newLocations.push(idx-minIndex)
+					})
+					methodResult.push({
+						channel:chN,
+						locations:newLocations,
+					})
 				}
 			})
 		}
-		this.setState({
-			methodResult:methodResult,
-			methodResultReady:true,
-		})
+		if(updating)
+			this.setState({
+				methodResult:methodResult,
+				methodResultReady:true,
+			})
+		else return methodResult
 	}
-
-    render() {
-		const nodeInput=this.props.elements.find((elem) => elem.id==this.state.inputNodeId)
-		if(nodeInput!=undefined){
-			const signalData=nodeInput.signalsData.find(d => d.dataType==this.state.dataType)
-			if(signalData!=undefined){
-				if(this.props.inputsReady.includes(signalData.id) && this.state.oldSignalId!=signalData.id){
-					this.preprocessData(signalData)
-				}
-			}
-			if(this.state.methodResultExists){
-				const signalData=nodeInput.signalsData.find(d => d.dataType==nodeInput.elementType)
+	componentDidUpdate(prevProps){
+		if(prevProps.inputsReady!==this.props.inputsReady){
+			const nodeInput=this.props.elements.find((elem) => elem.id==this.state.inputNodeId)
+			if(nodeInput!=undefined){
+				const signalData=nodeInput.signalsData.find(d => d.dataType==this.state.dataType)
 				if(signalData!=undefined){
 					if(this.props.inputsReady.includes(signalData.id) && this.state.oldSignalId!=signalData.id){
-						this.preprocessMethodResult(signalData)
+						if(this.state.dataReady==false){
+							this.preprocessData(signalData,this.state.params,true)
+						}
+					}
+				}
+				if(this.state.methodResultExists){
+					const signalData=nodeInput.signalsData.find(d => d.dataType==nodeInput.elementType)
+					if(signalData!=undefined){
+						if(this.props.inputsReady.includes(signalData.id) && this.state.oldSignalId!=signalData.id){
+							if(this.state.methodResultReady==false || this.state.dataReady==true){
+								this.preprocessMethodResult(signalData,this.state.params,this.state.minIndex,true)
+							}
+						}
 					}
 				}
 			}
 		}
+		
+	  }
 
+    render() {
+		
 		return (
 			<>
 				<CCard>
@@ -256,7 +309,7 @@ const mapDispatchToProps = (dispatch) => {
 	return {
 		fetchSignal: (id,channels,plotParams,nodeId,type) => dispatch(fetchSignal(id,channels,plotParams,nodeId,type)),
 		fetchMethodResult:(id,channels,plotParams,nodeId,type) => dispatch(fetchMethodResult(id,channels,plotParams,nodeId,type)),
-		updatePlotParams: (params) => dispatch(updatePlotParams(params)),
+		updatePlotParams: (id,params) => dispatch(updatePlotParams(id,params)),
 		deleteItemInputsReady: (id) => dispatch(deleteItemInputsReady(id)),
 	};
 };
