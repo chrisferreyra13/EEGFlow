@@ -48,7 +48,7 @@ export default [
     },
     inputData:{
       fetchInput:false,
-      inputNodeId:'',
+      inputNodeId:null,
 
     },
     processParams:processParamsTemplate,

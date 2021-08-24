@@ -5,7 +5,8 @@ import {
     SolidFill,
     ColorHEX,
     Themes,
-    customTheme
+    customTheme,
+    PointShape
 } from '@arction/lcjs'
 
 class ChartChannel extends Component {
@@ -43,6 +44,21 @@ class ChartChannel extends Component {
 
         // Add data points from props to the lineSeries.
         this.lineSeries.add(this.props.data)
+
+        if(this.props.methodResult.length!=0){
+            this.pointSerie = this.chart
+                .addPointSeries({pointShape: PointShape.Circle})
+                .setName(this.props.channel)
+                .setPointSize(8.0)
+
+            this.props.methodResult[0]["locations"].forEach(idx =>{
+                if(idx<this.props.data.length){
+                    this.pointSerie.add(this.props.data[idx])  
+                }  
+            })
+        }
+
+
     }
 
     componentDidMount() {
