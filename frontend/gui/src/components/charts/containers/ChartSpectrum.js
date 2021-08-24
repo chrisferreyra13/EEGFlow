@@ -77,30 +77,21 @@ class ChartSpectrum extends Component {
 			else{
 				channels=nodeInput.params.channels
 			}
-			const signalData=nodeInput.signalsData.find(s => {
-				if(s.dataType==dataType){
-					if(nodePlot.params.channels.some(c => s.chNames.includes(c)))
-						return true
-				}
+			let signalData=nodeInput.signalsData.find(s => {
+				if(s.processId==nodePlot.processParams.processId && s.dataType==dataType)return true
+
 				return false
-				
 			})
 			
-			if(nodeInput.params.channels==undefined){
-				channels=nodePlot.params.channels
-			}
-			else{
-				channels=nodeInput.params.channels
-			}
 			if(signalData==undefined){
-				this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType)
+				this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType,nodePlot.processParams.processId)
 				this.props.updatePlotParams(nodePlot.id,{...nodePlot.params})
 			}
 			else{
 				if(!signalData.dataReady){
 					this.props.deleteItemInputsReady(signalData.id)
 					oldSignalId=signalData.id
-					this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType)
+					this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType,nodePlot.processParams.processId)
 					this.props.updatePlotParams(nodePlot.id,{...nodePlot.params})
 				}
 				else{
@@ -108,7 +99,7 @@ class ChartSpectrum extends Component {
 						if(JSON.stringify(this.props.prevParams[nodePlot.id])!==JSON.stringify(nodePlot.params)){
 							this.props.deleteItemInputsReady(signalData.id)
 							oldSignalId=signalData.id
-							this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType)
+							this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType,nodePlot.processParams.processId)
 							this.props.updatePlotParams(nodePlot.id,{...nodePlot.params})
 						}
 					}
@@ -126,6 +117,7 @@ class ChartSpectrum extends Component {
 		this.state={
 			dataReady:dataReady,
 			inputNodeId:nodePlot.inputData.inputNodeId,
+			processId:nodePlot.processParams.processId,
 			dataType:dataType,
 			params:params,
 			style:style,
@@ -181,13 +173,9 @@ class ChartSpectrum extends Component {
 		if(prevProps.inputsReady!==this.props.inputsReady){
 			const nodeInput=this.props.elements.find((elem) => elem.id==this.state.inputNodeId)
 			if(nodeInput!=undefined){
-				const signalData=nodeInput.signalsData.find(s => {
-					if(s.dataType==this.state.dataType){
-						if(this.state.params.channels.some(c => s.chNames.includes(c)))
-							return true
-					}
+				let signalData=nodeInput.signalsData.find(s => {
+					if(s.processId==this.state.processId && s.dataType==this.state.dataType)return true
 					return false
-					
 				})
 				if(signalData!=undefined){
 					if(this.props.inputsReady.includes(signalData.id) && this.state.oldSignalId!=signalData.id){
@@ -241,7 +229,7 @@ const mapStateToProps = (state) => {
   
 const mapDispatchToProps = (dispatch) => {
 	return {
-		fetchSignal: (id,channels,plotParams,nodeId,type) => dispatch(fetchSignal(id,channels,plotParams,nodeId,type)),
+		fetchSignal: (id,channels,plotParams,nodeId,type,plotProcessId) => dispatch(fetchSignal(id,channels,plotParams,nodeId,type,plotProcessId)),
 		updatePlotParams: (params) => dispatch(updatePlotParams(params)),
 		deleteItemInputsReady: (id) => dispatch(deleteItemInputsReady(id)),
 	};
