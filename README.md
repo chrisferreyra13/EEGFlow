@@ -1,4 +1,4 @@
-# CConsciente: Project Overview 
+# BrainCloud: Project Overview 
 * EEG signal processing app.
 * Diagram philosophy.
 
