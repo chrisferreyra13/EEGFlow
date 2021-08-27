@@ -77,10 +77,10 @@ export function runProcessFailure(json){
 }
 
 export const PROCESS_TO_START='PROCESS_TO_START'
-export function processToStart(id){
+export function processToStart(processId){
     return{
         type: PROCESS_TO_START,
-        processId:id
+        processId:processId
     }
 }
 
@@ -228,7 +228,7 @@ export const runProcess= (elements) => async (dispatch) => {
     
     for(process of processes){
         process_id=process[process.length-1].id
-        dispatch(processToStart({'process_id':process_id}))
+        dispatch(processToStart(process_id))
         initFetch={...initFetch, body:JSON.stringify({"process": process}),}
         if(process.every((n) => n.processed==true)){
             dispatch(processIsCompleted({'process_id':process_id}))
@@ -245,6 +245,7 @@ export const runProcess= (elements) => async (dispatch) => {
                             return true
                         else return false
                     })[0]
+                    process_id=process[process.length-1].id
                     dispatch(runProcessReceive({
                         'process_status':json["process_status"],
                         'process_result_ids':json["process_result_ids"],
@@ -259,7 +260,7 @@ export const runProcess= (elements) => async (dispatch) => {
             }
             catch (error){
                 dispatch(runProcessFailure({
-                    'process_id':process_id,
+                    'process_id':process_id, //OJO aca, si hay multiprocess, el process_id no va a ser el correcto, tengo q volver a buscarlo
                     'process_status':'FAIL',
                 }))
             }
