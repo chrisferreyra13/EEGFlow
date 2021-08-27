@@ -184,6 +184,7 @@ export const diagram= (state=initialState, {type, ...rest})=>{
         case PROCESS_TO_START:
             let i=0
             processes_status={}
+            processes_status=JSON.parse(JSON.stringify(state.processes_status))
             processes_status[rest['processId']]='TOSTART'
             
             return Object.assign({},state,{
@@ -222,18 +223,19 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                                 id:rest.process["process_result_ids"][item.id]
                             },
                             processParams:{
+                                ...item.processParams,
                                 processed:processed
                             }
                         }
                     }
-                }else{
+                }/*else{
                     return {
                         ...item,
                         processParams:{
                             processed:processed
                         }
                     }
-                }
+                }*/
                 
                 if (item.id==rest.process["node_output_id"]){
                     return {
@@ -245,6 +247,7 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                             
                         },
                         processParams:{
+                            ...item.processParams,
                             processed:processed,
                             processId: rest.process["process_id"]
                         }
@@ -253,6 +256,7 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                     return {
                         ...item,
                         processParams:{
+                            ...item.processParams,
                             processed:processed
                         }
                     }

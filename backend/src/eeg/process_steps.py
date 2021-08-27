@@ -20,7 +20,7 @@ def peak_step(**kwargs):
     if type(peak_params)==Response: return peak_params
 
     if peak_params["thresh"] is not None:
-        peak_params["thresh"]=float(peak_params["thresh"])
+        peak_params["thresh"]=float(peak_params["thresh"])*pow(10,-6)
 
     try:
         peaks=peak_finder(

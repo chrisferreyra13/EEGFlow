@@ -266,6 +266,7 @@ export default [
     id: null,
     type: 'default',
     elementType: 'MAX_PEAK',
+    formType:'ENABLE_MAX_PEAK_FORM',
     targetPosition: 'left',
     sourcePosition: 'right',
     data: {
@@ -274,7 +275,7 @@ export default [
     position: { x: 550, y: 80 },
     params:{
       thresh:null, //(max(x0) - min(x0)) / 4.
-      channels:["EEG 001","EEG 002" ],
+      channels:null,
             
     },
     signalsData:signalsDataTemplate,
