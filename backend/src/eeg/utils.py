@@ -106,8 +106,10 @@ def check_params(query_params,params_names=None,params_values=None):
                     except:
                         return Response('An invalid {} field has been provided.'.format(param_name),
                                 status=status.HTTP_400_BAD_REQUEST)
-                elif type(params[param_name])==str or params[param_name]==None:
+                elif type(params[param_name])==str and p!='none':
                     params[param_name]=p
+                elif params[param_name]==None:
+                    params[param_name]=None
     
     return params
 

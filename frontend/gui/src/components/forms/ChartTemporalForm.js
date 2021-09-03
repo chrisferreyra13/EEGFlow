@@ -59,7 +59,7 @@ class ChartTemporalForm extends Component{
   }
   componentDidMount(){
     this.props.onMountForm();
-    this.checkRadioButton('size',['s','m','l'])
+    this.checkRadioButton('size',['m','l'])
   }
   getValue(inputId){
     if(Object.keys(this.props.values).length === 0 && this.props.values.constructor === Object){
@@ -109,11 +109,7 @@ class ChartTemporalForm extends Component{
                       </CFormGroup>
                       <CFormGroup variant="custom-radio" inline>
                           <CInputRadio custom id="m" name="inline-radios" onChange={(event) => this.handleChangeInputRadio(event,'m','size')}/>
-                          <CLabel variant="custom-checkbox" htmlFor="m">Mediano</CLabel>
-                      </CFormGroup>
-                      <CFormGroup variant="custom-radio" inline>
-                          <CInputRadio custom id="s" name="inline-radios" onChange={(event) => this.handleChangeInputRadio(event,'s','size')}/>
-                          <CLabel variant="custom-checkbox" htmlFor="s">Pequeño</CLabel>
+                          <CLabel variant="custom-checkbox" htmlFor="m">Chico</CLabel>
                       </CFormGroup>
                   </CFormGroup>
                 </CCol>

@@ -192,8 +192,8 @@ class EditDiagram extends Component{
         </CRow>
         <CRow>
           <CCol xs="4" md="4">
-            <CButton size="md" color="primary" onClick={this.props.linkDiagram}><CIcon name="cil-asterisk"/></CButton>
-            <CButton size="md" color="info" onClick={this.runButton}><CIcon name="cil-chevron-right"/></CButton>
+            {/*<CButton size="md" color="primary" onClick={this.props.linkDiagram}><CIcon name="cil-asterisk"/></CButton>*/}
+            <CButton size="md" color="info" onClick={this.runButton}><CIcon name="cil-media-play"/></CButton>{/*cil-chevron-right*/}
             <CButton size="md" color="danger" onClick={this.cancelButton}><CIcon name="cil-x-circle"/></CButton>
           </CCol>
         </CRow>
