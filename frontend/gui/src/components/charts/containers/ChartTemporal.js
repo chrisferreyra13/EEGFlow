@@ -25,7 +25,7 @@ class ChartTemporal extends Component {
 		let params={}
 		if(nodePlot.params.channels==null){ 
 			params={ //Default params
-				channels:['EEG 01'], //Para ChartTemporal, los canales son una lista de strings
+				channels:null,
 				minXWindow:null,
      			maxXWindow:null,
 				size:'l'
@@ -234,8 +234,10 @@ class ChartTemporal extends Component {
 			})
 		else return methodResult
 	}
-	componentDidUpdate(prevProps){
+	componentDidUpdate(prevProps,prevState){
 		if(prevProps.inputsReady!==this.props.inputsReady){
+			let minIndex=0;
+			let dataReady=false;
 			const nodeInput=this.props.elements.find((elem) => elem.id==this.state.inputNodeId)
 			if(nodeInput!=undefined){
 				let signalData=nodeInput.signalsData.find(s => {
@@ -246,6 +248,12 @@ class ChartTemporal extends Component {
 					if(this.props.inputsReady.includes(signalData.id) && this.state.oldSignalId!=signalData.id){
 						if(this.state.dataReady==false){
 							this.preprocessData(signalData,this.state.params,true)
+							dataReady=true
+							let limit = signalData.data[0].length;
+							if(this.state.params.minXWindow!=null){
+								minIndex=Math.round(this.state.params.minXWindow*signalData.sFreq)
+								if(minIndex>=limit) minIndex=0; //Se paso, tira error
+							}
 						}
 					}
 				}
@@ -253,8 +261,9 @@ class ChartTemporal extends Component {
 					let signalData=nodeInput.signalsData.find(d => d.dataType==nodeInput.elementType)
 					if(signalData!=undefined){
 						if(this.props.inputsReady.includes(signalData.id) && this.state.oldSignalId!=signalData.id){
-							if(this.state.methodResultReady==false || this.state.dataReady==true){
-								this.preprocessMethodResult(signalData,this.state.params,this.state.minIndex,true)
+							//if(this.state.methodResultReady==false || this.state.dataReady==true){
+							if(dataReady==true){
+								this.preprocessMethodResult(signalData,this.state.params,minIndex,true)
 							}
 						}
 					}

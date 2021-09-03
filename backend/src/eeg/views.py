@@ -56,6 +56,19 @@ class RunProcess(APIView):
             return Response('Process is missing.',
                             status=status.HTTP_400_BAD_REQUEST)
 
+
+        # Check process
+        if 'process_id' not in request.data:   # Return if not process in body request
+            return Response('Process ID is missing.',
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        process_id=request.data['process_id']
+        
+        if (process=='') or (not process):
+            return Response('Process ID is missing.',
+                            status=status.HTTP_400_BAD_REQUEST)
+        
+
         input=None
         output=None
         
@@ -74,6 +87,7 @@ class RunProcess(APIView):
                     return output
 
                 output.data['process_result_ids']=process_result_ids
+                output.data["process_id"]=process_id
                 print('[INFO]: RESPONSE: {}'.format(output.data))
                 return output
             else:

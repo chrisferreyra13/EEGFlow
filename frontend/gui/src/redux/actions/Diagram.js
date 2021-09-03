@@ -1,4 +1,6 @@
 
+import {v4 as uuidv4} from 'uuid';
+
 
 const API_ROOT= 'http://127.0.0.1:8000/eeg/'
 
@@ -227,9 +229,9 @@ export const runProcess= (elements) => async (dispatch) => {
 
     
     for(process of processes){
-        process_id=process[process.length-1].id
+        process_id=uuidv4() //process[process.length-1].id
         dispatch(processToStart(process_id))
-        initFetch={...initFetch, body:JSON.stringify({"process": process}),}
+        initFetch={...initFetch, body:JSON.stringify({"process": process,"process_id":process_id}),}
         if(process.every((n) => n.processed==true)){
             dispatch(processIsCompleted({'process_id':process_id}))
         }
@@ -245,7 +247,7 @@ export const runProcess= (elements) => async (dispatch) => {
                             return true
                         else return false
                     })[0]
-                    process_id=process[process.length-1].id
+                    process_id=json["process_id"]
                     dispatch(runProcessReceive({
                         'process_status':json["process_status"],
                         'process_result_ids':json["process_result_ids"],

@@ -80,6 +80,7 @@ const initialState={
 }
 
 export const diagram= (state=initialState, {type, ...rest})=>{
+    let propierties;
     let elements;
     let processes_status;
     let inputsReady;
@@ -113,24 +114,63 @@ export const diagram= (state=initialState, {type, ...rest})=>{
             })
 
         case UPDATE_NODE_PROPIERTIES:
-            var stateCopy=Object.assign({},state);
-            var propierties=Object.getOwnPropertyNames(rest.propierties);
+            //var stateCopy=Object.assign({},state);
+            //let paramsChange=false;
+            let notJustSize=false;
+            //let sizeFlag=false
+            //let createProps=true;
+            let newPropierties={};
+            propierties=Object.getOwnPropertyNames(rest.propierties);
             var idx='0'
             if(rest.id==''){
-                idx=lastNodeIndex(stateCopy.elements)
+                idx=lastNodeIndex(state.elements)
             }else{
-                idx=stateCopy.elements.findIndex(elem => elem.id==rest.id)
+                idx=state.elements.findIndex(elem => elem.id==rest.id)
             }
-            for(let prop of propierties){
-                if(prop=='position'){
-                    stateCopy.elements[idx][prop]=rest.propierties[prop];
-                }else{
-                    stateCopy.elements[idx]['params'][prop]=rest.propierties[prop];
+            elements=state.elements.map((item,j) => {
+                if(j!=parseInt(idx)) return item
+                    
+                else{
+                    newPropierties["params"]=JSON.parse(JSON.stringify(item['params']))
+                    newPropierties["position"]=JSON.parse(JSON.stringify(item['position']))
+                    
+                    for(let prop of propierties){
+                        if(prop=='position'){
+                            newPropierties[prop]=rest.propierties[prop];
+                        }else{
+                            newPropierties['params'][prop]=rest.propierties[prop];
+                            //paramsChange=true
+                            
+                            //if(sizeFlag)
+                            if(prop!='size' && item['params'][prop]!=rest.propierties[prop]) notJustSize=true
+                        }
+                    }
+            
+                    if(notJustSize){
+                        return {
+                            ...item,
+                            params:newPropierties.params,
+                            position:newPropierties.position,
+                            processParams:{
+                                ...item.processParams,
+                                processed:false
+                            }
+                        }
+                    }else{
+                        return {
+                            ...item,
+                            params:newPropierties.params,
+                            position:newPropierties.position,
+                    
+                        }
+                    }
+
+
                 }
-                
-            }
+            })
+            
             return Object.assign({},state,{
-                elements:stateCopy.elements
+                elements:elements
             })
 
         case UPDATE_AFTER_DELETE_ELEMENTS:
