@@ -21,6 +21,7 @@ import {
 import allowedElements from './_elements';
 
 import {v4 as uuidv4} from 'uuid';
+import { element } from 'prop-types';
 
 const initialState={
     elements:[{
@@ -116,13 +117,13 @@ export const diagram= (state=initialState, {type, ...rest})=>{
         case UPDATE_NODE_PROPIERTIES:
             //var stateCopy=Object.assign({},state);
             //let paramsChange=false;
-            let notJustSize=false;
+            let notJustSize=false; //Con este flag se verifica si hubo un cambio mas ademas del size
             //let sizeFlag=false
             //let createProps=true;
             let newPropierties={};
             propierties=Object.getOwnPropertyNames(rest.propierties);
             var idx='0'
-            if(rest.id==''){
+            if(rest.id==''){ //cuando cargo el nodo por primera vez
                 idx=lastNodeIndex(state.elements)
             }else{
                 idx=state.elements.findIndex(elem => elem.id==rest.id)
@@ -132,25 +133,22 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                     
                 else{
                     newPropierties["params"]=JSON.parse(JSON.stringify(item['params']))
-                    newPropierties["position"]=JSON.parse(JSON.stringify(item['position']))
-                    
+                    newPropierties['position']=JSON.parse(JSON.stringify(item['position']));
                     for(let prop of propierties){
                         if(prop=='position'){
-                            newPropierties[prop]=rest.propierties[prop];
+                            newPropierties[prop]=JSON.parse(JSON.stringify(rest.propierties[prop]));
                         }else{
-                            newPropierties['params'][prop]=rest.propierties[prop];
-                            //paramsChange=true
-                            
-                            //if(sizeFlag)
+                            newPropierties['params'][prop]=JSON.parse(JSON.stringify(rest.propierties[prop]));
+
                             if(prop!='size' && item['params'][prop]!=rest.propierties[prop]) notJustSize=true
                         }
                     }
-            
+                    
                     if(notJustSize){
                         return {
                             ...item,
-                            params:newPropierties.params,
                             position:newPropierties.position,
+                            params:newPropierties.params,
                             processParams:{
                                 ...item.processParams,
                                 processed:false
@@ -243,16 +241,28 @@ export const diagram= (state=initialState, {type, ...rest})=>{
             processes_status={}
             processes_status=JSON.parse(JSON.stringify(state.processes_status))
             processes_status[rest.process['process_id']]='PROCESSING'
+            elements={}
+            elements=state.elements.map((item) => {
+                if(item.id==rest.process["process_output_id"]){
+                    return {
+                        ...item,
+                        style: null,
+                    }
+                }
+                return item
+            })
             return Object.assign({},state,{
                 processes_status: processes_status, //PROCESSING
+                elements:elements
             })
         
         case FETCH_RUN_PROCESS_RECEIVE:
             elements={}
             processed=false
             elements=state.elements.map((item) => {
+                if(item.processParams!=undefined)
+                    processed=item.processParams.processed
                 if(rest.process["process_node_ids"].includes(item.id)){processed=true}
-                else{processed=false}
 
                 if(rest.process["process_result_ids"]!=undefined){
                     if(rest.process["process_result_ids"].hasOwnProperty(item.id)){

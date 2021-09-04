@@ -6,7 +6,7 @@ const TheFooter = () => {
     <CFooter fixed={false}>
       <div>
         {/*<a href="https://coreui.io" target="_blank" rel="noopener noreferrer">CoreUI</a>*/}
-        <span className="ml-1">&copy; 2021 Cconsciente.</span>
+        <span className="ml-1">&copy; 2021 BrainCloud.</span>
       </div>
       {/*
       <div className="mfs-auto">
