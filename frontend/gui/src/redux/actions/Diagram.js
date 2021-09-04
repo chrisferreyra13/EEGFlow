@@ -236,7 +236,7 @@ export const runProcess= (elements) => async (dispatch) => {
             dispatch(processIsCompleted({'process_id':process_id}))
         }
         else{
-            dispatch(runProcessRequest({'process_id':process_id}))
+            dispatch(runProcessRequest({'process_id':process_id, 'process_output_id':process[process.length-1].id}))
             try {
                 fetch(url,initFetch)
                 .then(res => res.json())
