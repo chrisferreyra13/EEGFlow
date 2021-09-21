@@ -452,6 +452,7 @@ class GetPSD(APIView):
             })
         
         return response
+
 class GetEvents(APIView):
 
     def get(self, request, format=None):
@@ -462,26 +463,47 @@ class GetEvents(APIView):
 
         id=request.query_params[LOAD_RESTORE_PARAM_NAME]
 
-        file_info=get_file_info(id)
-        if type(file_info).__name__=='Response':
-            return file_info
+        # Check if is a number or an id result and get the filepath
+        media_path=MEDIA_TEMP
+        if id.isnumeric():
+            file_info=get_file_info(id)
+            if type(file_info).__name__=='Response':
+                return file_info
+
+            try:
+                tu = get_upload(file_info.upload_id)
+            except FileNotFoundError:
+                Response('Not found', status=status.HTTP_404_NOT_FOUND)
+
+            filepath=os.path.join(tu.upload_id,tu.upload_name)
+            media_path=MEDIA_TEMP
+
+        else:
+            filepath=get_temp_output_filename(request,process_result_id=id)
+            media_path=MEDIA_PROC_TEMP_OUTPUT_PATH
+
+        # Get the raw
+        try:
+            raw=get_raw(media_path,filepath)
+        except TypeError:
+            return Response('Invalid file extension',
+                        status=status.HTTP_406_NOT_ACCEPTABLE)
 
         try:
-            tu = get_upload(file_info.upload_id)
-        except FileNotFoundError:
-            Response('Not found', status=status.HTTP_404_NOT_FOUND)
-
-        try:
-            events=get_events(os.path.join(tu.upload_id,tu.upload_name))
+            events=get_events(raw)
         except TypeError:
             return Response('Invalid file extension',
                         status=status.HTTP_406_NOT_ACCEPTABLE)
         
         
         response=Response({
-            'event_samples':events[:,0],
-            'event_id':events[:,2],
-            'event_description': ''
+            'data':{
+                'event_samples':events[:,0],
+                'event_ids':events[:,2],
+                'event_descriptions': '',
+                'sampling_freq':raw.info['sfreq']
+            },
+            'ch_names':[]
         })
         return response
        
@@ -678,8 +700,6 @@ class GetPeaks(APIView):
 
         id=request.query_params[LOAD_RESTORE_PARAM_NAME]
 
-        # Check if is a number or an id result and get the filepath
-
         filepath=get_temp_method_result_filename(request,process_result_id=id)
         media_path=MEDIA_PROC_TEMP_OUTPUT_PATH
 
@@ -694,20 +714,6 @@ class GetPeaks(APIView):
         channels=get_request_channels(request.query_params)
         if type(channels)==Response:
             return channels
-
-        # if channels==None: # Si es None, agarro todos
-        #     channels_idxs=mne.pick_types(raw.info,eeg=True) #Retorna los indices internos de raw
-        #     eeg_info=mne.pick_info(raw.info, sel=channels_idxs)
-        #     returned_channels=eeg_info["ch_names"]
-            
-        # else:
-        #     returned_channels=channels
-        #     ch_names=raw.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
-        #     if set(channels).issubset(set(ch_names)):
-        #         channels_idxs=mne.pick_channels(ch_names, include=channels) #Retorna los indices internos de raw
-        #     else:
-        #         return Response('An invalid list of channels has been provided.',
-        #                     status=status.HTTP_400_BAD_REQUEST)
 
         response=Response({
             "data":method_result,

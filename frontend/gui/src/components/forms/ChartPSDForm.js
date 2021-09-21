@@ -107,7 +107,7 @@ class ChartPSDForm extends Component{
       <div> 
         <CFormGroup row>
           <CCol md="12">
-            <CLabel htmlFor="freq-inf">Canales</CLabel>
+            <CLabel htmlFor="channels">Canales</CLabel>
             <Select options={this.state.channelsOptions} isMulti value={this.getValue("channels")==null ? null : this.getValue("channels").map(ch => {return {value:ch, label:ch}})} onChange={(options) => this.handleMultiSelect(options,'channels')}/>
             {/*<CInput id="channels" placeholder="Ch1,Ch2,Ch3" required value={value('channels')} onChange={(event) => this.handleChange(event,'channels')}/>*/}
           </CCol>

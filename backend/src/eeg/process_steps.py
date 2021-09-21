@@ -4,6 +4,11 @@ from cconsciente.settings.base import MEDIA_TEMP, MEDIA_STORED, MEDIA_PROC_TEMP_
 
 LOAD_RESTORE_PARAM_NAME = 'id'
 
+def events(**kwargs):
+    input=kwargs["input"]
+
+    return input
+
 def peak_step(**kwargs):
     input=kwargs["input"] #objeto raw
     params=kwargs["params"]
@@ -296,5 +301,6 @@ steps={
     'THETA':filter_step,
     'NOTCH':filter_step,
     'CUSTOM_FILTER':filter_step,
-    'MAX_PEAK':peak_step
+    'MAX_PEAK':peak_step,
+    'EVENTS': events,
 }

@@ -88,12 +88,7 @@ def save_raw(raw,filename, overwrite=True):
     raw.save(filename, overwrite=overwrite)
     return
 
-def get_events(filepath):
-    try:
-        raw=get_raw(MEDIA_TEMP,filepath)
-    except TypeError:
-        raise TypeError
-
+def get_events(raw):
     #TODO: Previamente averiguar cual channel tiene
     events = mne.find_events(raw) #, stim_channel='STI 014') Si no pongo un canal especifico, busca en distintos canales
     return events

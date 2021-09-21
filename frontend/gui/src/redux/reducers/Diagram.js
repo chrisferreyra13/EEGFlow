@@ -553,21 +553,6 @@ const lastNodeIndex = (elements) => {
     //return elements.findIndex((element)=> element.id===lastId.toString())
 }
 
-function updateObjectInArray(array, action) {
-    return array.map((item, index) => {
-      if (index !== action.index) {
-        // This isn't the item we care about - keep it as-is
-        return item
-      }
-  
-      // Otherwise, this is the one we want - return an updated value
-      return {
-        ...item,
-        ...action.item
-      }
-    })
-  }
-
 function unpurge(stateElements,newElements){
     let elements=newElements.map((item) => {
         if(item.signalsData!=undefined){

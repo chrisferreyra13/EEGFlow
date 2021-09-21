@@ -1,29 +1,16 @@
 import React, {Component} from 'react'
 import {
     lightningChart,
-    DataPatterns,
-    AxisScrollStrategies,
     emptyFill,
-    emptyTick,
-    UIOrigins,
     emptyLine,
-    SeriesXYFormatter,
-    LineSeries,
-    UILayoutBuilders,
-    UIDraggingModes,
-    UIElementBuilders,
     SolidFill,
     ColorHEX,
-    UIBackgrounds,
     AxisTickStrategies,
     SolidLine,
-    ColorRGBA,
     translatePoint,
     Themes,
-    UIRectangle,
-    UITextBox,
-    UIElementColumn,
-    PointShape
+    PointShape,
+    ColorHSV
 } from "@arction/lcjs"
 
 // TODO: Poner los estilos en un css
@@ -109,28 +96,56 @@ class ChartChannels extends Component {
                 })                         
         })
 
-        if(this.props.methodResult.length!=0){
-            this.pointSeries = channels.map((ch, i) => {
-                const series = this.chart
-                    .addPointSeries({
-                        pointShape: PointShape.Circle
+        switch(this.props.methodResult.type){
+            case "MAX_PEAK":
+                if(this.props.methodResult.data.length!=0){
+                    this.pointSeries = channels.map((ch, i) => {
+                        const series = this.chart
+                            .addPointSeries({
+                                pointShape: PointShape.Circle
+                            })
+                            .setName(ch)
+                            .setPointSize(8.0)
+        
+                        return series
                     })
-                    .setName(ch)
-                    .setPointSize(8.0)
+                    //let pointsAdded = 0
+                    let p;
+                    this.pointSeries.forEach((series, i) => {
+                        this.props.methodResult[i]["locations"].forEach(idx =>{
+                            if(idx<this.props.data[i].length){
+                                series.add(this.props.data[i][idx])  
+                            }
+                            
+                        })
+                    })
+                }
+                break
+            case "EVENTS":
+                if(this.props.methodResult.data.eventIds!=undefined){
+                    let constantLine;
+                    let sample=0;
+                    this.props.methodResult.data.eventIds.forEach((id,j) => {
+                        sample=this.props.methodResult.data.eventSamples[j]
+                        if(sample<this.props.data[0].length){
+                            constantLine=this.axisX.addConstantLine()
+                            constantLine.setValue(this.props.data[0][sample].x)
+                            constantLine.setName(id)
+                            constantLine.setStrokeStyle(
+                                new SolidLine({
+                                    thickness: 1,
+                                    fillStyle: new SolidFill({color: ColorHSV( id * 20,0.9 )})
+                                })
+                            )
+                        }
+                    })
+                }
+            default:
+                break
 
-                return series
-            })
-            //let pointsAdded = 0
-            let p;
-            this.pointSeries.forEach((series, i) => {
-                this.props.methodResult[i]["locations"].forEach(idx =>{
-                    if(idx<this.props.data[i].length){
-                        series.add(this.props.data[i][idx])  
-                    }
-                    
-                })
-            })
+
         }
+        
 
         // Style AutoCursor.
         this.chart.setAutoCursor((autoCursor) => autoCursor
