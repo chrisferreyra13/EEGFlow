@@ -507,6 +507,9 @@ function errorFetchingMethodResult(payload){
 }
 
 export const fetchMethodResult = (id, channels, plotParams, nodeId, dataType) => async (dispatch) => {
+    /*
+     * Async function to fetch method result 
+     */
     let endpoint=API_ROOT;
     let requestParams;
     switch(dataType){
@@ -519,6 +522,9 @@ export const fetchMethodResult = (id, channels, plotParams, nodeId, dataType) =>
             break
         case 'EVENTS':
             endpoint=endpoint+ 'events/?'
+            requestParams={
+                id:id
+            }
             break
         default:
             endpoint=endpoint+ 'time_series/?'

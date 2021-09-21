@@ -45,19 +45,28 @@ class ChartChannel extends Component {
         // Add data points from props to the lineSeries.
         this.lineSeries.add(this.props.data)
 
-        if(this.props.methodResult.length!=0){
-            this.pointSerie = this.chart
-                .addPointSeries({pointShape: PointShape.Circle})
-                .setName(this.props.channel)
-                .setPointSize(8.0)
+        switch(this.props.methodResult.type){
+            case "MAX_PEAK":
+                if(this.props.methodResult.data.length!=0){
+                    this.pointSerie = this.chart
+                        .addPointSeries({pointShape: PointShape.Circle})
+                        .setName(this.props.channel)
+                        .setPointSize(8.0)
+        
+                    this.props.methodResult[0]["locations"].forEach(idx =>{
+                        if(idx<this.props.data.length){
+                            this.pointSerie.add(this.props.data[idx])  
+                        }  
+                    })
+                }
+                break
+            case "EVENTS":
+                console.log("hola")
+                break
+            default:
+                break
 
-            this.props.methodResult[0]["locations"].forEach(idx =>{
-                if(idx<this.props.data.length){
-                    this.pointSerie.add(this.props.data[idx])  
-                }  
-            })
         }
-
 
     }
 

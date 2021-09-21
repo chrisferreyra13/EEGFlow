@@ -15,9 +15,6 @@ import {updatePlotParams} from '../../../redux/actions/Plot'
 
 const METHOD_NODES=["MAX_PEAK","EVENTS"]
 
-//import  CanvasJSReact from '../../canvasjs/canvasjs.react'
-//import {Line} from 'react-chartjs-2'
-
 class ChartTemporal extends Component {
     constructor(props){
         super(props);
@@ -149,7 +146,7 @@ class ChartTemporal extends Component {
 			signalData=nodeInput.signalsData.find(d => d.dataType==nodeInput.elementType)
 			if(signalData!=undefined){
 				if(this.props.inputsReady.includes(signalData.id)){
-					methodResult=this.preprocessMethodResult(signalData,params,minIndex,false)
+					methodResult=this.preprocessMethodResult(signalData,params,minIndex,nodeInput.params,false)
 					methodResultReady=true
 				}
 			}
@@ -209,24 +206,50 @@ class ChartTemporal extends Component {
 		else return data
 
 	}
-	preprocessMethodResult(signalData,plotParams,minIndex,updating){
-		let methodResult=[]
-		let newLocations=[]
-		if(signalData.dataType=="MAX_PEAK"){
-			signalData.chNames.forEach((chN,i) => {
-				if(plotParams.channels.includes(chN)){
-					newLocations=[];
-					signalData.data[i]["locations"].forEach(idx => {
-						if(idx>=minIndex)
-							newLocations.push(idx-minIndex)
-					})
-					methodResult.push({
-						channel:chN,
-						locations:newLocations,
-					})
+	preprocessMethodResult(signalData,plotParams,minIndex,nodeInputParams,updating){
+		let methodResult={data:null, type:null};
+		switch(signalData.dataType){
+			case "MAX_PEAK":
+				methodResult.data=[];
+				let newLocations=[];
+				signalData.chNames.forEach((chN,i) => {
+					if(plotParams.channels.includes(chN)){
+						newLocations=[];
+						signalData.data[i]["locations"].forEach(idx => {
+							if(idx>=minIndex)
+								newLocations.push(idx-minIndex)
+						})
+						methodResult.data.push({
+							channel:chN,
+							locations:newLocations,
+						})
+					}
+				})
+				methodResult.type=signalData.dataType
+				break
+			case "EVENTS":
+				let eventSamples=[];
+				let eventIds=[];
+				let selectedEvents=nodeInputParams.selectedEvents==null ? []:nodeInputParams.selectedEvents.map(id => parseInt(id))
+
+				signalData.data["event_samples"].forEach((idx,j) =>{
+					if(selectedEvents.includes(signalData.data["event_ids"][j])){
+						if(idx>=minIndex){
+							eventSamples.push(idx-minIndex)
+							eventIds.push(signalData.data["event_ids"][j])
+						}
+					}
+				})
+				methodResult.data={
+					eventIds:eventIds,
+					eventSamples:eventSamples,
 				}
-			})
+				methodResult.type=signalData.dataType
+				break
+			default:
+				return methodResult
 		}
+
 		if(updating)
 			this.setState({
 				methodResult:methodResult,
@@ -263,7 +286,7 @@ class ChartTemporal extends Component {
 						if(this.props.inputsReady.includes(signalData.id) && this.state.oldSignalId!=signalData.id){
 							//if(this.state.methodResultReady==false || this.state.dataReady==true){
 							if(dataReady==true){
-								this.preprocessMethodResult(signalData,this.state.params,minIndex,true)
+								this.preprocessMethodResult(signalData,this.state.params,minIndex,nodeInput.params,true)
 							}
 						}
 					}
@@ -278,31 +301,31 @@ class ChartTemporal extends Component {
 		return (
 			<>
 				
-					<CCardBody style={{alignItems:'center'}}>
-						{ this.state.dataReady ?
-							<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
-								{this.state.params.channels.length==1 ?
-								<ChartChannelTime
-								methodResult={this.state.methodResult}
-								data={this.state.data[0]}
-								chartStyle={{height: '100%', width:'100%', alignItems:'center'}}
-								channel={this.state.params.channels[0]} //Lo dejamos por las dudas --->//==undefined ? nodeInput.dataParams.chNames[0] : this.state.params.channels[0]}
-								/> :
-								<ChartChannelsTime
-								methodResult={this.state.methodResult}
-								data={this.state.data}
-								chartStyle={{height: '100%', width:'100%', alignItems:'center'}}
-								channels={this.state.params.channels}
-								/>
-								}
-							</div>
-							:
-							<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
-								<h4>Cargando...</h4>
-								<CIcon size= "xl" name="cil-cloud-download"/>
-							</div>
-						}
-					</CCardBody>
+				<CCardBody style={{alignItems:'center'}}>
+					{ this.state.dataReady ?
+						<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
+							{this.state.params.channels.length==1 ?
+							<ChartChannelTime
+							methodResult={this.state.methodResult}
+							data={this.state.data[0]}
+							chartStyle={{height: '100%', width:'100%', alignItems:'center'}}
+							channel={this.state.params.channels[0]} //Lo dejamos por las dudas --->//==undefined ? nodeInput.dataParams.chNames[0] : this.state.params.channels[0]}
+							/> :
+							<ChartChannelsTime
+							methodResult={this.state.methodResult}
+							data={this.state.data}
+							chartStyle={{height: '100%', width:'100%', alignItems:'center'}}
+							channels={this.state.params.channels}
+							/>
+							}
+						</div>
+						:
+						<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
+							<h4>Cargando...</h4>
+							<CIcon size= "xl" name="cil-cloud-download"/>
+						</div>
+					}
+				</CCardBody>
 				
 			</>
 		)

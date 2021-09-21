@@ -114,7 +114,12 @@ export default [
       label: 'Eventos'
     },
     position: { x: 550, y: 80 },
-    params:null,
+    params:{
+      selectedEvents:null,
+      newEvents:null
+    },
+    signalsData:signalsDataTemplate,
+    processParams:processParamsTemplate,
   },
   {
     id: null,
