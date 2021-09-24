@@ -6,7 +6,9 @@ import {
     ColorHEX,
     Themes,
     customTheme,
-    PointShape
+    PointShape,
+    ColorHSV,
+    UIElementBuilders
 } from '@arction/lcjs'
 
 class ChartChannel extends Component {
@@ -38,10 +40,8 @@ class ChartChannel extends Component {
             .setTitle('uV')
             .setInterval(yMin-0.30*Math.abs(yMin), (yMax+0.30*Math.abs(yMax)))
             //.setScrollStrategy(AxisScrollStrategies.expansion)
-        this.chart
-        .getDefaultAxisX()
-        .setTitle('seg')
-
+        this.axisX=this.chart.getDefaultAxisX()
+        this.axisX.setTitle('seg')
         // Add data points from props to the lineSeries.
         this.lineSeries.add(this.props.data)
 
@@ -61,7 +61,29 @@ class ChartChannel extends Component {
                 }
                 break
             case "EVENTS":
-                console.log("hola")
+                if(this.props.methodResult.data.eventIds!=undefined){
+                    let sample=0;
+                    let padding=20;
+
+                    this.props.methodResult.data.eventIds.forEach((id,j) => {
+                        sample=this.props.methodResult.data.eventSamples[j]
+                        if(sample<this.props.data.length){
+                            padding=20
+                            if(j%2==0){
+                                padding=40
+                            }
+                            this.axisX.addCustomTick(UIElementBuilders.AxisTick)
+                            .setValue(this.props.data[sample].x)
+                            .setTextFormatter(()=> id.toString())
+                            .setTickLabelPadding(padding)
+                            .setGridStrokeStyle(new SolidLine({
+                                thickness: 1,
+                                fillStyle: new SolidFill({color: ColorHSV( id * 20,0.9 )})
+                            }))
+                        }
+                    })
+                            
+                }
                 break
             default:
                 break

@@ -169,10 +169,9 @@ class EventsForm extends Component{
               </div>:
               <div>
                 <CFormGroup row>
-                  <CCol md="12">
-                    <CLabel htmlFor="event-types">Tipos de Eventos</CLabel>
-                    <Select options={this.state.eventTypesOptions} isMulti value={this.getValue("selectedEvents")==null ? null : this.getValue("selectedEvents").map(id => {return {value:id, label:id}})} onChange={(options) => this.handleMultiSelect(options,'selectedEvents')}/>
-                    {/*<CInput id="channels" placeholder="Ch1,Ch2,Ch3" required value={value('channels')} onChange={(event) => this.handleChange(event,'channels')}/>*/}
+                  <CCol xs="12" md="12">
+                    <CLabel htmlFor="event-types">Visualizar eventos de tipo:</CLabel>
+                    <Select options={this.state.eventTypesOptions} placeholder={"default: Todos"} isMulti value={this.getValue("selectedEvents")==null ? null : this.getValue("selectedEvents").map(id => {return {value:id, label:id}})} onChange={(options) => this.handleMultiSelect(options,'selectedEvents')}/>
                   </CCol>
                 </CFormGroup>
                 <CFormGroup row>

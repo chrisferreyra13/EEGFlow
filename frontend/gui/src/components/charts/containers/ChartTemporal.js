@@ -127,19 +127,21 @@ class ChartTemporal extends Component {
 			
 			if(signalData!=undefined){
 				if(this.props.inputsReady.includes(signalData.id)){
-					data=this.preprocessData(signalData,params,false)
-					dataReady=true
+					if(signalData.chNames.some(ch => params.channels.includes(ch))){ //Check if at least one channels is in plot params
+						data=this.preprocessData(signalData,params,false)
+						dataReady=true
 
-					limit = signalData.data[0].length;
-					minIndex=0;
-					maxIndex=limit;
-					if(params.minXWindow!=null){
-						minIndex=Math.round(params.minXWindow*signalData.sFreq)
-						if(minIndex>=limit) minIndex=0; //Se paso, tira error
-					}
-					if(params.maxXWindow!=null){
-						maxIndex=Math.round(params.maxXWindow*signalData.sFreq)
-						if(maxIndex>limit) maxIndex=limit; //Se paso, tira error
+						limit = signalData.data[0].length;
+						minIndex=0;
+						maxIndex=limit;
+						if(params.minXWindow!=null){
+							minIndex=Math.round(params.minXWindow*signalData.sFreq)
+							if(minIndex>=limit) minIndex=0; //Se paso, tira error
+						}
+						if(params.maxXWindow!=null){
+							maxIndex=Math.round(params.maxXWindow*signalData.sFreq)
+							if(maxIndex>limit) maxIndex=limit; //Se paso, tira error
+						}
 					}
 				}
 			}
@@ -270,12 +272,14 @@ class ChartTemporal extends Component {
 				if(signalData!=undefined){
 					if(this.props.inputsReady.includes(signalData.id) && this.state.oldSignalId!=signalData.id){
 						if(this.state.dataReady==false){
-							this.preprocessData(signalData,this.state.params,true)
-							dataReady=true
-							let limit = signalData.data[0].length;
-							if(this.state.params.minXWindow!=null){
-								minIndex=Math.round(this.state.params.minXWindow*signalData.sFreq)
-								if(minIndex>=limit) minIndex=0; //Se paso, tira error
+							if(signalData.chNames.some(ch => this.state.params.channels.includes(ch))){ //Check if at least one channels is in plot params
+								this.preprocessData(signalData,this.state.params,true)
+								dataReady=true
+								let limit = signalData.data[0].length;
+								if(this.state.params.minXWindow!=null){
+									minIndex=Math.round(this.state.params.minXWindow*signalData.sFreq)
+									if(minIndex>=limit) minIndex=0; //Se paso, tira error
+								}
 							}
 						}
 					}
