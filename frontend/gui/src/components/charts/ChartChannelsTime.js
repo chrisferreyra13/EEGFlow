@@ -7,10 +7,10 @@ import {
     ColorHEX,
     AxisTickStrategies,
     SolidLine,
-    translatePoint,
     Themes,
     PointShape,
-    ColorHSV
+    ColorHSV,
+    UIElementBuilders
 } from "@arction/lcjs"
 
 // TODO: Poner los estilos en un css
@@ -28,8 +28,8 @@ class ChartChannels extends Component {
         const channels = this.props.channels
         // This is more like a guideline (streaming uses JS setInterval, which is not precise). Refer to in-chart PPS indicator for actual value.
         //const approxPointsPerSecondChannel = 10000
-        const intervalMin=Math.min.apply(Math, this.props.data[1].map(function(o) { return o.y; }))
-        const intervalMax=Math.max.apply(Math, this.props.data[1].map(function(o) { return o.y; }))
+        const intervalMin=Math.min.apply(Math, this.props.data[0].map(function(o) { return o.y; }))
+        const intervalMax=Math.max.apply(Math, this.props.data[0].map(function(o) { return o.y; }))
         const channelHeight = Math.abs(intervalMax-intervalMin)
         const channelGap = 0.2
 
@@ -68,19 +68,19 @@ class ChartChannels extends Component {
                     fillStyle: new SolidFill({ color: ColorHEX('#5aafc7') })
                 }))
             // Add Label to Y-axis that displays the Channel name.
-            this.axisY.addCustomTick()
+            this.axisY.addCustomTick(UIElementBuilders.AxisTick)
                 .setValue((i + 0.5) * channelHeight + i * channelGap)
                 .setTextFormatter(() => ch)
+                /*
                 .setMarker((marker) => marker
-                    .setFont((font) => font
-                        .setWeight('bold')
-                    )
-                    .setTextFillStyle(new SolidFill({ color: ColorHEX('#3c4b64') })) //Color de los canales
-                    .setBackground((background) => background
-                        .setFillStyle(emptyFill)
-                        .setStrokeStyle(emptyLine)
-                    )
+                            .setFont((font) => font.setWeight('bold'))
+                            .setTextFillStyle(new SolidFill({ color: ColorHEX('#3c4b64') })) //Color de los canales
+                            .setBackground((background) => background
+                                .setFillStyle(emptyFill)
+                                .setStrokeStyle(emptyLine)
+                            )
                 )
+                */
                 .setGridStrokeStyle(new SolidLine({
                     thickness: 1,
                     fillStyle: new SolidFill({ color: ColorHEX('#3c4b64') }) //Color de las lineas grilla
@@ -123,22 +123,27 @@ class ChartChannels extends Component {
                 break
             case "EVENTS":
                 if(this.props.methodResult.data.eventIds!=undefined){
-                    let constantLine;
                     let sample=0;
+                    let padding=20;
+                    
                     this.props.methodResult.data.eventIds.forEach((id,j) => {
                         sample=this.props.methodResult.data.eventSamples[j]
                         if(sample<this.props.data[0].length){
-                            constantLine=this.axisX.addConstantLine()
-                            constantLine.setValue(this.props.data[0][sample].x)
-                            constantLine.setName(id)
-                            constantLine.setStrokeStyle(
-                                new SolidLine({
-                                    thickness: 1,
-                                    fillStyle: new SolidFill({color: ColorHSV( id * 20,0.9 )})
-                                })
-                            )
+                            padding=20
+                            if(j%2==0){
+                                padding=40
+                            }
+                            this.axisX.addCustomTick(UIElementBuilders.AxisTick)
+                            .setValue(this.props.data[0][sample].x)
+                            .setTextFormatter(()=> id.toString())
+                            .setTickLabelPadding(padding)
+                            .setGridStrokeStyle(new SolidLine({
+                                thickness: 1,
+                                fillStyle: new SolidFill({color: ColorHSV( id * 20,0.9 )})
+                            }))    
                         }
                     })
+                    
                 }
             default:
                 break
@@ -146,33 +151,12 @@ class ChartChannels extends Component {
 
         }
         
-
         // Style AutoCursor.
         this.chart.setAutoCursor((autoCursor) => autoCursor
             .setGridStrokeYStyle(emptyLine)
             .disposeTickMarkerY()
         )
-        const resultTableFormatter=(tableContentBuilder, activeSeries, x, y) => {
-            //let activeSeriesFormatted=LineSeries(activeSeries)
-            const seriesIndex = this.series.indexOf(activeSeries)
-            return tableContentBuilder
-                .addRow(activeSeries.getName())
-                .addRow('X', '', activeSeries.axisX.formatValue(x))
-                // Translate Y coordinate back to [0, 1].
-                .addRow('Y', '', activeSeries.axisY.formatValue(y - (seriesIndex + 0.5) * channelHeight + seriesIndex * channelGap))
-        }
-        
-        this.series.forEach((series) => series.setResultTableFormatter(resultTableFormatter))
 
-        const indicatorPos = translatePoint({
-            x: this.axisX.scale.getInnerStart(),
-            y: this.axisY.scale.getInnerEnd()
-        }, {
-            x: this.axisX.scale,
-            y: this.axisY.scale
-        },
-            this.chart.uiScale
-        )
     }
     componentDidMount() {
         // Chart can only be created when the component has mounted the DOM as 
