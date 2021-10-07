@@ -8,4 +8,4 @@
 
 ## Diagrams 
 
-![alt text](https://github.com/chrisferreyra13/CConsciente/blob/master/frontend/gui/public/images/dashboard_example.png "Diagram example")
+![alt text](https://github.com/chrisferreyra13/CConsciente/blob/master/frontend/gui/public/images/diagram1.png "Diagram example")
