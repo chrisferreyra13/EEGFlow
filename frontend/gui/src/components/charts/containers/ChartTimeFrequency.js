@@ -1,20 +1,14 @@
 import React, { Component } from 'react'
 import {
-	CCard,
 	CCardBody,
-	CCardGroup,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import {fetchSignal} from '../../../redux/actions/Diagram'
+import {fetchSignal,deleteItemInputsReady} from '../../../redux/actions/Diagram'
 import {connect} from 'react-redux'
-import ChartPSD from '../ChartPSD'
-
+import ChartTFR from '../ChartTFR'
 import {PrepareDataForPlot} from '../../../tools/Utils'
 
-
-
-//import  CanvasJSReact from '../../canvasjs/canvasjs.react'
-//import {Line} from 'react-chartjs-2'
+import {updatePlotParams} from '../../../redux/actions/Plot' 
 
 class ChartTimeFrequency extends Component {
     constructor(props){
@@ -23,126 +17,178 @@ class ChartTimeFrequency extends Component {
 		let params={}
 		if(nodePlot.params.channels==null){ 
 			params={ //Default params
-				channels:['EEG 016'], //Para ChartTemporal, los canales son una lista de strings
+				channels:null,
 				minXWindow:null,
-      			maxXWindow:null,
-				largeSize:'on',
-				mediumSize:'off',
-				smallSize:'off',
+     			maxXWindow:null,
+				size:'l'
 				
 			}
 		}else{
-			const channels=nodePlot.params.channels.split(',') // En params se guarda como ch separado por comas
 			params={
-				...nodePlot.params,
-				channels:channels,
+				channels:nodePlot.params.channels,
+				size:nodePlot.params.size==null ? 'm' : nodePlot.params.size
+			}
 				
-			}	
 		}
 
 		this.preprocessData=this.preprocessData.bind(this);
 
 		let style={} //Seteando las dimensiones del grafico en base a los parametros
-		//Cambiar esto, no va a funcionar, el form solo envia uno de los 3, los otros 2 quedan undefined
-		if(params.largeSize==='on'){// TODO: Mejorar esto, no funciona el dividir de forma inteligente
-			style={
-				height:'75vh',
-			}
-		}else if(params.mediumSize==='on'){
-			style={
-				height:'60vh',
-				width:'600px'
-			}
-		}else{
-			style={
-				height:'40vh',
-				width:'600px'
-			}
+		switch(params.size){
+			case 'l':
+				style={
+					height:'75vh',
+				}
+				break;
+			case 'm':
+				style={
+					height:'60vh',
+					width:'600px'
+				}
+				break;
+		
 		}
 
 		let data=[];
 		let dataReady=false;
+
+		let channels;
+		let oldSignalId=null;
+
+		let limit;
+		let minIndex=0;
+		let maxIndex=0;
 		const dataType='TIME_FREQUENCY';
-		if(nodePlot.inputData.fetchInput){
+		if(nodePlot.inputData.inputNodeId!=null){
 			const nodeInput=this.props.elements.find((elem) => elem.id==nodePlot.inputData.inputNodeId)
-			const signalData=nodeInput.signalsData.find(d => d.dataType==dataType)
+			//let signalData=nodeInput.signalsData.find(d => d.dataType==dataType)
+
+			if(nodeInput.params.channels==undefined){
+				channels=nodePlot.params.channels
+			}
+			else{
+				channels=nodeInput.params.channels
+			}
+			let signalData=nodeInput.signalsData.find(s => {
+				if(s.processId==nodePlot.processParams.processId && s.dataType==dataType)return true
+				return false
+			})
 			if(signalData==undefined){
-				this.props.fetchSignal(nodeInput.params.id,nodeInput.params.channels,nodeInput.id,dataType)
+				this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType,nodePlot.processParams.processId)
+				this.props.updatePlotParams(nodePlot.id,{...nodePlot.params})
 			}
 			else{
 				if(!signalData.dataReady){
-					this.props.fetchSignal(nodeInput.params.id,nodeInput.params.channels,nodeInput.id,dataType)
-					
+					this.props.deleteItemInputsReady(signalData.id)
+					oldSignalId=signalData.id
+					this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType,nodePlot.processParams.processId)
+					this.props.updatePlotParams(nodePlot.id,{...nodePlot.params})
+				}
+				else{
+					if(Object.keys(this.props.prevParams).includes(nodePlot.id)){
+						if(JSON.stringify(this.props.prevParams[nodePlot.id])!==JSON.stringify(nodePlot.params)){
+							this.props.deleteItemInputsReady(signalData.id)
+							oldSignalId=signalData.id
+							this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType,nodePlot.processParams.processId)
+							this.props.updatePlotParams(nodePlot.id,{...nodePlot.params})
+						}
+					}
 				}
 			}
+		
+			if(signalData!=undefined){
+				if(this.props.inputsReady.includes(signalData.id)){
+					if(signalData.chNames.some(ch => params.channels.includes(ch))){ //Check if at least one channels is in plot params
+						data=this.preprocessData(signalData,params,false)
+						dataReady=true
+					}
+				}
+			}
+			
+			
 		}
-
 		this.state={
 			dataReady:dataReady,
 			inputNodeId:nodePlot.inputData.inputNodeId,
+			processId:nodePlot.processParams.processId,
 			dataType:dataType,
 			params:params,
 			style:style,
 			data:data,
+			oldSignalId:oldSignalId,
+			minIndex:minIndex,
+			maxIndex:maxIndex,
 
 		}
+
     }
 
-	preprocessData(dataParams){
-		if(this.state.dataReady==true){
-			return
-		}
-		let dataX=[]
-
-		let minIndex=0;
-		let limit=dataParams.freqs.length;
+	preprocessData(signalData, plotParams,updating){
+		let times=signalData.times
+		let freqs=signalData.freqs
+		let power=signalData.data[0] // solo funciona si es average
+		/*let minIndex=0;
 		let maxIndex=limit;
-		if(this.state.params.minXWindow!=null){
-			minIndex=this.state.params.minXWindow
+		if(plotParams.minXWindow!=null){
+			minIndex=Math.round(plotParams.minXWindow*signalData.sFreq)
 			if(minIndex>=limit) minIndex=0; //Se paso, tira error
 		}
-		if(this.state.params.maxXWindow!=null){
-			maxIndex=this.state.params.maxXWindow
+		if(plotParams.maxXWindow!=null){
+			maxIndex=Math.round(plotParams.maxXWindow*signalData.sFreq)
 			if(maxIndex>limit) maxIndex=limit; //Se paso, tira error
-    	}
-    	
-		let data=PrepareDataForPlot(
-			dataParams.freqs, //if empty [] --> SampleToTimes 
-			dataParams.data,
-			dataParams.sFreq,
-			dataParams.chNames,
-			this.state.params.channels,
-			minIndex,
-			maxIndex,
-			1//Math.pow(10,6)
-			)
-		this.setState({
-			data:data,
-			dataReady:true,
-		})
+    	}*/
+		let data={
+			power:power,
+			times:times,
+			freqs:freqs
+		}
+		
+		if(updating)
+			this.setState({
+				data:data,
+				dataReady:true,
+			})
+		else return data
 
+	}
+	
+	componentDidUpdate(prevProps,prevState){
+		if(prevProps.inputsReady!==this.props.inputsReady){
+			let minIndex=0;
+			let dataReady=false;
+			const nodeInput=this.props.elements.find((elem) => elem.id==this.state.inputNodeId)
+			if(nodeInput!=undefined){
+				let signalData=nodeInput.signalsData.find(s => {
+					if(s.processId==this.state.processId && s.dataType==this.state.dataType)return true
+					return false
+				})
+				if(signalData!=undefined){
+					if(this.props.inputsReady.includes(signalData.id) && this.state.oldSignalId!=signalData.id){
+						if(this.state.dataReady==false){
+							if(signalData.chNames.some(ch => this.state.params.channels.includes(ch))){ //Check if at least one channels is in plot params
+								this.preprocessData(signalData,this.state.params,true)
+								//dataReady=true
+							}
+						}
+					}
+				}
+			}
+		}
+		
 	}
 
     render() {
-
-		const nodeInput=this.props.elements.find((elem) => elem.id==this.state.inputNodeId)
-		const signalData=nodeInput.signalsData.find(d => d.dataType==this.state.dataType)
-		if(signalData!=undefined){
-			if(this.props.inputsReady.includes(signalData.id)){
-				this.preprocessData(signalData)
-			}
-		}
-
+		
 		return (
 			<>
-				<CCard>
-					<CCardBody >
+				
+				<CCardBody >
 						{ this.state.dataReady ?
 							<div style={this.state.style}>
-								<ChartPSD
+								<ChartTFR
 								data={this.state.params.channels.length==1 ?this.state.data[0]: this.state.data}
 								chartStyle={{height: '100%', width:'100%'}}
-								channels={this.state.params.channels} //Lo dejamos por las dudas --->//==undefined ? nodeInput.dataParams.chNames[0] : this.state.params.channels[0]}
+								channels={this.state.params.channels}
 								/> 
 							</div>
 							:
@@ -152,27 +198,25 @@ class ChartTimeFrequency extends Component {
 							</div>
 						}
 					</CCardBody>
-				</CCard>
-
+				
 			</>
-			
 		)
-		
     }
 }
-
 
 const mapStateToProps = (state) => {
 	return{
 	  elements:state.diagram.elements,
-	  inputsReady: state.diagram.inputsReady
-	  
+	  inputsReady: state.diagram.inputsReady,
+	  prevParams:state.plotParams.plots
 	};
 }
   
 const mapDispatchToProps = (dispatch) => {
 	return {
-		fetchSignal: (id,channels,nodeId,type) => dispatch(fetchSignal(id,channels,nodeId,type)),
+		fetchSignal: (id,channels,plotParams,nodeId,type,plotProcessId) => dispatch(fetchSignal(id,channels,plotParams,nodeId,type,plotProcessId)),
+		updatePlotParams: (id,params) => dispatch(updatePlotParams(id,params)),
+		deleteItemInputsReady: (id) => dispatch(deleteItemInputsReady(id)),
 	};
 };
 export default connect(mapStateToProps, mapDispatchToProps)(ChartTimeFrequency)

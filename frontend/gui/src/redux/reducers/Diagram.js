@@ -55,7 +55,7 @@ const initialState={
             inputNodeId:'1',
         },
         params:{
-            channels:['EEG 001','EEG 002'],
+            channels:null,
             minXWindow:null,
             maxXWindow:null,
             size:'l',
@@ -395,6 +395,9 @@ export const diagram= (state=initialState, {type, ...rest})=>{
             }
             if(rest.signalData["freqs"]!=undefined){
                 newSignalData['freqs']=rest.signalData['freqs']
+            }
+            if(rest.signalData["times"]!=undefined){
+                newSignalData['times']=rest.signalData['times']
             }
             
             elements=state.elements.map((item) => {

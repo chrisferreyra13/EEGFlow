@@ -89,7 +89,7 @@ export default [
     },
     position: { x: 550, y: 80 },
     params:{
-      channels:null,
+      channels:['EEG 001'],
       minXWindow:null,
       maxXWindow:null,
       size:null,
@@ -116,7 +116,7 @@ export default [
     position: { x: 550, y: 80 },
     params:{
       selectedEvents:null,
-      newEvents:null
+      new_events:null
     },
     signalsData:signalsDataTemplate,
     processParams:processParamsTemplate,

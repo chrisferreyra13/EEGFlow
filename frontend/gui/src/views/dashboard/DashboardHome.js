@@ -28,17 +28,17 @@ const DashboardHome = () => {
         <CCardBody>
           <Row>
             <Col sm="5">
-              <h4 id="traffic" className="card-title mb-0">Last edited</h4>
+              <h4 id="traffic" className="card-title mb-0">Ultimo editado</h4>
             </Col>
           </Row>
               {/*<MainChartExample style={{height: '300px', marginTop: '40px'}}/>*/}
-              <img src="images/dashboard_example.png"/>
+              <img src="images/diagram1.png"/>
 
         </CCardBody>
         <CCardFooter>
           <CRow className="text-center">
               <CButton color="info">
-                Edit
+                Editar
               </CButton>
           </CRow>
         </CCardFooter>

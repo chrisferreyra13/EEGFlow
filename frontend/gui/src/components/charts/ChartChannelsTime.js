@@ -26,13 +26,19 @@ class ChartChannels extends Component {
         let theme = Themes.light
         // Define channels.
         const channels = this.props.channels
-        // This is more like a guideline (streaming uses JS setInterval, which is not precise). Refer to in-chart PPS indicator for actual value.
-        //const approxPointsPerSecondChannel = 10000
-        const intervalMin=Math.min.apply(Math, this.props.data[0].map(function(o) { return o.y; }))
-        const intervalMax=Math.max.apply(Math, this.props.data[0].map(function(o) { return o.y; }))
+        let intervalMin=this.props.data[0][0].y
+        let intervalMax=this.props.data[0][0].y
+        this.props.data[0].forEach((p) => {
+            if(p.y<intervalMin){
+                intervalMin=p.y
+            }
+            if(p.y>intervalMax){
+                intervalMax=p.y
+            }
+        })
+        
         const channelHeight = Math.abs(intervalMax-intervalMin)
         const channelGap = 0.2
-
 
         // Create Chart.
         this.chart = lightningChart().ChartXY({

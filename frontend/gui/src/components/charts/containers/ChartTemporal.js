@@ -22,11 +22,10 @@ class ChartTemporal extends Component {
 		let params={}
 		if(nodePlot.params.channels==null){ 
 			params={ //Default params
-				channels:null,
+				channels:'prev',
 				minXWindow:null,
      			maxXWindow:null,
 				size:'l'
-				
 			}
 		}else{
 			params={
@@ -43,7 +42,7 @@ class ChartTemporal extends Component {
 
 		let style={} //Seteando las dimensiones del grafico en base a los parametros
 		switch(params.size){
-			case 'l':	// TODO: Mejorar esto, no funciona el dividir de forma inteligente
+			case 'l':
 				style={
 					height:'75vh',
 				}
@@ -73,10 +72,9 @@ class ChartTemporal extends Component {
 		const dataType='TIME_SERIES';
 		if(nodePlot.inputData.inputNodeId!=null){
 			const nodeInput=this.props.elements.find((elem) => elem.id==nodePlot.inputData.inputNodeId)
-			//let signalData=nodeInput.signalsData.find(d => d.dataType==dataType)
 
 			if(nodeInput.params.channels==undefined){
-				channels=nodePlot.params.channels
+				channels=params.channels
 			}
 			else{
 				channels=nodeInput.params.channels
@@ -122,13 +120,24 @@ class ChartTemporal extends Component {
 					}
 				}
 			}
-
-			//const nodeInput=this.props.elements.find((elem) => elem.id==this.state.inputNodeId)
 			
+			let prepareData=false
 			if(signalData!=undefined){
 				if(this.props.inputsReady.includes(signalData.id)){
-					if(signalData.chNames.some(ch => params.channels.includes(ch))){ //Check if at least one channels is in plot params
-						data=this.preprocessData(signalData,params,false)
+					if(params.channels=='prev'){
+						// if 'prev' (when the user didn't set channels) use signalData as default
+						params.channels=signalData.chNames
+						prepareData=true
+					}
+					else{
+						if(signalData.chNames.some(ch => params.channels.includes(ch))){
+							prepareData=true
+							params.channels=signalData.chNames.filter(ch => params.channels.includes(ch))
+						}
+							
+					}
+					if(prepareData){ //Check if at least one channels is in plot params
+						data=this.preprocessData(signalData,params.channels,params,false)
 						dataReady=true
 
 						limit = signalData.data[0].length;
@@ -148,7 +157,7 @@ class ChartTemporal extends Component {
 			signalData=nodeInput.signalsData.find(d => d.dataType==nodeInput.elementType)
 			if(signalData!=undefined){
 				if(this.props.inputsReady.includes(signalData.id)){
-					methodResult=this.preprocessMethodResult(signalData,params,minIndex,nodeInput.params,false)
+					methodResult=this.preprocessMethodResult(signalData,params.channels,params,minIndex,nodeInput.params,false)
 					methodResultReady=true
 				}
 			}
@@ -173,7 +182,7 @@ class ChartTemporal extends Component {
 
     }
 
-	preprocessData(signalData, plotParams,updating){
+	preprocessData(signalData, plotChannels,plotParams,updating){
 		let dataX=[]
 		let limit = signalData.data[0].length;
 		let minIndex=0;
@@ -192,7 +201,7 @@ class ChartTemporal extends Component {
 			signalData.data,
 			signalData.sFreq,
 			signalData.chNames,
-			plotParams.channels,
+			plotChannels,
 			minIndex,
 			maxIndex,
 			Math.pow(10,6)
@@ -204,18 +213,21 @@ class ChartTemporal extends Component {
 				dataReady:true,
 				minIndex:minIndex,
 				maxIndex:maxIndex,
+				params:{
+					channels:plotChannels
+				}
 			})
 		else return data
 
 	}
-	preprocessMethodResult(signalData,plotParams,minIndex,nodeInputParams,updating){
+	preprocessMethodResult(signalData,plotChannels,plotParams,minIndex,nodeInputParams,updating){
 		let methodResult={data:null, type:null};
 		switch(signalData.dataType){
 			case "MAX_PEAK":
 				methodResult.data=[];
 				let newLocations=[];
 				signalData.chNames.forEach((chN,i) => {
-					if(plotParams.channels.includes(chN)){
+					if(plotChannels.includes(chN)){
 						newLocations=[];
 						signalData.data[i]["locations"].forEach(idx => {
 							if(idx>=minIndex)
@@ -235,7 +247,7 @@ class ChartTemporal extends Component {
 				let selectedEvents=nodeInputParams.selectedEvents==null ? []:nodeInputParams.selectedEvents.map(id => parseInt(id))
 
 				signalData.data["event_samples"].forEach((idx,j) =>{
-					if(selectedEvents.includes(signalData.data["event_ids"][j])){
+					if(selectedEvents.includes(signalData.data["event_ids"][j]) || selectedEvents.length==0){
 						if(idx>=minIndex){
 							eventSamples.push(idx-minIndex)
 							eventIds.push(signalData.data["event_ids"][j])
@@ -263,6 +275,8 @@ class ChartTemporal extends Component {
 		if(prevProps.inputsReady!==this.props.inputsReady){
 			let minIndex=0;
 			let dataReady=false;
+			let prepareData=false;
+			let plotChannels=null;
 			const nodeInput=this.props.elements.find((elem) => elem.id==this.state.inputNodeId)
 			if(nodeInput!=undefined){
 				let signalData=nodeInput.signalsData.find(s => {
@@ -272,8 +286,19 @@ class ChartTemporal extends Component {
 				if(signalData!=undefined){
 					if(this.props.inputsReady.includes(signalData.id) && this.state.oldSignalId!=signalData.id){
 						if(this.state.dataReady==false){
-							if(signalData.chNames.some(ch => this.state.params.channels.includes(ch))){ //Check if at least one channels is in plot params
-								this.preprocessData(signalData,this.state.params,true)
+							if(this.state.params.channels=='prev'){
+								plotChannels=signalData.chNames
+								prepareData=true
+							}
+							else{
+								//Check if at least one channels is in plot params
+								if(signalData.chNames.some(ch => this.state.params.channels.includes(ch))){
+									prepareData=true
+									plotChannels=signalData.chNames.filter(ch => this.state.params.channels.includes(ch))
+								}
+							}
+							if(prepareData){ 
+								this.preprocessData(signalData,plotChannels,this.state.params,true)
 								dataReady=true
 								let limit = signalData.data[0].length;
 								if(this.state.params.minXWindow!=null){
@@ -290,7 +315,7 @@ class ChartTemporal extends Component {
 						if(this.props.inputsReady.includes(signalData.id) && this.state.oldSignalId!=signalData.id){
 							//if(this.state.methodResultReady==false || this.state.dataReady==true){
 							if(dataReady==true){
-								this.preprocessMethodResult(signalData,this.state.params,minIndex,nodeInput.params,true)
+								this.preprocessMethodResult(signalData,plotChannels,this.state.params,minIndex,nodeInput.params,true)
 							}
 						}
 					}

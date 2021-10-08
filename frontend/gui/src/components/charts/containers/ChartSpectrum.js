@@ -180,7 +180,9 @@ class ChartSpectrum extends Component {
 				if(signalData!=undefined){
 					if(this.props.inputsReady.includes(signalData.id) && this.state.oldSignalId!=signalData.id){
 						if(this.state.dataReady==false){
-							this.preprocessData(signalData,this.state.params,true)
+							if(signalData.chNames.some(ch => this.state.params.channels.includes(ch))){ //Check if at least one channels is in plot params
+								this.preprocessData(signalData,this.state.params,true)
+							}
 						}
 					}
 				}

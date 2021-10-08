@@ -154,16 +154,20 @@ class FileInfoView(APIView):
         eeg_info=mne.pick_info(raw.info,sel=ch_idxs)    # Obtengo la info de los canales tipo EEG
         ch_names=eeg_info['ch_names']   # Obtengo los nombres de los canales tipo EEG
         ch_names=','.join([ch_name for ch_name in ch_names])
+        if eeg_info['proj_id']!=None and type(eeg_info['proj_id'])!=str:
+            proj_id=','.join([str(id) for id in eeg_info['proj_id']])
+        else:
+            proj_id=eeg_info['proj_id']
 
         eeg={
             'upload_id':upload_id,
-            'proj_id':eeg_info['proj_id'],
+            'proj_id':proj_id,
             'proj_name':eeg_info['proj_name'],
             'experimenter':eeg_info['experimenter'],
             'meas_date':eeg_info['meas_date'],
             'nchan':eeg_info['nchan'],
             'ch_names':ch_names,
-            'custom_ref_applied':eeg_info['custom_ref_applied'],
+            'custom_ref_applied':int(eeg_info['custom_ref_applied']),
             }
         
         serializer=FileInfoSerializer(data=eeg)
@@ -216,8 +220,14 @@ class GetTimeSeries(APIView):
         if type(channels)==Response:
             return channels
 
-        if channels==None: # Si es None, agarro todos
+        if channels==None or channels=='prev': # Si es None, agarro todos
             channels_idxs=mne.pick_types(raw.info,eeg=True) #Retorna los indices internos de raw
+            
+            if channels=='prev': # select just two channels for preview purposes
+                if len(channels_idxs)>=2:
+                    channels_idxs=channels_idxs[:2]
+                else: channels_idxs=channels_idxs[0]
+
             eeg_info=mne.pick_info(raw.info, sel=channels_idxs)
             returned_channels=eeg_info["ch_names"]
             
@@ -242,13 +252,12 @@ class GetTimeSeries(APIView):
 
 class GetTimeFrequency(APIView):
     def get(self, request, format=None):
-
         if LOAD_RESTORE_PARAM_NAME not in request.query_params:
             return Response('ID parameter is missing.',
                             status=status.HTTP_400_BAD_REQUEST)
 
         id=request.query_params[LOAD_RESTORE_PARAM_NAME]
-
+        
         # Check if is a number or an id result and get the filepath
         media_path=MEDIA_TEMP
         if id.isnumeric():
@@ -279,12 +288,11 @@ class GetTimeFrequency(APIView):
         channels=get_request_channels(request.query_params)
         if type(channels)==Response:
             return channels  
-
+        
         if channels==None: # Si es None, agarro todos
             channels_idxs=mne.pick_types(raw.info,eeg=True) #Retorna los indices internos de raw
             eeg_info=mne.pick_info(raw.info, sel=channels_idxs)
             returned_channels=eeg_info["ch_names"]
-            
         else:
             returned_channels=channels
             ch_names=raw.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
@@ -294,15 +302,38 @@ class GetTimeFrequency(APIView):
                 return Response('An invalid list of channels has been provided.',
                             status=status.HTTP_400_BAD_REQUEST)
 
-        return_itc=True
+        try:
+            events=get_events(raw)
+        except TypeError:
+            return Response('Invalid file extension',
+                        status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        # build epochs instance for time-frequency plot
+        epochs = mne.Epochs(raw, events, tmin=-1, tmax=3)
+
+        return_itc=False
+        type_of_tf='morlet'
+        average=True
         if return_itc:
-            power,itc=time_frequency(raw,picks=channels_idxs,type='morlet')
+            power,itc=time_frequency(
+                instance=epochs,
+                picks=channels_idxs,
+                type_of_tf=type_of_tf,
+                average=average
+                )
         else:
-            power=time_frequency(raw,picks=channels_idxs,type='morlet', return_itc=False)
+            power=time_frequency(
+                epochs,
+                picks=channels_idxs,
+                type_of_tf=type_of_tf, 
+                return_itc=False,
+                average=average
+                )
         
-        print(power)
         response=Response({
-            'signal':power,
+            'signal':power.data,
+            'times':power.times,
+            'freqs':power.freqs,
             'sampling_freq':raw.info['sfreq'],
             'ch_names': returned_channels,
             })
@@ -489,6 +520,7 @@ class GetEvents(APIView):
             return Response('Invalid file extension',
                         status=status.HTTP_406_NOT_ACCEPTABLE)
 
+        # Get events
         try:
             events=get_events(raw)
         except TypeError:
@@ -501,7 +533,9 @@ class GetEvents(APIView):
                 'event_samples':events[:,0],
                 'event_ids':events[:,2],
                 'event_descriptions': '',
-                'sampling_freq':raw.info['sfreq']
+                'sampling_freq':raw.info['sfreq'],
+                'first_sample':raw.first_samp,
+                'last_sample':raw.last_samp
             },
             'ch_names':[]
         })

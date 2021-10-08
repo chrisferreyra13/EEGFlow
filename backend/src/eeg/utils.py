@@ -192,14 +192,16 @@ def get_request_channels(params):
     else:
         channels=params["channels"]
         if type(channels)==str:
-            if (not channels) or (channels == ''):    # Si no envian nada, lo aplico en todos los canales
-                channels=None
-            else:
-                try:
-                    channels=channels.split(',')
-                except:
-                    return Response('An invalid list of channels has been provided.',
-                        status=status.HTTP_400_BAD_REQUEST)
+            if channels != 'prev':
+                if (not channels) or (channels == ''):    # Si no envian nada, lo aplico en todos los canales
+                    channels=None
+                else:
+                    try:
+                        channels=channels.split(',')
+                    except:
+                        return Response('An invalid list of channels has been provided.',
+                            status=status.HTTP_400_BAD_REQUEST)
+
         elif type(channels)==list:
             if len(channels)==0:
                 return Response('An invalid list of channels has been provided.',

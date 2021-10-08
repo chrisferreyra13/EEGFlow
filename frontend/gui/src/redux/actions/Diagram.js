@@ -443,6 +443,13 @@ export const fetchSignal = (id, channels, plotParams, nodeId, dataType, plotProc
             break
         case 'TIME_FREQUENCY':
             endpoint=endpoint+ 'time_frequency/?'
+            requestParams={
+                id:id,
+                time_window:[plotParams.minTimeWindow,plotParams.maxTimeWindow],
+                freq_window:[plotParams.minFreqWindow,plotParams.maxFreqWindow],
+                channels: channels==undefined ? '': channels,
+                //type: plotParams["type"]==undefined ? '': plotParams["type"]
+            }
             break
         default:
             endpoint=endpoint+ 'time_series/?'

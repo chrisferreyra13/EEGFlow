@@ -6,8 +6,57 @@ LOAD_RESTORE_PARAM_NAME = 'id'
 
 def events(**kwargs):
     input=kwargs["input"]
+    params=kwargs["params"]
 
-    return input
+    events_formatted=[]
+    event_formatted=[]
+    t=0
+    sfreq=input.info["sfreq"]
+    sample=0
+    if 'new_events' not in params:
+        new_events=None
+    else:
+        new_events=params['new_events']
+        if (not new_events) or (new_events == ''):
+            new_events=None
+        else:
+            try:
+                for new_event in new_events:
+                    event_formatted=[]
+                    new_event=new_event.split(',')
+
+                    # sample
+                    t=new_event[1]
+                    sample=round(float(t)*sfreq) # time * sfreq= n_sample
+                    event_formatted.append(sample)
+
+                    # ignored
+                    event_formatted.append(0)
+
+                    # id
+                    event_formatted.append(int(new_event[0]))
+
+                    events_formatted.append(event_formatted)
+                
+                new_events=events_formatted
+            except:
+                return Response('An invalid events has been provided.',
+                    status=status.HTTP_400_BAD_REQUEST)
+
+    if new_events is not None:
+        try:
+            output=add_events(
+                raw=input,
+                new_events=new_events
+                )
+
+        except TypeError:
+            return Response('Invalid events for add events method.',
+                        status=status.HTTP_406_NOT_ACCEPTABLE)
+    else:
+        output=input
+
+    return output
 
 def peak_step(**kwargs):
     input=kwargs["input"] #objeto raw
@@ -285,7 +334,6 @@ def filter_step(**kwargs):
             except TypeError:
                 return Response('Invalid data for IIR filter',
                             status=status.HTTP_406_NOT_ACCEPTABLE)
-
 
     return output
 
