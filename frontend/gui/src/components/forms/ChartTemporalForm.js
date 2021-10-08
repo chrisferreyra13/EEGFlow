@@ -49,6 +49,9 @@ class ChartTemporalForm extends Component{
   }
 
   handleChange(event,id) {
+    if(event.target.value=="")
+      this.props.onChange(id, null);
+    else
     this.props.onChange(id, event.target.value);
   }
   handleChangeInputRadio(event,buttonValue,id) {
@@ -56,7 +59,7 @@ class ChartTemporalForm extends Component{
   }
   componentDidMount(){
     this.props.onMountForm();
-    this.checkRadioButton('size',['s','m','l'])
+    this.checkRadioButton('size',['m','l'])
   }
   getValue(inputId){
     if(Object.keys(this.props.values).length === 0 && this.props.values.constructor === Object){
@@ -87,10 +90,10 @@ class ChartTemporalForm extends Component{
             <CLabel htmlFor="timeWindow">Ventana de tiempo:</CLabel>
               <CFormGroup row>
                 <CCol md="6">
-                    <CInput id="minTimeWindow" placeholder={"tiempo mínimo (seg)"} type="number" min="0" step="0.5" required value={this.getValue('minTimeWindow')} onChange={(event) => this.handleChange(event,'minTimeWindow')}/>
+                    <CInput id="minTimeWindow" placeholder={"tiempo mínimo (seg)"} type="number" min="0" step="0.01" value={this.getValue('minTimeWindow')} onChange={(event) => this.handleChange(event,'minTimeWindow')}/>
                 </CCol>
                 <CCol md="6">
-                  <CInput id="maxTimeWindow" placeholder={"tiempo máximo (seg)"} type="number" min="0" step="0.5" required value={this.getValue('maxTimeWindow')} onChange={(event) => this.handleChange(event,'maxTimeWindow')}/>
+                  <CInput id="maxTimeWindow" placeholder={"tiempo máximo (seg)"} type="number" min="0" step="0.01" value={this.getValue('maxTimeWindow')} onChange={(event) => this.handleChange(event,'maxTimeWindow')}/>
                 </CCol>
               </CFormGroup>
           </CCol>
@@ -106,11 +109,7 @@ class ChartTemporalForm extends Component{
                       </CFormGroup>
                       <CFormGroup variant="custom-radio" inline>
                           <CInputRadio custom id="m" name="inline-radios" onChange={(event) => this.handleChangeInputRadio(event,'m','size')}/>
-                          <CLabel variant="custom-checkbox" htmlFor="m">Mediano</CLabel>
-                      </CFormGroup>
-                      <CFormGroup variant="custom-radio" inline>
-                          <CInputRadio custom id="s" name="inline-radios" onChange={(event) => this.handleChangeInputRadio(event,'s','size')}/>
-                          <CLabel variant="custom-checkbox" htmlFor="s">Pequeño</CLabel>
+                          <CLabel variant="custom-checkbox" htmlFor="m">Chico</CLabel>
                       </CFormGroup>
                   </CFormGroup>
                 </CCol>

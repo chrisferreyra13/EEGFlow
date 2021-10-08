@@ -7,10 +7,13 @@ import {
     FETCH_RUN_PROCESS_REQUEST,
     FETCH_RUN_PROCESS_RECEIVE,
     FETCH_RUN_PROCESS_FAILURE,
-    PROCESSES_TO_START,
+    PROCESS_TO_START,
     FETCH_SIGNAL_REQUEST,
     FETCH_SIGNAL_RECEIVE,
     FETCH_SIGNAL_FAILURE,
+    FETCH_METHOD_RESULT_REQUEST,
+    FETCH_METHOD_RESULT_RECEIVE,
+    FETCH_METHOD_RESULT_FAILURE,
     SET_NODE_FILE_ID,
     PROCESS_IS_COMPLETED,
     DELETE_ITEM_INPUTS_READY,
@@ -18,6 +21,7 @@ import {
 import allowedElements from './_elements';
 
 import {v4 as uuidv4} from 'uuid';
+import { element } from 'prop-types';
 
 const initialState={
     elements:[{
@@ -43,6 +47,7 @@ const initialState={
         formType:'ENABLE_PLOT_TIME_SERIES_FORM',
         targetPosition:'left',
         data: { label: 'Grafico en tiempo' },
+        //style: { borderColor: '#2eb85c', boxShadow: '0px 0px 0.5px #2eb85c' },
         position: { x: 500, y: 20 },
         draggable:true,
         inputData:{
@@ -50,7 +55,7 @@ const initialState={
             inputNodeId:'1',
         },
         params:{
-            channels:['EEG 016','EEG 017'],
+            channels:null,
             minXWindow:null,
             maxXWindow:null,
             size:'l',
@@ -71,51 +76,99 @@ const initialState={
     ],
     nodesCount: 2,
     lastId: 2,
-    processes_status:[], //[TOSTART, PROCESSING, SUCCESFULL, FAIL]
+    processes_status:{}, //[TOSTART, PROCESSING, SUCCESFULL, FAIL]
     inputsReady:[]
 }
 
 export const diagram= (state=initialState, {type, ...rest})=>{
+    let propierties;
     let elements;
     let processes_status;
     let inputsReady;
     let processed;
     let newSignalsData;
     let newSignalData;
+    let signalData;
+    let index;
+    let exists;
     switch(type){
         case ADD_NODE: 
-            var stateCopy=Object.assign({},state);
-            var nodeIndex=lastNodeIndex(stateCopy.elements)//,stateCopy.lastId)
-            stateCopy.elements.push(Object.assign({},allowedElements.find(element => element.elementType===rest.elementType)));
-            stateCopy.lastId=parseInt(stateCopy.elements[nodeIndex].id)+1;
-            stateCopy.nodesCount=stateCopy.nodesCount+1
-            stateCopy.elements[stateCopy.elements.length-1].id=(stateCopy.lastId).toString();
-            var position=stateCopy.elements[nodeIndex].position
-            stateCopy.elements[stateCopy.elements.length-1].position=Object.assign({},position,{
-                                                                        x: position.x+250,
-                                                                        y: position.y+100
-                                                                    })
+            
+            //Get the new elem from allowed elements
+            let newElement=JSON.parse(JSON.stringify(allowedElements.find(element => element.elementType===rest.elementType)))
+            //Get the last node index (the list has nodes and edges)
+            let nodeIdx=lastNodeIndex(state.elements)
+            let lastId=parseInt(JSON.parse(JSON.stringify(state.elements[nodeIdx].id)))+1;
+            // Assign new id for the new element
+            newElement.id=(lastId).toString();
 
+            //update position to be more spread
+            let position=JSON.parse(JSON.stringify(state.elements[nodeIdx].position))
+            newElement.position={
+                x: position.x+250,
+                y: position.y+100
+            }                            
             return Object.assign({},state,{
-                elements: stateCopy.elements,
-                nodesCount: stateCopy.nodesCount,
-                lastId: stateCopy.lastId
+                elements: [...state.elements, newElement],
+                nodesCount: state.nodesCount+1,
+                lastId: lastId
             })
 
         case UPDATE_NODE_PROPIERTIES:
-            var stateCopy=Object.assign({},state);
-            var propierties=Object.getOwnPropertyNames(rest.propierties);
+            //var stateCopy=Object.assign({},state);
+            //let paramsChange=false;
+            let notJustSize=false; //Con este flag se verifica si hubo un cambio mas ademas del size
+            //let sizeFlag=false
+            //let createProps=true;
+            let newPropierties={};
+            propierties=Object.getOwnPropertyNames(rest.propierties);
             var idx='0'
-            if(rest.id==''){
-                idx=lastNodeIndex(stateCopy.elements)
+            if(rest.id==''){ //cuando cargo el nodo por primera vez
+                idx=lastNodeIndex(state.elements)
             }else{
-                idx=stateCopy.elements.findIndex(elem => elem.id==rest.id)
+                idx=state.elements.findIndex(elem => elem.id==rest.id)
             }
-            for(let prop of propierties){
-                stateCopy.elements[idx]["params"][prop]=rest.propierties[prop];
-            }
+            elements=state.elements.map((item,j) => {
+                if(j!=parseInt(idx)) return item
+                    
+                else{
+                    newPropierties["params"]=JSON.parse(JSON.stringify(item['params']))
+                    newPropierties['position']=JSON.parse(JSON.stringify(item['position']));
+                    for(let prop of propierties){
+                        if(prop=='position'){
+                            newPropierties[prop]=JSON.parse(JSON.stringify(rest.propierties[prop]));
+                        }else{
+                            newPropierties['params'][prop]=JSON.parse(JSON.stringify(rest.propierties[prop]));
+
+                            if(prop!='size' && item['params'][prop]!=rest.propierties[prop]) notJustSize=true
+                        }
+                    }
+                    
+                    if(notJustSize){
+                        return {
+                            ...item,
+                            position:newPropierties.position,
+                            params:newPropierties.params,
+                            processParams:{
+                                ...item.processParams,
+                                processed:false
+                            }
+                        }
+                    }else{
+                        return {
+                            ...item,
+                            params:newPropierties.params,
+                            position:newPropierties.position,
+                    
+                        }
+                    }
+
+
+                }
+            })
+            
             return Object.assign({},state,{
-                elements:stateCopy.elements
+                elements:elements
             })
 
         case UPDATE_AFTER_DELETE_ELEMENTS:
@@ -166,73 +219,101 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                 elements: elements,
             })
 
-        case PROCESSES_TO_START:
+        case PROCESS_TO_START:
             let i=0
-            processes_status=[]
-            for(i;i<rest.numberOfProcesses;i++){
-                processes_status.push('TOSTART')
-            }
+            processes_status={}
+            processes_status=JSON.parse(JSON.stringify(state.processes_status))
+            processes_status[rest['processId']]='TOSTART'
+            
             return Object.assign({},state,{
                 processes_status: processes_status, //PROCESSING
             })
         
         case PROCESS_IS_COMPLETED:
-            processes_status=[]
+            processes_status={}
             processes_status=JSON.parse(JSON.stringify(state.processes_status))
             processes_status[rest.process['process_id']]='SUCCESFULL'
             return Object.assign({},state,{
-                processes_status: processes_status, //PROCESSING
+                processes_status: processes_status, //SUCCESFULL
             })
 
         case FETCH_RUN_PROCESS_REQUEST:
-            processes_status=[]
+            processes_status={}
             processes_status=JSON.parse(JSON.stringify(state.processes_status))
             processes_status[rest.process['process_id']]='PROCESSING'
+            elements={}
+            elements=state.elements.map((item) => {
+                if(item.id==rest.process["process_output_id"]){
+                    return {
+                        ...item,
+                        style: null,
+                    }
+                }
+                return item
+            })
             return Object.assign({},state,{
                 processes_status: processes_status, //PROCESSING
+                elements:elements
             })
         
         case FETCH_RUN_PROCESS_RECEIVE:
             elements={}
             processed=false
             elements=state.elements.map((item) => {
+                if(item.processParams!=undefined)
+                    processed=item.processParams.processed
                 if(rest.process["process_node_ids"].includes(item.id)){processed=true}
-                else{processed=false}
 
-                if(rest.process["process_result_ids"].hasOwnProperty(item.id)){
+                if(rest.process["process_result_ids"]!=undefined){
+                    if(rest.process["process_result_ids"].hasOwnProperty(item.id)){
+                        return {
+                            ...item,
+                            params:{
+                                ...item.params,
+                                id:rest.process["process_result_ids"][item.id]
+                            },
+                            processParams:{
+                                ...item.processParams,
+                                processed:processed
+                            }
+                        }
+                    }
+                }/*else{
                     return {
                         ...item,
-                        params:{
-                            ...item.params,
-                            id:rest.process["process_result_ids"][item.id]
-                        },
                         processParams:{
                             processed:processed
                         }
                     }
-                }
+                }*/
+                
                 if (item.id==rest.process["node_output_id"]){
                     return {
                         ...item,
+                        style: { borderColor: '#2eb85c', boxShadow: '0px 0px 0.5px #2eb85c' },
                         inputData:{
                             fetchInput:true,
                             inputNodeId:rest.process["node_input_id"], //Ya puedo ir a buscar el resultado
+                            
                         },
                         processParams:{
-                            processed:processed
+                            ...item.processParams,
+                            processed:processed,
+                            processId: rest.process["process_id"]
                         }
                     }
                 }else{
                     return {
                         ...item,
                         processParams:{
+                            ...item.processParams,
                             processed:processed
                         }
                     }
                 }
             })
             // Seteo process en SUCCESFULL
-            processes_status=[]
+            processes_status={}
             processes_status=JSON.parse(JSON.stringify(state.processes_status))
             processes_status[rest.process['process_id']]=rest.process["process_status"]
              
@@ -242,7 +323,7 @@ export const diagram= (state=initialState, {type, ...rest})=>{
             })
 
         case FETCH_RUN_PROCESS_FAILURE:
-            processes_status=[]
+            processes_status={}
             processes_status=JSON.parse(JSON.stringify(state.processes_status))
             processes_status[rest.process['process_id']]=rest.process["process_status"]
             return Object.assign({},state,{
@@ -251,9 +332,9 @@ export const diagram= (state=initialState, {type, ...rest})=>{
         
         case FETCH_SIGNAL_REQUEST:
             inputsReady=JSON.parse(JSON.stringify(state.inputsReady))
-            let index=0;
+            index=0;
             newSignalsData=[]
-            let signalData;
+            signalData={}
             elements=state.elements.map((item) => {
                 if(item.signalsData!=undefined && item.signalsData.length!=0)
                     signalData=item.signalsData.find(d => d.dataType==rest.dataType)
@@ -301,7 +382,7 @@ export const diagram= (state=initialState, {type, ...rest})=>{
 
         case FETCH_SIGNAL_RECEIVE:
             inputsReady=JSON.parse(JSON.stringify(state.inputsReady))
-            let exists=false
+            exists=false
             newSignalsData=[]
             newSignalData={
                 id:uuidv4(),
@@ -309,10 +390,109 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                 dataType:rest.dataType,
                 sFreq:rest.signalData['sampling_freq'],
                 chNames:rest.signalData['ch_names'],
+                processId:rest.processId,
                 dataReady:true,
             }
             if(rest.signalData["freqs"]!=undefined){
                 newSignalData['freqs']=rest.signalData['freqs']
+            }
+            if(rest.signalData["times"]!=undefined){
+                newSignalData['times']=rest.signalData['times']
+            }
+            
+            elements=state.elements.map((item) => {
+                if (item.id == rest.nodeId){
+                    /*if(item.signalsData.length==0){
+                        inputsReady.push(newSignalData.id)
+                        item.signalsData.push(newSignalData)
+                    }*/
+                    //else
+                    //Reviso si existe el signalData
+                    newSignalsData=item.signalsData.map(d => { 
+                        if(d.dataType==rest.dataType){
+                            inputsReady.push(newSignalData.id)
+                            d=newSignalData
+                            exists=true
+                        }
+                        return d
+                    })
+                    //si no existe, lo agrego
+                    if(!exists){
+                        inputsReady.push(newSignalData.id)
+                        newSignalsData.push(newSignalData)
+                    }
+                    
+                    return {
+                        ...item,
+                        signalsData:newSignalsData
+                    }
+                }
+                else{
+                    return item
+                } 
+            })
+
+            return Object.assign({},state,{
+                elements: elements,
+                inputsReady:inputsReady
+                })
+                
+        case FETCH_SIGNAL_FAILURE:
+            return {...state, ...rest}
+
+        case FETCH_METHOD_RESULT_REQUEST:
+            inputsReady=JSON.parse(JSON.stringify(state.inputsReady))
+            index=0;
+            newSignalsData=[]
+            elements=state.elements.map((item) => {
+                if(item.signalsData!=undefined && item.signalsData.length!=0)
+                    signalData=item.signalsData.find(d => d.dataType==rest.dataType)
+                    if(signalData!=undefined){
+                        if(signalData.dataReady==false){
+                            index=inputsReady.findIndex(id => id==signalData.id)
+                            if(index!=-1){
+                                inputsReady.splice(index,1)
+                            }
+                        }
+                    }
+                
+
+                if (item.id == rest.nodeId) {
+                    if(item.signalsData.length==0){
+                        newSignalsData.push({dataType:rest.dataType,dataReady:false})
+                    }
+                    else{
+                        newSignalsData=item.signalsData.map(d => {
+                            if(d.dataType==rest.dataType){
+                                d.dataReady=false
+                            }
+                            return d
+                        })
+                    }
+                    return {
+                        ...item,
+                        signalsData:newSignalsData,
+                    }
+                }else{
+                    return item
+                }
+            })
+
+            return Object.assign({},state,{
+                elements: elements,
+                inputsReady:inputsReady
+                })
+
+        case FETCH_METHOD_RESULT_RECEIVE:
+            inputsReady=JSON.parse(JSON.stringify(state.inputsReady))
+            exists=false
+            newSignalsData=[]
+            newSignalData={
+                id:uuidv4(),
+                data:rest.methodResult['data'],
+                chNames:rest.methodResult['ch_names'],
+                dataType:rest.dataType,
+                dataReady:true,
             }
             
             elements=state.elements.map((item) => {
@@ -350,7 +530,7 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                 inputsReady:inputsReady
                 })
                 
-        case FETCH_SIGNAL_FAILURE:
+        case FETCH_METHOD_RESULT_FAILURE:
             return {...state, ...rest}
         
         case DELETE_ITEM_INPUTS_READY:
@@ -375,21 +555,6 @@ const lastNodeIndex = (elements) => {
     return id
     //return elements.findIndex((element)=> element.id===lastId.toString())
 }
-
-function updateObjectInArray(array, action) {
-    return array.map((item, index) => {
-      if (index !== action.index) {
-        // This isn't the item we care about - keep it as-is
-        return item
-      }
-  
-      // Otherwise, this is the one we want - return an updated value
-      return {
-        ...item,
-        ...action.item
-      }
-    })
-  }
 
 function unpurge(stateElements,newElements){
     let elements=newElements.map((item) => {

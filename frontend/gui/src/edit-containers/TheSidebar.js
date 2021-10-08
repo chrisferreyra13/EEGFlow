@@ -8,6 +8,8 @@ import {
   CDropdownItem,
   CDropdownMenu,
   CDropdownToggle,
+  CCol,
+  CRow
 } from '@coreui/react'
 
 import { enableChartTemporal } from '../redux/actions/SideBar'
@@ -47,7 +49,7 @@ const TheSidebar = ({show, addNode, enableForm, diagramView, linkDiagram}) => {
     <CSidebar show={show} onShowChange={(val) => dispatch({type: 'set', sidebarShow: val })}>
       <div className="text-center"> {/* Aca antes habia un <td> pero no le gustaba del todo*/}
           <h6>  </h6>
-          <h1> Cconsciente. </h1>
+          <h1> BrainCloud </h1>
       </div>
       {/*<CSidebarNav>
 
@@ -62,22 +64,22 @@ const TheSidebar = ({show, addNode, enableForm, diagramView, linkDiagram}) => {
         />
         
         </CSidebarNav>*/}
-      <CDropdown className="m-1 d-inline-block">
-        <CDropdownToggle color="secondary">
-          Graficos
-        </CDropdownToggle>
-          <CDropdownMenu
-            placement="right-start"
-            modifiers={[{name: 'flip', enabled: false }]}
-          >
-            <CDropdownItem onClick={() => onClick('ENABLE_PLOT_TIME_SERIES_FORM','PLOT_TIME_SERIES')} onDragStart={(event) => onDragStart(event, 'PLOT_TIME_SERIES')} draggable>Temporal</CDropdownItem>
-            <CDropdownItem onClick={() => onClick('ENABLE_PLOT_PSD_FORM','PLOT_PSD')} onDragStart={(event) => onDragStart(event, 'PLOT_PSD')} draggable>PSD</CDropdownItem>
-            <CDropdownItem onClick={() => onClick(null,'PLOT_TIME_FREQUENCY')} onDragStart={(event) => onDragStart(event, 'PLOT_TIME_FREQUENCY')} draggable>Tiempo - Frecuencia</CDropdownItem>
-            <CDropdownItem disable="true">Topografico</CDropdownItem>
-          </CDropdownMenu>
+        <CDropdown className="m-1 d-inline-block" variant="btn-group">
+          <CDropdownToggle color="secondary">
+            Graficos
+          </CDropdownToggle>
+            <CDropdownMenu
+              placement="right-start"
+              modifiers={[{name: 'flip', enabled: false }]}
+            >
+              <CDropdownItem onClick={() => onClick('ENABLE_PLOT_TIME_SERIES_FORM','PLOT_TIME_SERIES')} onDragStart={(event) => onDragStart(event, 'PLOT_TIME_SERIES')} draggable>Temporal</CDropdownItem>
+              <CDropdownItem onClick={() => onClick('ENABLE_PLOT_PSD_FORM','PLOT_PSD')} onDragStart={(event) => onDragStart(event, 'PLOT_PSD')} draggable>PSD</CDropdownItem>
+              <CDropdownItem onClick={() => onClick(null,'PLOT_TIME_FREQUENCY')} onDragStart={(event) => onDragStart(event, 'PLOT_TIME_FREQUENCY')} draggable>Tiempo - Frecuencia</CDropdownItem>
+              <CDropdownItem disable="true">Topografico</CDropdownItem>
+            </CDropdownMenu>
         </CDropdown>
 
-        <CDropdown className="m-1 d-inline-block">
+        <CDropdown className="m-1 d-inline-block" variant="btn-group">
         <CDropdownToggle color="secondary">
           Herramientas
         </CDropdownToggle>
@@ -87,13 +89,13 @@ const TheSidebar = ({show, addNode, enableForm, diagramView, linkDiagram}) => {
           >
             <CDropdownItem>Seleccionar</CDropdownItem>
             <CDropdownItem onClick={() => onClick('ENABLE_EVENT_FORM','EVENTS')} onDragStart={(event) => onDragStart(event, 'EVENTS')} draggable>Eventos</CDropdownItem>
-            <CDropdownItem >Epocas</CDropdownItem>
-            <CDropdownItem onClick={() => onClick(null,'TIME_WINDOW')} onDragStart={(event) => onDragStart(event, 'TIME_WINDOW')} draggable>Ventana Temporal</CDropdownItem>
-            <CDropdownItem onClick={() => onClick(null,'REMOVE')} onDragStart={(event) => onDragStart(event, 'REMOVE')} draggable>Eliminar</CDropdownItem>
+            <CDropdownItem disable="true">Epocas</CDropdownItem>
+            {/*<CDropdownItem onClick={() => onClick(null,'TIME_WINDOW')} onDragStart={(event) => onDragStart(event, 'TIME_WINDOW')} draggable>Ventana Temporal</CDropdownItem>*/}
+            {/*<CDropdownItem onClick={() => onClick(null,'REMOVE')} onDragStart={(event) => onDragStart(event, 'REMOVE')} draggable>Eliminar</CDropdownItem>*/}
           </CDropdownMenu>
         </CDropdown>
 
-        <CDropdown className="m-1 d-inline-block">
+        <CDropdown className="m-1 d-inline-block" variant="btn-group">
         <CDropdownToggle color="secondary">
           Filtros
         </CDropdownToggle>
@@ -101,19 +103,19 @@ const TheSidebar = ({show, addNode, enableForm, diagramView, linkDiagram}) => {
             placement="right-start"
             modifiers={[{name: 'flip', enabled: false }]}
           >
-            <CDropdownItem onClick={() => onClick('ENABLE_FILTER_SELECTOR_FORM','CUSTOM_FILTER')} onDragStart={(event) => onDragStart(event, 'CUSTOM_FILTER')} draggable>Seleccionar frecuencias</CDropdownItem>
+            <CDropdownItem onClick={() => onClick('ENABLE_CUSTOM_FILTER_FORM','CUSTOM_FILTER')} onDragStart={(event) => onDragStart(event, 'CUSTOM_FILTER')} draggable>Seleccionar frecuencias</CDropdownItem>
             <CDropdownDivider/>
             {/*<CDropdownHeader>Frecuentes</CDropdownHeader>*/}
             {/* ESTO VA EN CDdropdownItem onClick={() => addNode('default')}*/}
             <CDropdownItem onClick={() => onClick(null,'NOTCH')} onDragStart={(event) => onDragStart(event, 'NOTCH')} draggable>Notch</CDropdownItem>
-            <CDropdownItem onClick={() => onClick(null,'BETA')} onDragStart={(event) => onDragStart(event, 'BETA')} draggable>Beta</CDropdownItem>
-            <CDropdownItem onClick={() => onClick(null,'ALPHA')} onDragStart={(event) => onDragStart(event, 'ALPHA')} draggable>Alpha</CDropdownItem>
-            <CDropdownItem onClick={() => onClick(null,'THETA')} onDragStart={(event) => onDragStart(event, 'THETA')} draggable>Theta</CDropdownItem>
-            <CDropdownItem onClick={() => onClick(null,'DELTA')} onDragStart={(event) => onDragStart(event, 'DELTA')} draggable>Delta</CDropdownItem>
+            <CDropdownItem onClick={() => onClick('ENABLE_COMMON_FILTER_FORM','BETA')} onDragStart={(event) => onDragStart(event, 'BETA')} draggable>Beta</CDropdownItem>
+            <CDropdownItem onClick={() => onClick('ENABLE_COMMON_FILTER_FORM','ALPHA')} onDragStart={(event) => onDragStart(event, 'ALPHA')} draggable>Alpha</CDropdownItem>
+            <CDropdownItem onClick={() => onClick('ENABLE_COMMON_FILTER_FORM','THETA')} onDragStart={(event) => onDragStart(event, 'THETA')} draggable>Theta</CDropdownItem>
+            <CDropdownItem onClick={() => onClick('ENABLE_COMMON_FILTER_FORM','DELTA')} onDragStart={(event) => onDragStart(event, 'DELTA')} draggable>Delta</CDropdownItem>
           </CDropdownMenu>
         </CDropdown>
 
-        <CDropdown className="m-1 d-inline-block">
+        <CDropdown className="m-1 d-inline-block" variant="btn-group">
         <CDropdownToggle color="secondary">
           Metodos
         </CDropdownToggle>

@@ -87,7 +87,7 @@ class ChartPSDForm extends Component{
   componentDidMount(){
     this.props.onMountForm();
     this.checkRadioButton('type',['welch','multitaper'])
-    this.checkRadioButton('size',['s','m','l'])
+    this.checkRadioButton('size',['m','l'])
   }
   getValue(inputId){
     if(Object.keys(this.props.values).length === 0 && this.props.values.constructor === Object){
@@ -98,7 +98,6 @@ class ChartPSDForm extends Component{
       }else{
         return this.props.values[inputId]
       }
-        
     }
   }
 
@@ -108,7 +107,7 @@ class ChartPSDForm extends Component{
       <div> 
         <CFormGroup row>
           <CCol md="12">
-            <CLabel htmlFor="freq-inf">Canales</CLabel>
+            <CLabel htmlFor="channels">Canales</CLabel>
             <Select options={this.state.channelsOptions} isMulti value={this.getValue("channels")==null ? null : this.getValue("channels").map(ch => {return {value:ch, label:ch}})} onChange={(options) => this.handleMultiSelect(options,'channels')}/>
             {/*<CInput id="channels" placeholder="Ch1,Ch2,Ch3" required value={value('channels')} onChange={(event) => this.handleChange(event,'channels')}/>*/}
           </CCol>
@@ -118,10 +117,10 @@ class ChartPSDForm extends Component{
             <CLabel htmlFor="timeWindow">Ventana de tiempo:</CLabel>
               <CFormGroup row>
                 <CCol md="6">
-                    <CInput id="minTimeWindow" placeholder={"tiempo mínimo (seg)"} type="number" min="0" step="0.5" required value={this.getValue('minTimeWindow')} onChange={(event) => this.handleChange(event,'minTimeWindow')}/>
+                    <CInput id="minTimeWindow" placeholder={"tiempo mínimo (seg)"} type="number" min="0" step="0.01" required value={this.getValue('minTimeWindow')} onChange={(event) => this.handleChange(event,'minTimeWindow')}/>
                 </CCol>
                 <CCol md="6">
-                  <CInput id="maxTimeWindow" placeholder={"tiempo máximo (seg)"} type="number" min="0" step="0.5" required value={this.getValue('maxTimeWindow')} onChange={(event) => this.handleChange(event,'maxTimeWindow')}/>
+                  <CInput id="maxTimeWindow" placeholder={"tiempo máximo (seg)"} type="number" min="0" step="0.01" required value={this.getValue('maxTimeWindow')} onChange={(event) => this.handleChange(event,'maxTimeWindow')}/>
                 </CCol>
               </CFormGroup>
           </CCol>
@@ -131,10 +130,10 @@ class ChartPSDForm extends Component{
             <CLabel htmlFor="frequencyWindow">Ventana de frecuencias:</CLabel>
               <CFormGroup row>
                 <CCol md="6">
-                    <CInput id="minFreqWindow" placeholder={"frecuencia mínima (Hz)"} type="number" min="0" step="0.5" required value={this.getValue('minFreqWindow')} onChange={(event) => this.handleChange(event,'minFreqWindow')}/>
+                    <CInput id="minFreqWindow" placeholder={"frecuencia mínima (Hz)"} type="number" min="0" step="0.01" required value={this.getValue('minFreqWindow')} onChange={(event) => this.handleChange(event,'minFreqWindow')}/>
                 </CCol>
                 <CCol md="6">
-                  <CInput id="maxFreqWindow" placeholder={"frecuencia máxima (Hz)"} type="number" min="0" step="0.5" required value={this.getValue('maxFreqWindow')} onChange={(event) => this.handleChange(event,'maxFreqWindow')}/>
+                  <CInput id="maxFreqWindow" placeholder={"frecuencia máxima (Hz)"} type="number" min="0" step="0.01" required value={this.getValue('maxFreqWindow')} onChange={(event) => this.handleChange(event,'maxFreqWindow')}/>
                 </CCol>
               </CFormGroup>
           </CCol>
@@ -242,11 +241,7 @@ class ChartPSDForm extends Component{
                         </CFormGroup>
                         <CFormGroup variant="custom-radio" inline>
                             <CInputRadio custom id="m" name="inline-radios" onChange={(event) => this.handleChangeInputRadio(event,'m','size')}/>
-                            <CLabel variant="custom-checkbox" htmlFor="m">Mediano</CLabel>
-                        </CFormGroup>
-                        <CFormGroup variant="custom-radio" inline>
-                            <CInputRadio custom id="s" name="inline-radios" onChange={(event) => this.handleChangeInputRadio(event,'s','size')}/>
-                            <CLabel variant="custom-checkbox" htmlFor="s">Pequeño</CLabel>
+                            <CLabel variant="custom-checkbox" htmlFor="m">Chico</CLabel>
                         </CFormGroup>
                     </CFormGroup>
                 </CCol>

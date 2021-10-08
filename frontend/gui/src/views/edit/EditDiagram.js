@@ -21,6 +21,7 @@ import { updateAfterDeleteElements, updateNodePropierties, addNode, addNewEdge, 
 import { diagramView, linkDiagram } from '../../redux/actions/EditSession';
 import { enableForm } from '../../redux/actions/Form'
 import {getFileInfo} from '../../redux/actions/File'
+import { element } from 'prop-types';
 
 class EditDiagram extends Component{
   constructor(props){
@@ -124,7 +125,7 @@ class EditDiagram extends Component{
     };
     this.props.addNode(type)
     this.props.updateNodePropierties('',propierties);
-    this.setElements([...purge(this.props.elements)]);
+    
   };
   onElementClick(event,element){
     if (event.detail===2){
@@ -140,7 +141,32 @@ class EditDiagram extends Component{
     //this.setElements([...this.props.elements]);
   }
 
+  componentDidUpdate(prevProps){
+    if(prevProps.processes_status!==this.props.processes_status){
+      this.setElements(this.state.elements.map(elem => {
+        if(Object.keys(this.props.processes_status).includes(elem.id)){
+          if(this.props.processes_status[elem.id]=='SUCCESFULL')
+            return {
+              ...elem,
+              style:{ borderColor: '#2eb85c', boxShadow: '0px 0px 0.5px #2eb85c' },
+            }
+          else
+            return {
+              ...elem,
+              style:{},
+            }
+        }else{
+          return elem
+        }
+      }))
+    }
+    if(prevProps.elements!==this.props.elements){
+      this.setElements([...purge(this.props.elements)]);
+    }  
+  }
+
   render(){
+
     return (
       <div>
         <CRow className="dndflow" style={{height:this.state.contentHeight}}>
@@ -166,8 +192,8 @@ class EditDiagram extends Component{
         </CRow>
         <CRow>
           <CCol xs="4" md="4">
-            <CButton size="md" color="primary" onClick={this.props.linkDiagram}><CIcon name="cil-asterisk"/></CButton>
-            <CButton size="md" color="info" onClick={this.runButton}><CIcon name="cil-chevron-right"/></CButton>
+            {/*<CButton size="md" color="primary" onClick={this.props.linkDiagram}><CIcon name="cil-asterisk"/></CButton>*/}
+            <CButton size="md" color="info" onClick={this.runButton}><CIcon name="cil-chevron-right"/></CButton>{/*cil-chevron-right*/}
             <CButton size="md" color="danger" onClick={this.cancelButton}><CIcon name="cil-x-circle"/></CButton>
           </CCol>
         </CRow>
@@ -183,7 +209,7 @@ function purge(elements){
         ...item,
         signalsData:[]
       }
-})
+  })
 }
 
 
@@ -192,6 +218,7 @@ const mapStateToProps = (state) => {
     fileInfo:state.file.fileInfo,
     fileId: state.file.fileId,
     elements:state.diagram.elements,
+    processes_status:state.diagram.processes_status
   };
 }
 

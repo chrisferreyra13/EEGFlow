@@ -35,7 +35,7 @@ export const file = (state = initialStateFile, { type, ...rest }) => {
             let fileInfo={
                 projectId:rest.fileInfo["proj_id"],
                 projectName:rest.fileInfo["proj_name"],
-                projectExperimenter:rest.fileInfo["proj_experimenter"],
+                projectExperimenter:rest.fileInfo["experimenter"],
                 measurementDate:rest.fileInfo["meas_date"],
                 numberOfChannels:rest.fileInfo["nchan"],
                 customRefApplied:rest.fileInfo["custom_ref_applied"],

@@ -5,7 +5,10 @@ import {
     SolidFill,
     ColorHEX,
     Themes,
-    customTheme
+    customTheme,
+    PointShape,
+    ColorHSV,
+    UIElementBuilders
 } from '@arction/lcjs'
 
 class ChartChannel extends Component {
@@ -37,12 +40,56 @@ class ChartChannel extends Component {
             .setTitle('uV')
             .setInterval(yMin-0.30*Math.abs(yMin), (yMax+0.30*Math.abs(yMax)))
             //.setScrollStrategy(AxisScrollStrategies.expansion)
-        this.chart
-        .getDefaultAxisX()
-        .setTitle('seg')
-
+        this.axisX=this.chart.getDefaultAxisX()
+        this.axisX.setTitle('seg')
         // Add data points from props to the lineSeries.
         this.lineSeries.add(this.props.data)
+
+        switch(this.props.methodResult.type){
+            case "MAX_PEAK":
+                if(this.props.methodResult.data.length!=0){
+                    this.pointSerie = this.chart
+                        .addPointSeries({pointShape: PointShape.Circle})
+                        .setName(this.props.channel)
+                        .setPointSize(8.0)
+        
+                    this.props.methodResult[0]["locations"].forEach(idx =>{
+                        if(idx<this.props.data.length){
+                            this.pointSerie.add(this.props.data[idx])  
+                        }  
+                    })
+                }
+                break
+            case "EVENTS":
+                if(this.props.methodResult.data.eventIds!=undefined){
+                    let sample=0;
+                    let padding=20;
+
+                    this.props.methodResult.data.eventIds.forEach((id,j) => {
+                        sample=this.props.methodResult.data.eventSamples[j]
+                        if(sample<this.props.data.length){
+                            padding=20
+                            if(j%2==0){
+                                padding=40
+                            }
+                            this.axisX.addCustomTick(UIElementBuilders.AxisTick)
+                            .setValue(this.props.data[sample].x)
+                            .setTextFormatter(()=> id.toString())
+                            .setTickLabelPadding(padding)
+                            .setGridStrokeStyle(new SolidLine({
+                                thickness: 1,
+                                fillStyle: new SolidFill({color: ColorHSV( id * 20,0.9 )})
+                            }))
+                        }
+                    })
+                            
+                }
+                break
+            default:
+                break
+
+        }
+
     }
 
     componentDidMount() {

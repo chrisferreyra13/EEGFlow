@@ -1,6 +1,6 @@
 
 import os
-
+import pickle
 from django.core.files.base import ContentFile
 
 from rest_framework import status
@@ -18,7 +18,18 @@ from cconsciente.settings.base import MEDIA_TEMP, MEDIA_STORED, MEDIA_PROC_TEMP_
 
 LOAD_RESTORE_PARAM_NAME = 'id'
 
-def get_temp_output_filepath(request,process_result_id=None):
+def get_temp_method_result_filename(request,process_result_id=None):
+    
+    #TODO: check if process_result_id exists in the DB!!! Ahora cabeza
+
+    user=_get_user(request)
+    if user==None:
+        user='anon'
+
+    filename=user+'_'+process_result_id+'_method.pkl'
+    return filename
+
+def get_temp_output_filename(request,process_result_id=None):
     
     #TODO: check if process_result_id exists in the DB!!! Ahora cabeza
 
@@ -75,7 +86,7 @@ def make_process_result_file(request,process_name,content):
 
     return process_result_id
 
-def check_params(request,params_names=None,params_values=None):
+def check_params(query_params,params_names=None,params_values=None):
     if params_names==None:
         params_names=['save_output','return_output']    # Default params
     if params_values==None:
@@ -84,19 +95,21 @@ def check_params(request,params_names=None,params_values=None):
     params=dict(zip(params_names,params_values))
     p=False
     for param_name in params_names:
-        if param_name in request.query_params:
-            p=request.query_params[param_name]
+        if param_name in query_params:
+            p=query_params[param_name]
             
             if p!='' and p!='undefined' and p!=None:
-                if type(params[param_name])==int:
+                if type(params[param_name])==int or params[param_name]==None:
                     try:
                         p=int(p)
                         params[param_name]=p
                     except:
                         return Response('An invalid {} field has been provided.'.format(param_name),
                                 status=status.HTTP_400_BAD_REQUEST)
-                elif type(params[param_name])==str:
+                elif type(params[param_name])==str and p!='none':
                     params[param_name]=p
+                elif params[param_name]==None:
+                    params[param_name]=None
     
     return params
 
@@ -153,7 +166,7 @@ def get_upload(upload_id):
     try:
         tu = get_temporary_upload(upload_id)
     except TemporaryUpload.DoesNotExist as e:
-        LOG.error('TemporaryUpload with ID [%s] not found: [%s]'
+        print('TemporaryUpload with ID [%s] not found: [%s]'
                     % (upload_id, str(e)))
         raise FileNotFoundError
 
@@ -179,17 +192,45 @@ def get_request_channels(params):
     else:
         channels=params["channels"]
         if type(channels)==str:
-            if (not channels) or (channels == ''):    # Si no envian nada, lo aplico en todos los canales
-                channels=None
-            else:
-                try:
-                    channels=channels.split(',')
-                except:
-                    return Response('An invalid list of channels has been provided.',
-                        status=status.HTTP_400_BAD_REQUEST)
+            if channels != 'prev':
+                if (not channels) or (channels == ''):    # Si no envian nada, lo aplico en todos los canales
+                    channels=None
+                else:
+                    try:
+                        channels=channels.split(',')
+                    except:
+                        return Response('An invalid list of channels has been provided.',
+                            status=status.HTTP_400_BAD_REQUEST)
+
         elif type(channels)==list:
             if len(channels)==0:
                 return Response('An invalid list of channels has been provided.',
                     status=status.HTTP_400_BAD_REQUEST)
 
     return channels
+
+def make_method_result_file(request,data,process_result_id=None):
+    if process_result_id is not None:
+        user=_get_user(request)
+        if user==None:
+            user='anon'
+
+        filename=user+'_'+process_result_id+'_method.pkl'
+        filepath=os.path.join(MEDIA_PROC_TEMP_OUTPUT_PATH,filename)
+        method_result_file = open(filepath, "wb")
+        pickle.dump(data, method_result_file)
+        method_result_file.close()
+
+    return process_result_id
+
+
+def get_method_result_data(media_path,filepath=None):
+    if filepath is None:
+        raise TypeError
+
+    full_filepath=os.path.join(media_path,filepath)
+    method_result_file = open(full_filepath, "rb")
+    method_result_data = pickle.load(method_result_file)
+    method_result_file.close()
+
+    return method_result_data

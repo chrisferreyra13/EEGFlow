@@ -130,7 +130,7 @@ class DashboardDataPreview extends Component{
                   <CListGroupItem>Experimentador: {this.props.fileInfo.projectExperimenter}</CListGroupItem>
                   <CListGroupItem>Fecha de medicion: {this.props.fileInfo.measurementDate}</CListGroupItem>
                   <CListGroupItem>Numero de canales: {this.props.fileInfo.numberOfChannels}</CListGroupItem>
-                  <CListGroupItem>Referencia: {this.props.fileInfo.customRefApplied ? 'Verdadero' : 'Falso'}</CListGroupItem>
+                  <CListGroupItem>Referencia aplicada: {this.props.fileInfo.customRefApplied ? 'Si' : 'No'}</CListGroupItem>
                 </CListGroup>;
     }
 

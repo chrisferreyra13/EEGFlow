@@ -10,27 +10,41 @@ def convert_power_to_db(x):
     '''
     For Power and Energy, use 10*log10(x). For amplitude, use 20*log10(x) ;)
     '''
-    return 10*np.log10(x)
+    return 10*np.log10(np.maximum(x, np.finfo(float).tiny))
 
-def time_frequency(instance, picks=None,type='morlet',return_itc=True): # Instance can be epochs or raw
+def time_frequency(instance, picks=None,type_of_tf='morlet',return_itc=True,**kwargs): # Instance must be epochs or evoked
+    average=kwargs["average"]
     freqs = np.logspace(*np.log10([6, 35]), num=8)
-    n_cycles = freqs / 2.
+    n_cycles = freqs / 2.  # different number of cycle per frequency
+    time_bandwidth = 4.0  # Same frequency-smoothing as (1) 3 tapers.
     
-    if type=='morlet':
-        power,itc=mne.time_frequency.tfr_morlet(
+    if type_of_tf=='morlet':
+        power=mne.time_frequency.tfr_morlet(
             instance,
             picks=picks,
             freqs=freqs,
             n_cycles=n_cycles,
             use_fft=True,
-            return_itc=True,
+            return_itc=return_itc,
             decim=3,
-            n_jobs=1
+            n_jobs=1,
+            average=average,
         )
-    elif type=='multitaper':
-        print('hola')
+    elif type_of_tf=='multitaper':
+        power=mne.time_frequency.tfr_multitaper(
+            instance,
+            picks=picks,
+            freqs=freqs,
+            n_cycles=n_cycles,
+            time_bandwidth=time_bandwidth,
+            use_fft=True,
+            return_itc=return_itc,
+            decim=3,
+            n_jobs=1,
+            average=average,
+        )
 
-    elif type=='stockwell':
+    elif type_of_tf=='stockwell':
         print('hola')
 
     if return_itc:
@@ -38,6 +52,7 @@ def time_frequency(instance, picks=None,type='morlet',return_itc=True): # Instan
     else: return power
 
 def psd(instance,freq_window,time_window=[None,None], picks=None,type_of_psd='welch',**kwargs): # Instance can be epochs or raw   
+    
     if type_of_psd=='welch':
         psds,freqs=mne.time_frequency.psd_welch(
             inst=instance,
@@ -65,6 +80,8 @@ def psd(instance,freq_window,time_window=[None,None], picks=None,type_of_psd='we
             verbose=False
         )
     
+    # [psds]=amp**2/Hz
+
     psds_db=[]
     #psd_db=[]
     for psd in psds:
@@ -79,6 +96,8 @@ def get_raw(media_path,filepath):
         raw=mne.io.read_raw_eeglab(full_filepath)
     elif file_extension=='fif': #MNE
         raw=mne.io.read_raw_fif(full_filepath)
+    elif file_extension=='edf': #European Data Format
+        raw=mne.io.read_raw_edf(full_filepath)
     else:
         raise TypeError
 
@@ -88,17 +107,31 @@ def save_raw(raw,filename, overwrite=True):
     raw.save(filename, overwrite=overwrite)
     return
 
-def get_events(filepath):
-    try:
-        raw=get_raw(MEDIA_TEMP,filepath)
-    except TypeError:
-        raise TypeError
+def add_events(raw, new_events):
+    if new_events is None:
+        return raw
 
+    raw_eeg_stim=raw.copy().pick_types(eeg=True, stim=True)
+    raw_eeg_stim.load_data()
+    raw_eeg_stim.add_events(new_events)#, stim_channel='STI 014')
+    return raw_eeg_stim
+
+def get_events(raw):
     #TODO: Previamente averiguar cual channel tiene
-    events = mne.find_events(raw) #, stim_channel='STI 014') Si no pongo un canal especifico, busca en distintos canales
+    try:
+        events = mne.find_events(raw) #, stim_channel='STI 014') Si no pongo un canal especifico, busca en distintos canales
+    except ValueError:
+        print("[INFO] the file doesn't have events... trying with annotations...")
+        try:
+            events=mne.events_from_annotations(raw)
+        except Exception as ex:
+            print("[INFO] the file doesn't have events")
+            raise ex
+            
+
     return events
 
-def notch_filter(raw,notch_freq=50,channels=None):
+def notch_filter(raw,notch_freqs=[50.0],channels=None, filter_method='fir',**kwargs):
     
     raw_eeg=raw.copy().pick_types(eeg=True)
     raw_eeg.load_data()
@@ -108,7 +141,34 @@ def notch_filter(raw,notch_freq=50,channels=None):
     else:
         channels_idxs=mne.pick_channels(raw_eeg.info['ch_names'], include=channels)
 
-    raw_filtered=raw_eeg.notch_filter(freqs=(notch_freq),picks=channels_idxs)
+    if filter_method=='spectrum_fit':
+        raw_filtered=raw_eeg.notch_filter(
+            freqs=None, #tuple(notch_freqs),
+            picks=channels_idxs, 
+            method=filter_method,
+            notch_widths=kwargs["notch_widths"],
+            mt_bandwidth=kwargs["mt_bandwidth"],
+            p_value=kwargs["p_value"],
+            )
+    elif filter_method=='fir':
+        raw_filtered=raw_eeg.notch_filter(
+            freqs=tuple(notch_freqs),
+            picks=channels_idxs, 
+            method=filter_method,
+            notch_widths=kwargs["notch_widths"], 
+            trans_bandwidth=kwargs["trans_bandwidth"],
+            phase=kwargs["phase"],
+            fir_window=kwargs["fir_window"],
+            fir_design=kwargs["fir_design"],
+            )
+    else:
+        raw_filtered=raw_eeg.notch_filter(
+            freqs=tuple(notch_freqs),
+            picks=channels_idxs, 
+            method=filter_method,
+            notch_widths=kwargs["notch_widths"], 
+            iir_params=kwargs["iir_params"]
+            )
 
     return raw_filtered
 
@@ -156,11 +216,11 @@ def peak_finder(raw,channels=None,thresh=None):
     else:
         channels_idxs=mne.pick_channels(raw_eeg.info['ch_names'], include=channels)
     
-    series=raw_eeg.get_data(picks=channels_idxs)
-    peaks_idx=[]
+    time_series=raw_eeg.get_data(picks=channels_idxs)
+    peaks=[]
 
-    for serie in series:
-        idx,_=mne.preprocessing.peak_finder(serie, thresh=thresh)
-        peaks_idx.append(idx)
+    for serie in time_series:
+        locs,amplitudes=mne.preprocessing.peak_finder(serie, thresh=thresh)
+        peaks.append({"locations":locs, "amplitudes":amplitudes})
 
-    return peaks_idx
+    return peaks

@@ -11,5 +11,5 @@ urlpatterns = [
     url(r'^events/$', GetEvents.as_view(), name='GetEvents'),
     url(r'^methods/filters/notch/$', NotchFilterView.as_view(),name='NotchFilter'),
     url(r'^methods/filters/custom/$', CustomFilterView.as_view(),name='CustomFilter'),
-    url(r'^methods/peak_finder/$', PeakView.as_view(),name='PeakFinder'),
+    url(r'^methods/peaks/$', GetPeaks.as_view(),name='GetPeaks'),
 ]

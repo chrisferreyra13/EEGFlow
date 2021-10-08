@@ -48,7 +48,7 @@ export default [
     },
     inputData:{
       fetchInput:false,
-      inputNodeId:'',
+      inputNodeId:null,
 
     },
     processParams:processParamsTemplate,
@@ -64,7 +64,7 @@ export default [
     },
     position: { x: 550, y: 80 },
     params:{
-      channels:['EEG 016','EEG 017'],
+      channels:null,
       minFreqWindow:null,
       maxFreqWindow:null,
       minTimeWindow:null,
@@ -89,7 +89,7 @@ export default [
     },
     position: { x: 550, y: 80 },
     params:{
-      channels:null,
+      channels:['EEG 001'],
       minXWindow:null,
       maxXWindow:null,
       size:null,
@@ -114,7 +114,12 @@ export default [
       label: 'Eventos'
     },
     position: { x: 550, y: 80 },
-    params:null,
+    params:{
+      selectedEvents:null,
+      new_events:null
+    },
+    signalsData:signalsDataTemplate,
+    processParams:processParamsTemplate,
   },
   {
     id: null,
@@ -146,6 +151,7 @@ export default [
     id: null,
     type: 'default',
     elementType: 'NOTCH',
+    formType:'ENABLE_NOTCH_FILTER_FORM',
     targetPosition: 'left',
     sourcePosition: 'right',
     data: {
@@ -154,8 +160,6 @@ export default [
     position: { x: 550, y: 80 },
     params:{
       id:null,
-      channels:['EEG 016','EEG 017'],
-      notch_freq:50,
     },
     signalsData:signalsDataTemplate,
     processParams:processParamsTemplate,
@@ -164,6 +168,7 @@ export default [
     id: null,
     type: 'default',
     elementType: 'BETA',
+    formType:'ENABLE_COMMON_FILTER_FORM',
     targetPosition: 'left',
     sourcePosition: 'right',
     data: {
@@ -172,8 +177,6 @@ export default [
     position: { x: 550, y: 80 },
     params:{
       id:null,
-      channels:['EEG 016','EEG 017'],
-      filter_method:'fir',
     },
     signalsData:signalsDataTemplate,
     processParams:processParamsTemplate,
@@ -182,6 +185,7 @@ export default [
     id: null,
     type: 'default',
     elementType: 'ALPHA',
+    formType:'ENABLE_COMMON_FILTER_FORM',
     targetPosition: 'left',
     sourcePosition: 'right',
     data: {
@@ -190,8 +194,6 @@ export default [
     position: { x: 550, y: 80 },
     params:{
       id:null,
-      channels:['EEG 016','EEG 017'],
-      filter_method:'fir',
     },
     signalsData:signalsDataTemplate,
     processParams:processParamsTemplate,
@@ -200,6 +202,7 @@ export default [
     id: null,
     type: 'default',
     elementType: 'THETA',
+    formType:'ENABLE_COMMON_FILTER_FORM',
     targetPosition: 'left',
     sourcePosition: 'right',
     data: {
@@ -208,8 +211,6 @@ export default [
     position: { x: 550, y: 80 },
     params:{
       id:null,
-      channels:['EEG 016','EEG 017'],
-      filter_method:'fir',
     },
     signalsData:signalsDataTemplate,
     processParams:processParamsTemplate,
@@ -218,6 +219,7 @@ export default [
     id: null,
     type: 'default',
     elementType: 'DELTA',
+    formType:'ENABLE_COMMON_FILTER_FORM',
     targetPosition: 'left',
     sourcePosition: 'right',
     data: {
@@ -226,8 +228,6 @@ export default [
     position: { x: 550, y: 80 },
     params:{
       id:null,
-      channels:['EEG 016','EEG 017'],
-      filter_method:'fir',
     },
     signalsData:signalsDataTemplate,
     processParams:processParamsTemplate,
@@ -247,8 +247,6 @@ export default [
       id:null,
       low_freq:3,
       high_freq:8,
-      channels:['EEG 016','EEG 017'],
-      filter_method:'fir'
     },
     signalsData:signalsDataTemplate,
     processParams:processParamsTemplate,
@@ -266,18 +264,27 @@ export default [
     },
     position: { x: 550, y: 80 },
     params:null,
+    signalsData:signalsDataTemplate,
+    processParams:processParamsTemplate,
   },
   {
     id: null,
     type: 'default',
     elementType: 'MAX_PEAK',
+    formType:'ENABLE_MAX_PEAK_FORM',
     targetPosition: 'left',
     sourcePosition: 'right',
     data: {
       label: 'Pico maximo'
     },
     position: { x: 550, y: 80 },
-    params:null,
+    params:{
+      thresh:null, //(max(x0) - min(x0)) / 4.
+      channels:null,
+            
+    },
+    signalsData:signalsDataTemplate,
+    processParams:processParamsTemplate,
   }
   ////////
 ];

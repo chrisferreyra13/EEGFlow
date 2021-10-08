@@ -20,8 +20,11 @@ import { runSingleProcess, updateNodePropierties } from '../redux/actions/Diagra
 
 const EventsForm = lazy(()=>import('../components/forms/EventsForm.js'))
 const CustomFilterForm = lazy(()=>import('../components/forms/CustomFilterForm.js'))
+const CommonFilterForm = lazy(()=>import('../components/forms/CommonFilterForm.js'))
+const NotchFilterForm = lazy(()=>import('../components/forms/NotchFilterForm.js'))
 const ChartTemporalForm = lazy(()=>import('../components/forms/ChartTemporalForm.js'))
 const ChartPSDForm = lazy(()=>import('../components/forms/ChartPSDForm.js'))
+const PeaksForm = lazy(()=>import('../components/forms/PeaksForm.js'))
 
 class Form extends Component{ 
   constructor(props){
@@ -45,14 +48,13 @@ class Form extends Component{
     });
   };
   handleMountForm = () =>{ //Busco los parametros del nodo
-
     const elem=this.props.elements.find(element => element.id==this.props.nodeId); // Devuelve el valor del primer elemento que cumple
     let params={};
     if(elem!=undefined){
-      if(elem.params!=null) params=elem.params;
+      if(elem.params!=null) params=elem.params; 
     }
-    this.setState({ values: params});
-
+    this.setState({ values: {...params}});
+    
   }
   
 
@@ -77,7 +79,7 @@ class Form extends Component{
               {form.title}
             </CCardHeader>       
             <CCardBody>
-              <form.content onChange={this.handleFieldChange} values={this.state.values} onMountForm={this.handleMountForm}/>
+              <form.content nodeId={this.props.nodeId} onChange={this.handleFieldChange} values={this.state.values} onMountForm={this.handleMountForm}/>
             </CCardBody>
             <CCardFooter>
               <CRow>
@@ -123,8 +125,11 @@ const formSelection = (formType) => {
   const forms = {
     ENABLE_EVENT_FORM: {title:'Editar Eventos',content:EventsForm},
     ENABLE_CUSTOM_FILTER_FORM: {title:'Seleccionar Frecuencias',content:CustomFilterForm},
+    ENABLE_COMMON_FILTER_FORM: {title:'Filtro',content:CommonFilterForm},
+    ENABLE_NOTCH_FILTER_FORM: {title:'Filtro Notch',content:NotchFilterForm},
     ENABLE_PLOT_TIME_SERIES_FORM: {title:'Grafico en Tiempo',content:ChartTemporalForm},
     ENABLE_PLOT_PSD_FORM: {title:'Densidad Espectral de Potencia (PSD)',content:ChartPSDForm},
+    ENABLE_MAX_PEAK_FORM: {title:'Buscar picos',content:PeaksForm},
   };
 
   return forms[formType];

@@ -1,4 +1,6 @@
 
+import {v4 as uuidv4} from 'uuid';
+
 
 const API_ROOT= 'http://127.0.0.1:8000/eeg/'
 
@@ -76,11 +78,11 @@ export function runProcessFailure(json){
     }
 }
 
-export const PROCESSES_TO_START='PROCESSES_TO_START'
-export function processesToStart(len){
+export const PROCESS_TO_START='PROCESS_TO_START'
+export function processToStart(processId){
     return{
-        type: PROCESSES_TO_START,
-        numberOfProcesses:len
+        type: PROCESS_TO_START,
+        processId:processId
     }
 }
 
@@ -104,7 +106,12 @@ export const runProcess= (elements) => async (dispatch) => {
     let target=null
     let output=null
     let input=null
+    let save_output=false
+    //SAVE LIST
+    //const saveList=["MAX_PEAK"]
+
     for(i;i<elements.length;i++){
+        save_output=false
         if(elements[i].elementType==undefined){
 
             source=diagram.find(n => n.id==elements[i].source)
@@ -129,6 +136,9 @@ export const runProcess= (elements) => async (dispatch) => {
             else{
                 input=[]
             }
+            /*if(saveList.includes(elements[i].elementType)){
+                save_output=true
+            }*/
                 
             diagram.push({
                 id:elements[i].id,
@@ -138,7 +148,7 @@ export const runProcess= (elements) => async (dispatch) => {
                 output:output,
                 params:elements[i].params,
                 processed:elements[i].processParams.processed,
-                save_output:false,
+                save_output:save_output,
                 return_output:false,
             })
 
@@ -207,7 +217,7 @@ export const runProcess= (elements) => async (dispatch) => {
     //let header= new Headers()
     let url=null
     let initFetch=null
-    cont=0
+    let process_id=0
     url = API_ROOT+'process/?'
     initFetch={
         method: 'POST',
@@ -217,23 +227,31 @@ export const runProcess= (elements) => async (dispatch) => {
         },
         };
 
-    dispatch(processesToStart(processes.length))
+    
     for(process of processes){
-        initFetch={...initFetch, body:JSON.stringify({"process": process}),}
+        process_id=uuidv4() //process[process.length-1].id
+        dispatch(processToStart(process_id))
+        initFetch={...initFetch, body:JSON.stringify({"process": process,"process_id":process_id}),}
         if(process.every((n) => n.processed==true)){
-            dispatch(processIsCompleted({'process_id':cont}))
+            dispatch(processIsCompleted({'process_id':process_id}))
         }
         else{
-            dispatch(runProcessRequest({'process_id':cont}))
+            dispatch(runProcessRequest({'process_id':process_id, 'process_output_id':process[process.length-1].id}))
             try {
                 fetch(url,initFetch)
                 .then(res => res.json())
                 .then(json => {
                     
+                    process=processes.filter(p => {
+                        if(p.find(n => n.id==json["output_id"])!=undefined)
+                            return true
+                        else return false
+                    })[0]
+                    process_id=json["process_id"]
                     dispatch(runProcessReceive({
                         'process_status':json["process_status"],
                         'process_result_ids':json["process_result_ids"],
-                        'process_id':cont,
+                        'process_id':process_id,
                         'process_node_ids':process.map((node)=> node.id),
                         'node_output_id':process[process.length-1].id,
                         'node_input_id':process[process.length-2].id
@@ -244,7 +262,7 @@ export const runProcess= (elements) => async (dispatch) => {
             }
             catch (error){
                 dispatch(runProcessFailure({
-                    'process_id':cont,
+                    'process_id':process_id, //OJO aca, si hay multiprocess, el process_id no va a ser el correcto, tengo q volver a buscarlo
                     'process_status':'FAIL',
                 }))
             }
@@ -360,7 +378,8 @@ function receiveSignal(payload) {
     type: FETCH_SIGNAL_RECEIVE,
     signalData:payload["signalData"],
     nodeId:payload["nodeId"],
-    dataType:payload["dataType"]
+    dataType:payload["dataType"],
+    processId:payload["processId"]
     
   }
 }
@@ -387,7 +406,7 @@ function errorFetchingSignal(payload){
     }
 }*/
 
-export const fetchSignal = (id, channels, plotParams, nodeId, dataType) => async (dispatch) => {
+export const fetchSignal = (id, channels, plotParams, nodeId, dataType, plotProcessId) => async (dispatch) => {
     let endpoint=API_ROOT;
     let requestParams;
     switch(dataType){
@@ -424,6 +443,13 @@ export const fetchSignal = (id, channels, plotParams, nodeId, dataType) => async
             break
         case 'TIME_FREQUENCY':
             endpoint=endpoint+ 'time_frequency/?'
+            requestParams={
+                id:id,
+                time_window:[plotParams.minTimeWindow,plotParams.maxTimeWindow],
+                freq_window:[plotParams.minFreqWindow,plotParams.maxFreqWindow],
+                channels: channels==undefined ? '': channels,
+                //type: plotParams["type"]==undefined ? '': plotParams["type"]
+            }
             break
         default:
             endpoint=endpoint+ 'time_series/?'
@@ -450,10 +476,91 @@ export const fetchSignal = (id, channels, plotParams, nodeId, dataType) => async
         //await fetcher(url,initFetch)
         await fetch(url,initFetch)
         .then(res => res.json())
-        .then(signalData => dispatch(receiveSignal({signalData, 'nodeId':nodeId, 'dataType':dataType})))
+        .then(signalData => dispatch(receiveSignal({signalData, 'nodeId':nodeId, 'dataType':dataType, 'processId':plotProcessId})))
     }
     catch (error){
         dispatch(errorFetchingSignal({error, 'nodeId':nodeId}))
+    }
+    
+}
+
+export const FETCH_METHOD_RESULT_REQUEST = 'FETCH_METHOD_RESULT_REQUEST'
+function requestMethodResult(nodeId, dataType) {
+  return {
+    type: FETCH_METHOD_RESULT_REQUEST,
+    nodeId:nodeId,
+    dataType:dataType
+  }
+}
+
+export const FETCH_METHOD_RESULT_RECEIVE = 'FETCH_METHOD_RESULT_RECEIVE'
+function receiveMethodResult(payload) {
+  return {
+    type: FETCH_METHOD_RESULT_RECEIVE,
+    methodResult:payload["methodResult"],
+    nodeId:payload["nodeId"],
+    dataType:payload["dataType"]
+    
+  }
+}
+
+export const FETCH_METHOD_RESULT_FAILURE = 'FETCH_METHOD_RESULT_FAILURE'
+function errorFetchingMethodResult(payload){
+    return {
+        type: FETCH_METHOD_RESULT_FAILURE,
+        error:payload["error"],
+        nodeId:payload["nodeId"]
+    }
+}
+
+export const fetchMethodResult = (id, channels, plotParams, nodeId, dataType) => async (dispatch) => {
+    /*
+     * Async function to fetch method result 
+     */
+    let endpoint=API_ROOT;
+    let requestParams;
+    switch(dataType){
+        case 'MAX_PEAK':
+            endpoint=endpoint+'methods/peaks/?'
+            requestParams={
+                id:id,
+                channels: channels==undefined ? '': channels
+            }
+            break
+        case 'EVENTS':
+            endpoint=endpoint+ 'events/?'
+            requestParams={
+                id:id
+            }
+            break
+        default:
+            endpoint=endpoint+ 'time_series/?'
+            requestParams={
+                id:id,
+                channels: channels==undefined ? '': channels
+            }
+            break
+    }
+
+    let url = endpoint + new URLSearchParams(requestParams)
+    
+    let header= new Headers()
+    var initFetch={
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+      };
+
+    dispatch(requestMethodResult(nodeId,dataType))
+    try {
+        //await fetcher(url,initFetch)
+        await fetch(url,initFetch)
+        .then(res => res.json())
+        .then(methodResult => dispatch(receiveMethodResult({methodResult, 'nodeId':nodeId, 'dataType':dataType})))
+    }
+    catch (error){
+        dispatch(errorFetchingMethodResult({error, 'nodeId':nodeId}))
     }
     
 }

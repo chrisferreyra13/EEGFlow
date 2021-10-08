@@ -56,33 +56,48 @@ class RunProcess(APIView):
             return Response('Process is missing.',
                             status=status.HTTP_400_BAD_REQUEST)
 
+
+        # Check process
+        if 'process_id' not in request.data:   # Return if not process in body request
+            return Response('Process ID is missing.',
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        process_id=request.data['process_id']
+        
+        if (process=='') or (not process):
+            return Response('Process ID is missing.',
+                            status=status.HTTP_400_BAD_REQUEST)
+        
+
         input=None
         output=None
         
         num_step=1
         num_of_steps=len(process)
         # Preparing output format...
-        process_result_ids={}
-        # process_step_types=[step["elementType"] for step in process]
-        # output_format_step=process[len(process)-1]["elementType"]
-        # result_step=process[process[len(process)-2]]
-        
+        process_result_ids={}      
 
         print('[INFO]: Running process...')
         for step in process:
             print('[INFO]: STEP {}/{} | PARAMS:{}'.format(num_step,num_of_steps,step['params']))
-            output=steps[step['elementType']](input=input,params=step['params'],step_type=step['elementType'])
+            output=steps[step['elementType']](input=input,params=step['params'],step_type=step['elementType'],step_id=step["id"])
 
             if type(output).__name__=='Response':
                 if type(output.data)==str: #Es un error
                     return output
 
                 output.data['process_result_ids']=process_result_ids
+                output.data["process_id"]=process_id
                 print('[INFO]: RESPONSE: {}'.format(output.data))
                 return output
             else:
                 if step['save_output']==True:
-                    process_result_id=make_output_raw_file(request,process_name=step['elementType'],raw_output=output)
+                    if type(output)==dict:
+                        process_result_id=make_output_raw_file(request,process_name=step['elementType'],raw_output=output["raw"])
+                        make_method_result_file(request,data=output["method_result"],process_result_id=process_result_id)
+                        
+                    else:
+                        process_result_id=make_output_raw_file(request,process_name=step['elementType'],raw_output=output)
 
                     if type(process_result_id).__name__=='Response':
                         return process_result_id # Hubo un error
@@ -90,9 +105,14 @@ class RunProcess(APIView):
                         process_result_ids[step["id"]]=process_result_id
                         #process_result_ids.append(process_result_id)
 
-                input=output
+                if type(output)==dict:
+                    input=output["raw"]
+                else:
+                    input=output
 
             num_step+=1
+
+
 class FileInfoView(APIView):
     
     def get(self, request, format=None):
@@ -134,16 +154,20 @@ class FileInfoView(APIView):
         eeg_info=mne.pick_info(raw.info,sel=ch_idxs)    # Obtengo la info de los canales tipo EEG
         ch_names=eeg_info['ch_names']   # Obtengo los nombres de los canales tipo EEG
         ch_names=','.join([ch_name for ch_name in ch_names])
+        if eeg_info['proj_id']!=None and type(eeg_info['proj_id'])!=str:
+            proj_id=','.join([str(id) for id in eeg_info['proj_id']])
+        else:
+            proj_id=eeg_info['proj_id']
 
         eeg={
             'upload_id':upload_id,
-            'proj_id':eeg_info['proj_id'],
+            'proj_id':proj_id,
             'proj_name':eeg_info['proj_name'],
             'experimenter':eeg_info['experimenter'],
             'meas_date':eeg_info['meas_date'],
             'nchan':eeg_info['nchan'],
             'ch_names':ch_names,
-            'custom_ref_applied':eeg_info['custom_ref_applied'],
+            'custom_ref_applied':int(eeg_info['custom_ref_applied']),
             }
         
         serializer=FileInfoSerializer(data=eeg)
@@ -181,7 +205,7 @@ class GetTimeSeries(APIView):
             media_path=MEDIA_TEMP
 
         else:
-            filepath=get_temp_output_filepath(request,process_result_id=id)
+            filepath=get_temp_output_filename(request,process_result_id=id)
             media_path=MEDIA_PROC_TEMP_OUTPUT_PATH
 
         # Get the raw
@@ -196,8 +220,14 @@ class GetTimeSeries(APIView):
         if type(channels)==Response:
             return channels
 
-        if channels==None: # Si es None, agarro todos
+        if channels==None or channels=='prev': # Si es None, agarro todos
             channels_idxs=mne.pick_types(raw.info,eeg=True) #Retorna los indices internos de raw
+            
+            if channels=='prev': # select just two channels for preview purposes
+                if len(channels_idxs)>=2:
+                    channels_idxs=channels_idxs[:2]
+                else: channels_idxs=channels_idxs[0]
+
             eeg_info=mne.pick_info(raw.info, sel=channels_idxs)
             returned_channels=eeg_info["ch_names"]
             
@@ -222,13 +252,12 @@ class GetTimeSeries(APIView):
 
 class GetTimeFrequency(APIView):
     def get(self, request, format=None):
-
         if LOAD_RESTORE_PARAM_NAME not in request.query_params:
             return Response('ID parameter is missing.',
                             status=status.HTTP_400_BAD_REQUEST)
 
         id=request.query_params[LOAD_RESTORE_PARAM_NAME]
-
+        
         # Check if is a number or an id result and get the filepath
         media_path=MEDIA_TEMP
         if id.isnumeric():
@@ -245,7 +274,7 @@ class GetTimeFrequency(APIView):
             media_path=MEDIA_TEMP
 
         else:
-            filepath=get_temp_output_filepath(request,process_result_id=id)
+            filepath=get_temp_output_filename(request,process_result_id=id)
             media_path=MEDIA_PROC_TEMP_OUTPUT_PATH
 
         # Get the raw
@@ -259,12 +288,11 @@ class GetTimeFrequency(APIView):
         channels=get_request_channels(request.query_params)
         if type(channels)==Response:
             return channels  
-
+        
         if channels==None: # Si es None, agarro todos
             channels_idxs=mne.pick_types(raw.info,eeg=True) #Retorna los indices internos de raw
             eeg_info=mne.pick_info(raw.info, sel=channels_idxs)
             returned_channels=eeg_info["ch_names"]
-            
         else:
             returned_channels=channels
             ch_names=raw.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
@@ -274,15 +302,38 @@ class GetTimeFrequency(APIView):
                 return Response('An invalid list of channels has been provided.',
                             status=status.HTTP_400_BAD_REQUEST)
 
-        return_itc=True
+        try:
+            events=get_events(raw)
+        except TypeError:
+            return Response('Invalid file extension',
+                        status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        # build epochs instance for time-frequency plot
+        epochs = mne.Epochs(raw, events, tmin=-1, tmax=3)
+
+        return_itc=False
+        type_of_tf='morlet'
+        average=True
         if return_itc:
-            power,itc=time_frequency(raw,picks=channels_idxs,type='morlet')
+            power,itc=time_frequency(
+                instance=epochs,
+                picks=channels_idxs,
+                type_of_tf=type_of_tf,
+                average=average
+                )
         else:
-            power=time_frequency(raw,picks=channels_idxs,type='morlet', return_itc=False)
+            power=time_frequency(
+                epochs,
+                picks=channels_idxs,
+                type_of_tf=type_of_tf, 
+                return_itc=False,
+                average=average
+                )
         
-        print(power)
         response=Response({
-            'signal':power,
+            'signal':power.data,
+            'times':power.times,
+            'freqs':power.freqs,
             'sampling_freq':raw.info['sfreq'],
             'ch_names': returned_channels,
             })
@@ -314,7 +365,7 @@ class GetPSD(APIView):
             media_path=MEDIA_TEMP
 
         else:
-            filepath=get_temp_output_filepath(request,process_result_id=id)
+            filepath=get_temp_output_filename(request,process_result_id=id)
             media_path=MEDIA_PROC_TEMP_OUTPUT_PATH
 
         # Get the raw
@@ -393,7 +444,7 @@ class GetPSD(APIView):
         if type_of_psd=='welch':
             fields=["n_fft","n_overlap","n_per_seg","window","average"]
             defaults=[int(raw.info["sfreq"]*(time_window[1]-time_window[0])/2),0,None,'boxcar','mean']
-            welch_params=check_params(request,params_names=fields,params_values=defaults)
+            welch_params=check_params(request.query_params,params_names=fields,params_values=defaults)
             if type(welch_params)==Response: return welch_params
 
             psds,freqs=psd(
@@ -410,7 +461,7 @@ class GetPSD(APIView):
         elif type_of_psd=='multitaper':
             fields=["bandwidth","adaptive","low_bias","normalization"]
             defaults=[4,False,False,'length']
-            multitaper_params=check_params(request,params_names=fields,params_values=defaults)
+            multitaper_params=check_params(request.query_params,params_names=fields,params_values=defaults)
             if type(multitaper_params)==Response: return multitaper_params
 
             psds,freqs=psd(
@@ -442,26 +493,50 @@ class GetEvents(APIView):
 
         id=request.query_params[LOAD_RESTORE_PARAM_NAME]
 
-        file_info=get_file_info(id)
-        if type(file_info).__name__=='Response':
-            return file_info
+        # Check if is a number or an id result and get the filepath
+        media_path=MEDIA_TEMP
+        if id.isnumeric():
+            file_info=get_file_info(id)
+            if type(file_info).__name__=='Response':
+                return file_info
 
-        try:
-            tu = get_upload(file_info.upload_id)
-        except FileNotFoundError:
-            Response('Not found', status=status.HTTP_404_NOT_FOUND)
+            try:
+                tu = get_upload(file_info.upload_id)
+            except FileNotFoundError:
+                Response('Not found', status=status.HTTP_404_NOT_FOUND)
 
+            filepath=os.path.join(tu.upload_id,tu.upload_name)
+            media_path=MEDIA_TEMP
+
+        else:
+            filepath=get_temp_output_filename(request,process_result_id=id)
+            media_path=MEDIA_PROC_TEMP_OUTPUT_PATH
+
+        # Get the raw
         try:
-            events=get_events(os.path.join(tu.upload_id,tu.upload_name))
+            raw=get_raw(media_path,filepath)
+        except TypeError:
+            return Response('Invalid file extension',
+                        status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        # Get events
+        try:
+            events=get_events(raw)
         except TypeError:
             return Response('Invalid file extension',
                         status=status.HTTP_406_NOT_ACCEPTABLE)
         
         
         response=Response({
-            'event_samples':events[:,0],
-            'event_id':events[:,2],
-            'event_description': ''
+            'data':{
+                'event_samples':events[:,0],
+                'event_ids':events[:,2],
+                'event_descriptions': '',
+                'sampling_freq':raw.info['sfreq'],
+                'first_sample':raw.first_samp,
+                'last_sample':raw.last_samp
+            },
+            'ch_names':[]
         })
         return response
        
@@ -648,7 +723,7 @@ class CustomFilterView(APIView):
         return response
 
 
-class PeakView(APIView):
+class GetPeaks(APIView):
     
     def get(self, request, format=None):
 
@@ -658,53 +733,25 @@ class PeakView(APIView):
 
         id=request.query_params[LOAD_RESTORE_PARAM_NAME]
 
-        file_info=get_file_info(id)
-        if type(file_info).__name__=='Response':
-            return file_info
+        filepath=get_temp_method_result_filename(request,process_result_id=id)
+        media_path=MEDIA_PROC_TEMP_OUTPUT_PATH
 
+        # Get the method result
         try:
-            tu = get_upload(file_info.upload_id)
-        except FileNotFoundError:
-            Response('Not found', status=status.HTTP_404_NOT_FOUND)
+            method_result=get_method_result_data(media_path,filepath)
+        except TypeError:
+            return Response('Invalid file extension',
+                        status=status.HTTP_406_NOT_ACCEPTABLE)
         
         #get requested channels
         channels=get_request_channels(request.query_params)
         if type(channels)==Response:
-            return channels 
-
-        if 'thresh' not in request.query_params:
-            thresh=None # Default
-        else:
-            thresh=request.query_params['thresh']
-            if (thresh=='') or (not thresh):
-                thresh=None
-            else:     
-                try:
-                    thresh=float(thresh)
-                except:
-                    return Response('An invalid thresh has been provided.',
-                        status=status.HTTP_400_BAD_REQUEST)
-
-        #PROCESS
-        try:
-            filepath=os.path.join(tu.upload_id,tu.upload_name)
-            raw=get_raw(MEDIA_TEMP,filepath)
-        except TypeError:
-            return Response('Invalid file extension',
-                        status=status.HTTP_406_NOT_ACCEPTABLE)
-
-        try:
-            peaks_idx=peak_finder(raw,channels,thresh)
-        except TypeError:
-            return Response('Invalid file extension',
-                        status=status.HTTP_406_NOT_ACCEPTABLE)
-
-
-        if channels==None:
-            channels='all'
+            return channels
 
         response=Response({
-            'peaks_idx': peaks_idx,
-            'used_channels': channels,
-        })
+            "data":method_result,
+            "ch_names":channels
+            })
+
+        
         return response

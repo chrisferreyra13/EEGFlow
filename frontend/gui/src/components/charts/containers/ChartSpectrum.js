@@ -71,26 +71,45 @@ class ChartSpectrum extends Component {
 		const dataType='PSD';
 		if(nodePlot.inputData.fetchInput){
 			const nodeInput=this.props.elements.find((elem) => elem.id==nodePlot.inputData.inputNodeId)
-			const signalData=nodeInput.signalsData.find(d => d.dataType==dataType)
-
 			if(nodeInput.params.channels==undefined){
 				channels=nodePlot.params.channels
 			}
 			else{
 				channels=nodeInput.params.channels
 			}
+			let signalData=nodeInput.signalsData.find(s => {
+				if(s.processId==nodePlot.processParams.processId && s.dataType==dataType)return true
+
+				return false
+			})
+			
 			if(signalData==undefined){
-				this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType)
-				this.props.updatePlotParams({...nodePlot.params})
+				this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType,nodePlot.processParams.processId)
+				this.props.updatePlotParams(nodePlot.id,{...nodePlot.params})
 			}
 			else{
-				if(!signalData.dataReady || JSON.stringify(this.props.prevParams)!==JSON.stringify(nodePlot.params)){
+				if(!signalData.dataReady){
 					this.props.deleteItemInputsReady(signalData.id)
 					oldSignalId=signalData.id
-					this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType)
-					this.props.updatePlotParams({...nodePlot.params})
+					this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType,nodePlot.processParams.processId)
+					this.props.updatePlotParams(nodePlot.id,{...nodePlot.params})
+				}
+				else{
+					if(Object.keys(this.props.prevParams).includes(nodePlot.id)){
+						if(JSON.stringify(this.props.prevParams[nodePlot.id])!==JSON.stringify(nodePlot.params)){
+							this.props.deleteItemInputsReady(signalData.id)
+							oldSignalId=signalData.id
+							this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType,nodePlot.processParams.processId)
+							this.props.updatePlotParams(nodePlot.id,{...nodePlot.params})
+						}
+					}
+				}
+			}
 
-					
+			if(signalData!=undefined){
+				if(this.props.inputsReady.includes(signalData.id)){
+					data=this.preprocessData(signalData,params,false)
+					dataReady=true
 				}
 			}
 		}
@@ -98,6 +117,7 @@ class ChartSpectrum extends Component {
 		this.state={
 			dataReady:dataReady,
 			inputNodeId:nodePlot.inputData.inputNodeId,
+			processId:nodePlot.processParams.processId,
 			dataType:dataType,
 			params:params,
 			style:style,
@@ -107,68 +127,75 @@ class ChartSpectrum extends Component {
 		}
     }
 
-	preprocessData(dataParams){
-		if(this.state.dataReady==true){
-			return
-		}
-		let dataX=[]
+	preprocessData(signalData,plotParams,updating){
 
 		let minIndex=0;
-		let limit=dataParams.freqs.length;
+		let limit=signalData.freqs.length;
 		let maxIndex=limit;
 		let target;
 		let goal;
-		if(this.state.params.minXWindow!=null){
-			goal=this.state.params.minXWindow
-			target=dataParams.freqs.reduce((prev, curr) => Math.abs(curr - goal) < Math.abs(prev - goal) ? curr : prev);
-			minIndex=dataParams.freqs.findIndex(f => f==target)
+		if(plotParams.minXWindow!=null){
+			goal=plotParams.minXWindow
+			target=signalData.freqs.reduce((prev, curr) => Math.abs(curr - goal) < Math.abs(prev - goal) ? curr : prev);
+			minIndex=signalData.freqs.findIndex(f => f==target)
 			if(minIndex>=limit) minIndex=0; //Se paso, tira error
 		}
-		if(this.state.params.maxXWindow!=null){
-			goal=this.state.params.maxXWindow
-			target=dataParams.freqs.reduce((prev, curr) => Math.abs(curr - goal) < Math.abs(prev - goal) ? curr : prev);
-			maxIndex=dataParams.freqs.findIndex(f => f==target)
+		if(plotParams.maxXWindow!=null){
+			goal=plotParams.maxXWindow
+			target=signalData.freqs.reduce((prev, curr) => Math.abs(curr - goal) < Math.abs(prev - goal) ? curr : prev);
+			maxIndex=signalData.freqs.findIndex(f => f==target)
 			if(maxIndex>limit) maxIndex=limit; //Se paso, tira error
     	}
     	
 		let data=PrepareDataForPlot(
-			dataParams.freqs, //if empty [] --> SampleToTimes 
-			dataParams.data,
-			dataParams.sFreq,
-			dataParams.chNames,
-			this.state.params.channels,
+			signalData.freqs, //if empty [] --> SampleToTimes 
+			signalData.data,
+			signalData.sFreq,
+			signalData.chNames,
+			plotParams.channels,
 			minIndex,
 			maxIndex,
 			1//Math.pow(10,6)
 			)
-		
-		this.setState({
-			data:data,
-			dataReady:true,
-			params:{
-				...this.state.params,
-				channels:this.state.params.channels.filter(c => dataParams.chNames.includes(c))
-			} 
-		})
 
+		if(updating)
+			this.setState({
+				data:data,
+				dataReady:true,
+				params:{
+					...plotParams,
+					channels:plotParams.channels.filter(c => signalData.chNames.includes(c))
+				} 
+			})
+		else return data
 	}
-
-    render() {
-
-		const nodeInput=this.props.elements.find((elem) => elem.id==this.state.inputNodeId)
-		if(nodeInput!=undefined){
-			const signalData=nodeInput.signalsData.find(d => d.dataType==this.state.dataType)
-			if(signalData!=undefined){
-				if(this.props.inputsReady.includes(signalData.id) && this.state.oldSignalId!=signalData.id){
-					this.preprocessData(signalData)
+	componentDidUpdate(prevProps){
+		if(prevProps.inputsReady!==this.props.inputsReady){
+			const nodeInput=this.props.elements.find((elem) => elem.id==this.state.inputNodeId)
+			if(nodeInput!=undefined){
+				let signalData=nodeInput.signalsData.find(s => {
+					if(s.processId==this.state.processId && s.dataType==this.state.dataType)return true
+					return false
+				})
+				if(signalData!=undefined){
+					if(this.props.inputsReady.includes(signalData.id) && this.state.oldSignalId!=signalData.id){
+						if(this.state.dataReady==false){
+							if(signalData.chNames.some(ch => this.state.params.channels.includes(ch))){ //Check if at least one channels is in plot params
+								this.preprocessData(signalData,this.state.params,true)
+							}
+						}
+					}
 				}
 			}
 		}
 		
+	  }
 
+
+    render() {
 		return (
 			<>
-				<CCard>
+				
 					<CCardBody >
 						{ this.state.dataReady ?
 							<div style={this.state.style}>
@@ -185,8 +212,7 @@ class ChartSpectrum extends Component {
 							</div>
 						}
 					</CCardBody>
-				</CCard>
-
+				
 			</>
 			
 		)
@@ -199,13 +225,13 @@ const mapStateToProps = (state) => {
 	return{
 	  elements:state.diagram.elements,
 	  inputsReady: state.diagram.inputsReady,
-	  prevParams:state.plotParams.psd
+	  prevParams:state.plotParams.plots
 	};
 }
   
 const mapDispatchToProps = (dispatch) => {
 	return {
-		fetchSignal: (id,channels,plotParams,nodeId,type) => dispatch(fetchSignal(id,channels,plotParams,nodeId,type)),
+		fetchSignal: (id,channels,plotParams,nodeId,type,plotProcessId) => dispatch(fetchSignal(id,channels,plotParams,nodeId,type,plotProcessId)),
 		updatePlotParams: (params) => dispatch(updatePlotParams(params)),
 		deleteItemInputsReady: (id) => dispatch(deleteItemInputsReady(id)),
 	};
