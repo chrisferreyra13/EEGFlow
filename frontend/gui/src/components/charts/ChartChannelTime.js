@@ -24,7 +24,11 @@ class ChartChannel extends Component {
         // Create a chartXY, the containerId determines which div the chart will be rendered to.
         this.chart = lightningChart().ChartXY({ container: this.chartId, theme: myTheme  })
         // Set the Title of the chart.
-        this.chart.setTitle('Canal ' +this.props.channel)
+        if(this.props.epoch!=null){
+            this.chart.setTitle('Epoca '+this.props.epoch+' Canal ' +this.props.channel)
+        }else{
+            this.chart.setTitle('Canal ' +this.props.channel)
+        }
         // Add LineSeries to the chart.
         this.lineSeries = this.chart.addLineSeries()
         // Set the strokeStyle of the lineSeries.
@@ -37,7 +41,7 @@ class ChartChannel extends Component {
         const yMax=Math.max.apply(Math, this.props.data.map(function(o) { return o.y; }))
         this.chart
             .getDefaultAxisY()
-            .setTitle('uV')
+            .setTitle('\u03BCV')
             .setInterval(yMin-0.30*Math.abs(yMin), (yMax+0.30*Math.abs(yMax)))
             //.setScrollStrategy(AxisScrollStrategies.expansion)
         this.axisX=this.chart.getDefaultAxisX()

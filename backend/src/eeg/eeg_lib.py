@@ -89,6 +89,12 @@ def psd(instance,freq_window,time_window=[None,None], picks=None,type_of_psd='we
 
     return psds_db, freqs
 
+def get_epochs(media_path,filepath):
+    full_filepath=os.path.join(media_path,filepath)
+    epochs=mne.read_epochs(full_filepath)
+
+    return epochs
+
 def get_raw(media_path,filepath):
     file_extension=filepath.split('.')[1]
     full_filepath=os.path.join(media_path,filepath)
@@ -103,8 +109,8 @@ def get_raw(media_path,filepath):
 
     return raw
 
-def save_raw(raw,filename, overwrite=True):
-    raw.save(filename, overwrite=overwrite)
+def save_raw(instance,filename, overwrite=True):
+    instance.save(filename, overwrite=overwrite)
     return
 
 def add_events(raw, new_events):
@@ -123,12 +129,11 @@ def get_events(raw):
     except ValueError:
         print("[INFO] the file doesn't have events... trying with annotations...")
         try:
-            events=mne.events_from_annotations(raw)
+            events,events_dict=mne.events_from_annotations(raw)
         except Exception as ex:
             print("[INFO] the file doesn't have events")
             raise ex
             
-
     return events
 
 def notch_filter(raw,notch_freqs=[50.0],channels=None, filter_method='fir',**kwargs):
@@ -173,19 +178,19 @@ def notch_filter(raw,notch_freqs=[50.0],channels=None, filter_method='fir',**kwa
     return raw_filtered
 
 
-def custom_filter(raw,low_freq=None,high_freq=None,channels=None, filter_method='fir',**kwargs):
+def custom_filter(instance,low_freq=None,high_freq=None,channels=None, filter_method='fir',**kwargs):
 
-    raw_eeg=raw.copy().pick_types(eeg=True)
-    raw_eeg.load_data()
+    instance_eeg=instance.copy().pick_types(eeg=True)
+    instance_eeg.load_data()
 
     if channels==None: # Si es None, aplico el filtrado en todos los canales tipo EEG
-        channels_idxs=mne.pick_types(raw.info,eeg=True)
+        channels_idxs=mne.pick_types(instance.info,eeg=True)
     else:
-        channels_idxs=mne.pick_channels(raw_eeg.info['ch_names'], include=channels)
+        channels_idxs=mne.pick_channels(instance_eeg.info['ch_names'], include=channels)
     
 
     if filter_method=='fir':
-        raw_filtered=raw_eeg.filter(
+        raw_filtered=instance_eeg.filter(
             l_freq=low_freq, 
             h_freq=high_freq, 
             picks=channels_idxs, 
@@ -197,7 +202,7 @@ def custom_filter(raw,low_freq=None,high_freq=None,channels=None, filter_method=
             fir_design=kwargs["fir_design"],
             )
     else:
-        raw_filtered=raw_eeg.filter(
+        raw_filtered=instance_eeg.filter(
             l_freq=low_freq, 
             h_freq=high_freq, 
             picks=channels_idxs, 
@@ -207,16 +212,16 @@ def custom_filter(raw,low_freq=None,high_freq=None,channels=None, filter_method=
 
     return raw_filtered
 
-def peak_finder(raw,channels=None,thresh=None):
+def peak_finder(instance,channels=None,thresh=None):
 
-    raw_eeg=raw.copy().pick_types(eeg=True)
+    instance_eeg=instance.copy().pick_types(eeg=True)
 
     if channels==None: # Si es None, aplico el filtrado en todos los canales tipo EEG
-        channels_idxs=mne.pick_types(raw.info,eeg=True)
+        channels_idxs=mne.pick_types(instance.info,eeg=True)
     else:
-        channels_idxs=mne.pick_channels(raw_eeg.info['ch_names'], include=channels)
+        channels_idxs=mne.pick_channels(instance_eeg.info['ch_names'], include=channels)
     
-    time_series=raw_eeg.get_data(picks=channels_idxs)
+    time_series=instance_eeg.get_data(picks=channels_idxs)
     peaks=[]
 
     for serie in time_series:

@@ -20,7 +20,7 @@ from rest_framework.renderers import JSONRenderer
 from .models import FileInfo
 from .eeg_lib import *
 from .serializers import FileInfoSerializer
-from .process_steps import steps
+from .process_steps import epochs, steps
 
 from filemanager.storage_manager import get_stored_upload, get_temporary_upload
 from filemanager.models import StoredUpload, TemporaryUpload, TemporaryOutput
@@ -32,6 +32,7 @@ from cconsciente.settings.base import MEDIA_TEMP, MEDIA_STORED, MEDIA_PROC_TEMP_
 from .utils import *
 
 import mne
+from mne import Epochs
 import numpy as np
 
 ####VARIABLES####
@@ -75,7 +76,8 @@ class RunProcess(APIView):
         num_step=1
         num_of_steps=len(process)
         # Preparing output format...
-        process_result_ids={}      
+        process_result_ids={}
+        output_type='raw'
 
         print('[INFO]: Running process...')
         for step in process:
@@ -88,16 +90,38 @@ class RunProcess(APIView):
 
                 output.data['process_result_ids']=process_result_ids
                 output.data["process_id"]=process_id
+                output.data["output_type"]=output_type
+                output.data["summary"]={}
+                if output_type=='epochs': # input is epochs object (input=output one step before)
+                    output.data["summary"]=prepare_epochs_summary(input,events)
+
                 print('[INFO]: RESPONSE: {}'.format(output.data))
                 return output
             else:
                 if step['save_output']==True:
                     if type(output)==dict:
-                        process_result_id=make_output_raw_file(request,process_name=step['elementType'],raw_output=output["raw"])
-                        make_method_result_file(request,data=output["method_result"],process_result_id=process_result_id)
+                        if type(output["instance"])==Epochs:output_type='epochs'
+                        else: output_type='raw'
+
+                        process_result_id=make_output_instance_file(
+                            request,
+                            process_name=step['elementType'],
+                            instance=output["instance"],
+                            output_type=output_type
+                            )
+                        if "method_result" in output.keys():
+                            make_method_result_file(request,data=output["method_result"],process_result_id=process_result_id)
                         
-                    else:
-                        process_result_id=make_output_raw_file(request,process_name=step['elementType'],raw_output=output)
+                    else: 
+                        if type(output)==Epochs:output_type='epochs'
+                        else: output_type='raw'
+
+                        process_result_id=make_output_instance_file(
+                            request,
+                            process_name=step['elementType'],
+                            instance=output,
+                            output_type=output_type
+                            )
 
                     if type(process_result_id).__name__=='Response':
                         return process_result_id # Hubo un error
@@ -106,7 +130,9 @@ class RunProcess(APIView):
                         #process_result_ids.append(process_result_id)
 
                 if type(output)==dict:
-                    input=output["raw"]
+                    input=output["instance"]
+                    if "events" in output.keys():
+                        events=output["events"]
                 else:
                     input=output
 
@@ -208,12 +234,23 @@ class GetTimeSeries(APIView):
             filepath=get_temp_output_filename(request,process_result_id=id)
             media_path=MEDIA_PROC_TEMP_OUTPUT_PATH
 
-        # Get the raw
-        try:
-            raw=get_raw(media_path,filepath)
-        except TypeError:
-            return Response('Invalid file extension',
-                        status=status.HTTP_406_NOT_ACCEPTABLE)
+        if filepath==None:
+            return Response('Invalid ID',
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        # Get the instance
+        if filepath.split('-')[-1]=='epo.fif':
+            try:
+                instance=get_epochs(media_path,filepath)
+            except TypeError:
+                return Response('Invalid file extension',
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
+        else:
+            try:
+                instance=get_raw(media_path,filepath)
+            except TypeError:
+                return Response('Invalid file extension',
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
         
         #get requested channels
         channels=get_request_channels(request.query_params)
@@ -221,29 +258,74 @@ class GetTimeSeries(APIView):
             return channels
 
         if channels==None or channels=='prev': # Si es None, agarro todos
-            channels_idxs=mne.pick_types(raw.info,eeg=True) #Retorna los indices internos de raw
+            channels_idxs=mne.pick_types(instance.info,eeg=True) #Retorna los indices internos del instance
             
             if channels=='prev': # select just two channels for preview purposes
                 if len(channels_idxs)>=2:
                     channels_idxs=channels_idxs[:2]
                 else: channels_idxs=channels_idxs[0]
 
-            eeg_info=mne.pick_info(raw.info, sel=channels_idxs)
+            eeg_info=mne.pick_info(instance.info, sel=channels_idxs)
             returned_channels=eeg_info["ch_names"]
             
         else:
             returned_channels=channels
-            ch_names=raw.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
+            ch_names=instance.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
             if set(channels).issubset(set(ch_names)):
-                channels_idxs=mne.pick_channels(ch_names, include=channels) #Retorna los indices internos de raw
+                channels_idxs=mne.pick_channels(ch_names, include=channels) #Retorna los indices internos del instance
             else:
                 return Response('An invalid list of channels has been provided.',
                             status=status.HTTP_400_BAD_REQUEST)
 
-        time_series=raw.get_data(picks=channels_idxs) # Take the requested channels
+        if 'epochs' not in request.query_params:
+            epochs=None
+        else:
+            epochs=request.query_params["epochs"]
+            if type(epochs)==str:
+                if (not epochs) or (epochs == ''):    # Si no envian nada, lo aplico en todos los canales
+                    epochs=None
+                else:
+                    try:
+                        epochs=int(epochs)
+                    except:
+                        return Response('An invalid epoch has been provided.',
+                            status=status.HTTP_400_BAD_REQUEST)
+
+            elif type(epochs)==list:
+                if len(epochs)==0:
+                    return Response('An invalid list of epochs has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    try:
+                        epochs=[int(epo) for epo in epochs]
+                    except:
+                        return Response('An invalid epoch has been provided.',
+                            status=status.HTTP_400_BAD_REQUEST)
+        
+
+        data=instance.get_data(picks=channels_idxs) # Take the requested channels
+
+        times=None
+        if len(np.shape(data))==2 and epochs is None: # raw object
+            time_series=data 
+        else:
+            n_epochs,n_channels,n_times=np.shape(data) #get the shape of the object
+            time_series=[]
+            times=instance.times
+            if type(epochs)==list: #por ahora no vamos a usar este, pero lo dejo
+                for j in range(epochs):
+                    time_series.append(data[j])
+            
+            else:
+                epoch_idx=epochs-1 #correction: label -> index
+                time_series=data[epoch_idx]
+
+            
+
         response=Response({
             'signal':time_series,
-            'sampling_freq':raw.info['sfreq'],
+            'times':times,
+            'sampling_freq':instance.info['sfreq'],
             'ch_names': returned_channels,
             })
 
@@ -277,12 +359,25 @@ class GetTimeFrequency(APIView):
             filepath=get_temp_output_filename(request,process_result_id=id)
             media_path=MEDIA_PROC_TEMP_OUTPUT_PATH
 
-        # Get the raw
-        try:
-            raw=get_raw(media_path,filepath)
-        except TypeError:
+        if filepath==None:
+            return Response('Invalid ID',
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        # Get the instance
+        if filepath.split('-')[-1]=='epo.fif':
+            try:
+                instance=get_epochs(media_path,filepath)
+            except TypeError:
+                return Response('Invalid file extension',
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
+        else:
             return Response('Invalid file extension',
                         status=status.HTTP_406_NOT_ACCEPTABLE)
+            # try:
+            #     instance=get_raw(media_path,filepath)
+            # except TypeError:
+            #     return Response('Invalid file extension',
+            #                 status=status.HTTP_406_NOT_ACCEPTABLE)
         
         #get requested channels
         channels=get_request_channels(request.query_params)
@@ -290,40 +385,33 @@ class GetTimeFrequency(APIView):
             return channels  
         
         if channels==None: # Si es None, agarro todos
-            channels_idxs=mne.pick_types(raw.info,eeg=True) #Retorna los indices internos de raw
-            eeg_info=mne.pick_info(raw.info, sel=channels_idxs)
+            channels_idxs=mne.pick_types(instance.info,eeg=True) #Retorna los indices internos de raw
+            eeg_info=mne.pick_info(instance.info, sel=channels_idxs)
             returned_channels=eeg_info["ch_names"]
         else:
             returned_channels=channels
-            ch_names=raw.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
+            ch_names=instance.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
             if set(channels).issubset(set(ch_names)):
                 channels_idxs=mne.pick_channels(ch_names, include=channels) #Retorna los indices internos de raw
             else:
                 return Response('An invalid list of channels has been provided.',
                             status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            events=get_events(raw)
-        except TypeError:
-            return Response('Invalid file extension',
-                        status=status.HTTP_406_NOT_ACCEPTABLE)
-
-        # build epochs instance for time-frequency plot
-        epochs = mne.Epochs(raw, events, tmin=-1, tmax=3)
+        epochs={}
 
         return_itc=False
         type_of_tf='morlet'
         average=True
         if return_itc:
             power,itc=time_frequency(
-                instance=epochs,
+                instance=instance,
                 picks=channels_idxs,
                 type_of_tf=type_of_tf,
                 average=average
                 )
         else:
             power=time_frequency(
-                epochs,
+                instance,
                 picks=channels_idxs,
                 type_of_tf=type_of_tf, 
                 return_itc=False,
@@ -334,7 +422,7 @@ class GetTimeFrequency(APIView):
             'signal':power.data,
             'times':power.times,
             'freqs':power.freqs,
-            'sampling_freq':raw.info['sfreq'],
+            'sampling_freq':instance.info['sfreq'],
             'ch_names': returned_channels,
             })
         
@@ -368,12 +456,23 @@ class GetPSD(APIView):
             filepath=get_temp_output_filename(request,process_result_id=id)
             media_path=MEDIA_PROC_TEMP_OUTPUT_PATH
 
-        # Get the raw
-        try:
-            raw=get_raw(media_path,filepath)
-        except TypeError:
-            return Response('Invalid file extension',
-                        status=status.HTTP_406_NOT_ACCEPTABLE)
+        if filepath==None:
+            return Response('Invalid ID',
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        # Get the instance
+        if filepath.split('-')[-1]=='epo.fif':
+            try:
+                instance=get_epochs(media_path,filepath)
+            except TypeError:
+                return Response('Invalid file extension',
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
+        else:
+            try:
+                instance=get_raw(media_path,filepath)
+            except TypeError:
+                return Response('Invalid file extension',
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
         
         #get requested channels
         channels=get_request_channels(request.query_params)
@@ -381,13 +480,13 @@ class GetPSD(APIView):
             return channels 
 
         if channels==None: # Si es None, agarro todos
-            channels_idxs=mne.pick_types(raw.info,eeg=True) #Retorna los indices internos de raw
-            eeg_info=mne.pick_info(raw.info, sel=channels_idxs)
+            channels_idxs=mne.pick_types(instance.info,eeg=True) #Retorna los indices internos de raw
+            eeg_info=mne.pick_info(instance.info, sel=channels_idxs)
             returned_channels=eeg_info["ch_names"]
             
         else:
             returned_channels=channels
-            ch_names=raw.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
+            ch_names=instance.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
             if set(channels).issubset(set(ch_names)):
                 channels_idxs=mne.pick_channels(ch_names, include=channels) #Retorna los indices internos de raw
             else:
@@ -408,11 +507,11 @@ class GetPSD(APIView):
 
         #get time and freq window
         if 'time_window' not in request.query_params:
-            time_window=[raw.times.min(),raw.times.max()]
+            time_window=[instance.times.min(),instance.times.max()]
         else:
             time_window=request.query_params['time_window']
             if (not time_window) or (time_window == []) or (time_window == ''):    # Por defecto uso toda la duracion de la señal
-                time_window=[raw.times.min(),raw.times.max()]
+                time_window=[instance.times.min(),instance.times.max()]
             else:
                 try:
                     time_window=[float(t) for t in time_window.split(',')]
@@ -425,11 +524,11 @@ class GetPSD(APIView):
                         status=status.HTTP_400_BAD_REQUEST)
 
         if 'freq_window' not in request.query_params:
-            freq_window=[0,raw.info["sfreq"]/2] #Mas o menos todo el rango de frecuencias
+            freq_window=[0,instance.info["sfreq"]/2] #Mas o menos todo el rango de frecuencias
         else:
             freq_window=request.query_params['freq_window']
             if (not freq_window) or (freq_window == []) or (freq_window == ''):    # Por defecto todo el rango de frecuencias
-                freq_window=[0,raw.info["sfreq"]/2]
+                freq_window=[0,instance.info["sfreq"]/2]
             else:
                 try:
                     freq_window=[float(f) for f in freq_window.split(',')]
@@ -443,12 +542,12 @@ class GetPSD(APIView):
 
         if type_of_psd=='welch':
             fields=["n_fft","n_overlap","n_per_seg","window","average"]
-            defaults=[int(raw.info["sfreq"]*(time_window[1]-time_window[0])/2),0,None,'boxcar','mean']
+            defaults=[int(instance.info["sfreq"]*(time_window[1]-time_window[0])/2),0,None,'boxcar','mean']
             welch_params=check_params(request.query_params,params_names=fields,params_values=defaults)
             if type(welch_params)==Response: return welch_params
 
             psds,freqs=psd(
-                instance=raw,
+                instance=instance,
                 freq_window=freq_window,time_window=time_window,
                 picks=channels_idxs,
                 type_of_psd=type_of_psd,
@@ -465,7 +564,7 @@ class GetPSD(APIView):
             if type(multitaper_params)==Response: return multitaper_params
 
             psds,freqs=psd(
-                raw,
+                instance=instance,
                 freq_window=freq_window,time_window=time_window,
                 picks=channels_idxs,
                 type_of_psd=type_of_psd,
@@ -478,7 +577,7 @@ class GetPSD(APIView):
         response=Response({
             'signal':psds,
             'freqs':freqs,
-            'sampling_freq':raw.info['sfreq'],
+            'sampling_freq':instance.info['sfreq'],
             'ch_names': returned_channels,
             })
         
@@ -527,6 +626,8 @@ class GetEvents(APIView):
             return Response('Invalid file extension',
                         status=status.HTTP_406_NOT_ACCEPTABLE)
         
+        # if type(events)==tuple:
+        #     events=events[0]
         
         response=Response({
             'data':{

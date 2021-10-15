@@ -251,6 +251,8 @@ export const runProcess= (elements) => async (dispatch) => {
                     dispatch(runProcessReceive({
                         'process_status':json["process_status"],
                         'process_result_ids':json["process_result_ids"],
+                        'output_type':json["output_type"],
+                        'summary':json["summary"],
                         'process_id':process_id,
                         'process_node_ids':process.map((node)=> node.id),
                         'node_output_id':process[process.length-1].id,
@@ -414,7 +416,8 @@ export const fetchSignal = (id, channels, plotParams, nodeId, dataType, plotProc
             endpoint=endpoint+'time_series/?'
             requestParams={
                 id:id,
-                channels: channels==undefined ? '': channels
+                channels: channels==undefined ? '': channels,
+                epochs: plotParams.epochs==null ? '': plotParams.epochs
             }
             break
         case 'PSD':
@@ -455,7 +458,8 @@ export const fetchSignal = (id, channels, plotParams, nodeId, dataType, plotProc
             endpoint=endpoint+ 'time_series/?'
             requestParams={
                 id:id,
-                channels: channels==undefined ? '': channels
+                channels: channels==undefined ? '': channels,
+                epochs: plotParams.epochs==null ? '': plotParams.epochs
             }
             break
     }

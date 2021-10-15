@@ -20,16 +20,30 @@ class ChartTemporal extends Component {
         super(props);
 		const nodePlot=this.props.elements.find((elem) => elem.id==this.props.nodeId) //Busco nodoPlot para setear los params
 		let params={}
+		const outputType=nodePlot.inputData.outputType==null? 'raw' : nodePlot.inputData.outputType
 		if(nodePlot.params.channels==null){ 
-			params={ //Default params
-				channels:'prev',
-				minXWindow:null,
-     			maxXWindow:null,
-				size:'l'
+			if(outputType=='raw'){
+				params={ //Default params
+					channels:'prev',
+					epochs:null,
+					minXWindow:nodePlot.params.minTimeWindow,
+					maxXWindow:nodePlot.params.maxTimeWindow,
+					size:nodePlot.params.size==null ? 'l' : nodePlot.params.size
+				}
+			}else{
+				params={ //Default params
+					channels:'prev',
+					epochs:'1',
+					minXWindow:nodePlot.params.minTimeWindow,
+					maxXWindow:nodePlot.params.maxTimeWindow,
+					size:nodePlot.params.size==null ? 'l' : nodePlot.params.size
+				}
 			}
+			
 		}else{
 			params={
 				channels:nodePlot.params.channels,
+				epochs:nodePlot.params.epochs,
 				minXWindow:nodePlot.params.minTimeWindow,
 				maxXWindow:nodePlot.params.maxTimeWindow,
 				size:nodePlot.params.size==null ? 'm' : nodePlot.params.size
@@ -65,6 +79,8 @@ class ChartTemporal extends Component {
 		let methodResultExists=false;
 		let methodResultReady=false;
 		let methodResult=[];
+		let fetchSignal=false;
+		let fetchMethodResult=false;
 
 		let limit;
 		let minIndex=0;
@@ -73,53 +89,44 @@ class ChartTemporal extends Component {
 		if(nodePlot.inputData.inputNodeId!=null){
 			const nodeInput=this.props.elements.find((elem) => elem.id==nodePlot.inputData.inputNodeId)
 
-			if(nodeInput.params.channels==undefined){
-				channels=params.channels
-			}
-			else{
-				channels=nodeInput.params.channels
-			}
+			if(nodeInput.params.channels==undefined){channels=params.channels}
+			else{channels=nodeInput.params.channels}
+
 			let signalData=nodeInput.signalsData.find(s => {
 				if(s.processId==nodePlot.processParams.processId && s.dataType==dataType)return true
 				return false
 			})
 			if(signalData==undefined){
-				this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType,nodePlot.processParams.processId)
-				this.props.updatePlotParams(nodePlot.id,{...nodePlot.params})
-
-				if(METHOD_NODES.includes(nodeInput.elementType)){
-					this.props.fetchMethodResult(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,nodeInput.elementType)
-					methodResultExists=true
-				}
+				fetchSignal=true;
+				if(METHOD_NODES.includes(nodeInput.elementType)){fetchMethodResult=true;}
 			}
 			else{
 				if(!signalData.dataReady){
 					this.props.deleteItemInputsReady(signalData.id)
 					oldSignalId=signalData.id
-					this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType,nodePlot.processParams.processId)
-					this.props.updatePlotParams(nodePlot.id,{...nodePlot.params})
-
-					if(METHOD_NODES.includes(nodeInput.elementType)){
-						this.props.fetchMethodResult(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,nodeInput.elementType)
-						methodResultExists=true
-					}
+					fetchSignal=true
+					if(METHOD_NODES.includes(nodeInput.elementType)){fetchMethodResult=true}
 				}
 				else{
 					if(Object.keys(this.props.prevParams).includes(nodePlot.id)){
 						if(JSON.stringify(this.props.prevParams[nodePlot.id])!==JSON.stringify(nodePlot.params)){
 							this.props.deleteItemInputsReady(signalData.id)
 							oldSignalId=signalData.id
-							this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType,nodePlot.processParams.processId)
-							this.props.updatePlotParams(nodePlot.id,{...nodePlot.params})
-
-							if(METHOD_NODES.includes(nodeInput.elementType)){
-								this.props.fetchMethodResult(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,nodeInput.elementType)
-								methodResultExists=true
-							}
+							fetchSignal=true
+							if(METHOD_NODES.includes(nodeInput.elementType)){fetchMethodResult=true}
 						}
 					}
 				}
 			}
+			if(fetchSignal){
+				this.props.fetchSignal(nodeInput.params.id,channels,params,nodeInput.id,dataType,nodePlot.processParams.processId)
+				this.props.updatePlotParams(nodePlot.id,{...params})
+			}
+			if(fetchMethodResult){
+				this.props.fetchMethodResult(nodeInput.params.id,channels,params,nodeInput.id,nodeInput.elementType)
+				methodResultExists=true
+			}
+
 			
 			let prepareData=false
 			if(signalData!=undefined){
@@ -177,6 +184,7 @@ class ChartTemporal extends Component {
 			methodResultExists:methodResultExists,
 			minIndex:minIndex,
 			maxIndex:maxIndex,
+			outputType:outputType
 
 		}
 
@@ -184,6 +192,9 @@ class ChartTemporal extends Component {
 
 	preprocessData(signalData, plotChannels,plotParams,updating){
 		let dataX=[]
+		if(signalData.times!=undefined)
+			dataX=signalData.times
+
 		let limit = signalData.data[0].length;
 		let minIndex=0;
 		let maxIndex=limit;
@@ -339,12 +350,14 @@ class ChartTemporal extends Component {
 							data={this.state.data[0]}
 							chartStyle={{height: '100%', width:'100%', alignItems:'center'}}
 							channel={this.state.params.channels[0]} //Lo dejamos por las dudas --->//==undefined ? nodeInput.dataParams.chNames[0] : this.state.params.channels[0]}
+							epoch={this.state.params.epochs}
 							/> :
 							<ChartChannelsTime
 							methodResult={this.state.methodResult}
 							data={this.state.data}
 							chartStyle={{height: '100%', width:'100%', alignItems:'center'}}
 							channels={this.state.params.channels}
+							epoch={this.state.params.epochs}
 							/>
 							}
 						</div>

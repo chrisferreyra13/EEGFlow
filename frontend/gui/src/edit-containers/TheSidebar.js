@@ -87,9 +87,10 @@ const TheSidebar = ({show, addNode, enableForm, diagramView, linkDiagram}) => {
             placement="right-start"
             modifiers={[{name: 'flip', enabled: false }]}
           >
-            <CDropdownItem>Seleccionar</CDropdownItem>
+            {/*<CDropdownItem>Seleccionar</CDropdownItem>*/}
             <CDropdownItem onClick={() => onClick('ENABLE_EVENT_FORM','EVENTS')} onDragStart={(event) => onDragStart(event, 'EVENTS')} draggable>Eventos</CDropdownItem>
-            <CDropdownItem disable="true">Epocas</CDropdownItem>
+            <CDropdownItem onClick={() => onClick('ENABLE_EPOCH_FORM','EPOCHS')} onDragStart={(event) => onDragStart(event, 'EPOCHS')} draggable>Epocas</CDropdownItem>
+            <CDropdownItem disable="false">Referencia</CDropdownItem>
             {/*<CDropdownItem onClick={() => onClick(null,'TIME_WINDOW')} onDragStart={(event) => onDragStart(event, 'TIME_WINDOW')} draggable>Ventana Temporal</CDropdownItem>*/}
             {/*<CDropdownItem onClick={() => onClick(null,'REMOVE')} onDragStart={(event) => onDragStart(event, 'REMOVE')} draggable>Eliminar</CDropdownItem>*/}
           </CDropdownMenu>

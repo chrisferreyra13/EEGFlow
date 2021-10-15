@@ -4,6 +4,69 @@ from cconsciente.settings.base import MEDIA_TEMP, MEDIA_STORED, MEDIA_PROC_TEMP_
 
 LOAD_RESTORE_PARAM_NAME = 'id'
 
+def epochs(**kwargs):
+    input=kwargs["input"]
+    params=kwargs["params"]
+
+    if 'tmin' not in params:
+        tmin=-0.2
+    else:
+        tmin=params['tmin']
+        if (not tmin) or (tmin == ''):
+            tmin=-0.2
+        else:
+            try:
+                tmin=float(tmin)
+            except:
+                return Response('An invalid min time has been provided.',
+                    status=status.HTTP_400_BAD_REQUEST)
+    
+    if 'tmax' not in params:
+        tmax=0.5
+    else:
+        tmax=params['tmax']
+        if (not tmax) or (tmax == ''):
+            tmax=0.5
+        else:
+            try:
+                tmax=float(tmax)
+            except:
+                return Response('An invalid max time has been provided.',
+                    status=status.HTTP_400_BAD_REQUEST)
+
+    #get requested channels
+    channels=get_request_channels(params)
+    if type(channels)==Response:
+        return channels  
+    
+    if channels==None: # Si es None, agarro todos
+        channels_idxs=mne.pick_types(input.info,eeg=True) #Retorna los indices internos de raw
+        eeg_info=mne.pick_info(input.info, sel=channels_idxs)
+        returned_channels=eeg_info["ch_names"]
+    else:
+        returned_channels=channels
+        ch_names=input.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
+        if set(channels).issubset(set(ch_names)):
+            channels_idxs=mne.pick_channels(ch_names, include=channels) #Retorna los indices internos de raw
+        else:
+            return Response('An invalid list of channels has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        events=get_events(input)
+    except TypeError:
+        return Response('Invalid file extension',
+                    status=status.HTTP_406_NOT_ACCEPTABLE)
+
+    # build epochs instance for time-frequency plot
+    epochs = mne.Epochs(
+        input, 
+        events, 
+        tmin=tmin, tmax=tmax,
+        )
+
+    return {"instance":epochs,"events":events}
+
 def events(**kwargs):
     input=kwargs["input"]
     params=kwargs["params"]
@@ -89,7 +152,7 @@ def peak_step(**kwargs):
 
     #TODO: agregar un save_peaks in file
 
-    return {"raw":input,"method_result":peaks}
+    return {"instance":input,"method_result":peaks}
 
 def time_series_step(**kwargs):
     params=kwargs["params"]
@@ -351,4 +414,5 @@ steps={
     'CUSTOM_FILTER':filter_step,
     'MAX_PEAK':peak_step,
     'EVENTS': events,
+    'EPOCHS':epochs,
 }

@@ -42,6 +42,7 @@ export default [
     position: { x: 550, y: 80 },
     params:{
       channels:null,
+      epochs:null,
       minTimeWindow:null,
       maxTimeWindow:null,
       size:null,
@@ -49,6 +50,8 @@ export default [
     inputData:{
       fetchInput:false,
       inputNodeId:null,
+      outputType:null,
+      summary:null,
 
     },
     processParams:processParamsTemplate,
@@ -65,6 +68,7 @@ export default [
     position: { x: 550, y: 80 },
     params:{
       channels:null,
+      epochs:null,
       minFreqWindow:null,
       maxFreqWindow:null,
       minTimeWindow:null,
@@ -73,7 +77,9 @@ export default [
     },
     inputData:{
       fetchInput:false,
-      inputNodeId:'',
+      inputNodeId:null,
+      outputType:null,
+      summary:null,
 
     },
     processParams:processParamsTemplate,
@@ -90,13 +96,16 @@ export default [
     position: { x: 550, y: 80 },
     params:{
       channels:['EEG 001'],
+      epochs:null,
       minXWindow:null,
       maxXWindow:null,
       size:null,
     },
     inputData:{
       fetchInput:false,
-      inputNodeId:'',
+      inputNodeId:null,
+      outputType:null,
+      summary:null,
 
     },
     processParams:processParamsTemplate,
@@ -117,6 +126,25 @@ export default [
     params:{
       selectedEvents:null,
       new_events:null
+    },
+    signalsData:signalsDataTemplate,
+    processParams:processParamsTemplate,
+  },
+  {
+    id: null,
+    type: 'default',
+    elementType: 'EPOCHS',
+    formType:'ENABLE_EPOCH_FORM',
+    targetPosition: 'left',
+    sourcePosition: 'right',
+    data: {
+      label: 'Epocas'
+    },
+    position: { x: 550, y: 80 },
+    params:{
+      tmin:null,
+      tmax:null,
+      channels:null,
     },
     signalsData:signalsDataTemplate,
     processParams:processParamsTemplate,

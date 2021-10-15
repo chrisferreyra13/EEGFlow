@@ -14,7 +14,11 @@ import {
 import CIcon from '@coreui/icons-react'
 import { fetchMethodResult } from '../../redux/actions/Diagram'
 
-import {SamplesToTimes} from '../../tools/Utils';
+import {
+  SamplesToTimes,
+  eventsToOptions,
+  optionsToEvents
+} from '../../tools/Utils';
 
 class EventsForm extends Component{
   constructor(props){
@@ -84,8 +88,6 @@ class EventsForm extends Component{
     this.handleChange = this.handleChange.bind(this);
     this.addEvent=this.addEvent.bind(this);
     this.handleNewValue=this.handleNewValue.bind(this);
-    this.optionsToEvents=this.optionsToEvents.bind(this);
-    this.eventsToOptions=this.eventsToOptions.bind(this);
   }
   changeView(viewSelected){
     this.setState({
@@ -121,40 +123,18 @@ class EventsForm extends Component{
         }
       })
     })
-    let currentNewEventOptions=this.getValue("new_events")==null ? [] : this.eventsToOptions(this.getValue("new_events"))
+    let currentNewEventOptions=this.getValue("new_events")==null ? [] : eventsToOptions(this.getValue("new_events"))
     currentNewEventOptions.push({
       value:('ID:'+this.state.newEventId.toString()+' || LAT:'+this.state.newEventTime.toString()), 
       label:('ID:'+this.state.newEventId.toString()+' || LAT:'+this.state.newEventTime.toString()),
     })
-    this.handleMultiSelect(this.optionsToEvents(currentNewEventOptions),'new_events')
+    this.handleMultiSelect(optionsToEvents(currentNewEventOptions),'new_events')
     
   }
   handleNewValue(event,id){
     this.setState({
       [id]:event.target.value //change the corresponding attribute
     })
-  }
-  eventsToOptions(events){
-    return events.map((event) =>{
-      const eventSplitted=event.split(',')
-      return{
-        value:('ID:'+eventSplitted[0]+' || LAT:'+eventSplitted[1]), 
-        label:('ID:'+eventSplitted[0]+' || LAT:'+eventSplitted[1]),
-      }
-    })
-  }
-
-  optionsToEvents(options){
-    return options.map((option) => {
-      let valueSplitted=option.value.split(":")
-      let idLen=valueSplitted[1].indexOf(" || LAT")
-      let id=valueSplitted[1].substr(0,idLen)
-      const time=valueSplitted[2];
-      return{
-        value:(id+','+time),
-        label:option.label,
-      }
-    }) 
   }
 
   componentDidUpdate(prevProps,prevState){
@@ -310,8 +290,8 @@ class EventsForm extends Component{
                         <Select 
                           options={this.state.newEventOptions} 
                           isMulti 
-                          value={this.getValue("new_events")==null ? null : this.eventsToOptions(this.getValue("new_events"))} 
-                          onChange={(options) => this.handleMultiSelect(this.optionsToEvents(options),'new_events')}
+                          value={this.getValue("new_events")==null ? null : eventsToOptions(this.getValue("new_events"))} 
+                          onChange={(options) => this.handleMultiSelect(optionsToEvents(options),'new_events')}
                         />
                       </CCol>
                     </CFormGroup>

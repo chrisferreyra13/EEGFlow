@@ -46,9 +46,9 @@ class ChartPSD extends Component {
         this.chart
             .getDefaultAxisX()
             .setTitle('Hz')
-            
+        
         this.axisY = this.chart.getDefaultAxisY()
-            .setTitle('dB')
+            .setTitle('\u03BCV²/Hz (dB)')
             .setInterval(yMin-0.8*Math.abs(yMin), (yMax+0.8*Math.abs(yMax)))
 
         // Create a LineSeries for each "channel".

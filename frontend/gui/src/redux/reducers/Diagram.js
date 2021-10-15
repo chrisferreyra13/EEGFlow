@@ -53,6 +53,8 @@ const initialState={
         inputData:{
             fetchInput:true,
             inputNodeId:'1',
+            outputType:null,
+            summary:null,
         },
         params:{
             channels:null,
@@ -294,6 +296,8 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                         inputData:{
                             fetchInput:true,
                             inputNodeId:rest.process["node_input_id"], //Ya puedo ir a buscar el resultado
+                            outputType:rest.process["output_type"],
+                            summary:rest.process["summary"],
                             
                         },
                         processParams:{

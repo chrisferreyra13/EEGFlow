@@ -8,6 +8,12 @@ import {
   CInput,
   CInputRadio
 } from '@coreui/react'
+import { element, node } from 'prop-types';
+import {
+  SamplesToTimes,
+  epochsToOptions,
+  optionsToEpochs
+} from '../../tools/Utils';
 
 
 class ChartTemporalForm extends Component{
@@ -15,17 +21,49 @@ class ChartTemporalForm extends Component{
     super(props);
 
     const options = this.props.channels
+    let nodePlot= null;//this.props.elements.find((elem) => elem.id==this.props.nodeId)
+    let epochsExists=false
+    this.props.elements.forEach(elem => {
+      if(elem.id==this.props.nodeId)
+        nodePlot=elem
+      
+      if(elem.elementType!=undefined)
+        if(elem.elementType=='EPOCHS')
+          epochsExists=true
+    })
+    let outputType=nodePlot.inputData.outputType==null? 'raw' : nodePlot.inputData.outputType
+    let eventSamples=null;
+    let eventIds=null;
+    let samplingFreq=null;
+    let epochOptions=null;
+    let epochs=null;
+    if(outputType=='epochs'){
+      eventSamples=nodePlot.inputData.summary["events_selected"]["event_samples"]
+      eventIds=nodePlot.inputData.summary["events_selected"]["event_ids"]
+      samplingFreq=nodePlot.inputData.summary["sampling_freq"]
+      epochs=Array.from({length: eventIds.length}, (v, k) => (k+1).toString()); 
+      epochOptions=epochsToOptions(epochs,eventIds,eventSamples,samplingFreq)
+    }
 
     this.state={
       default:{
         channels:null,
+        epochs:null,
         minTimeWindow:null,
         maxTimeWindow:null,
         size:'s'
       },
       options:options.map(ch => {
         return {value:ch,label:ch}
-      })
+      }),
+      outputType:outputType,
+      epochsExists:epochsExists,
+      epochOptions:epochOptions,
+      numberOfEpochs:epochs.length,
+      eventSamples:eventSamples,
+      eventIds:eventIds,
+      samplingFreq:samplingFreq,
+
     }
 
     this.handleChange = this.handleChange.bind(this);
@@ -33,6 +71,7 @@ class ChartTemporalForm extends Component{
     this.handleMultiSelect=this.handleMultiSelect.bind(this);
     this.checkRadioButton=this.checkRadioButton.bind(this);
     this.getValue=this.getValue.bind(this);
+    this.handleSingleSelect=this.handleSingleSelect.bind(this);
 
   }
   checkRadioButton(inputId,radioButtonIds){
@@ -42,6 +81,10 @@ class ChartTemporalForm extends Component{
       else
         document.getElementById(id).checked=false
     }) 
+  }
+
+  handleSingleSelect(option,id){
+    this.props.onChange(id, option.value);
   }
 
   handleMultiSelect(options,id){
@@ -77,44 +120,104 @@ class ChartTemporalForm extends Component{
   render(){
   
     return (
-      <div> 
-        <CFormGroup row>
-          <CCol md="12">
-            <CLabel htmlFor="freq-inf">Canales</CLabel>
-            <Select options={this.state.options} isMulti value={this.getValue("channels")==null ? null : this.getValue("channels").map(ch => {return {value:ch, label:ch}})} onChange={(options) => this.handleMultiSelect(options,'channels')}/>
-            {/*<CInput id="channels" placeholder="Ch1,Ch2,Ch3" required value={value('channels')} onChange={(event) => this.handleChange(event,'channels')}/>*/}
-          </CCol>
-        </CFormGroup>
-        <CFormGroup row>
-          <CCol md="12">
-            <CLabel htmlFor="timeWindow">Ventana de tiempo:</CLabel>
-              <CFormGroup row>
-                <CCol md="6">
-                    <CInput id="minTimeWindow" placeholder={"tiempo mínimo (seg)"} type="number" min="0" step="0.01" value={this.getValue('minTimeWindow')} onChange={(event) => this.handleChange(event,'minTimeWindow')}/>
-                </CCol>
-                <CCol md="6">
-                  <CInput id="maxTimeWindow" placeholder={"tiempo máximo (seg)"} type="number" min="0" step="0.01" value={this.getValue('maxTimeWindow')} onChange={(event) => this.handleChange(event,'maxTimeWindow')}/>
-                </CCol>
-              </CFormGroup>
-          </CCol>
-        </CFormGroup>
-        <CFormGroup row>
-            <CCol md="12">
-                <CLabel htmlFor="size">Tamaño de gráfico</CLabel>
-                <CCol md="12">
+      <div>
+        {
+          this.state.outputType=='raw' ?
+          <div>
+            {
+              this.state.epochsExists ?
+              <div>
+                <CFormGroup row>
+                  <CCol xs="12" md="12">
+                    <CLabel>Epoca detectada en el diagrama:</CLabel>
+                  </CCol>
+                </CFormGroup>
+                <CFormGroup row>
+                  <CCol xs="12" md="12">
+                    <CLabel>tiene que ejecutar el proceso primero y despues</CLabel>
+                  </CCol>
+                </CFormGroup>
+                <CFormGroup row>
+                  <CCol xs="12" md="12">
+                    <CLabel>elegir la epoca que quiere visualizar</CLabel>
+                  </CCol>
+                </CFormGroup>
+              </div>: null
+            }
+            
+            <CFormGroup row>
+              <CCol md="12">
+                <CLabel htmlFor="freq-inf">Canales</CLabel>
+                <Select options={this.state.options} isMulti value={this.getValue("channels")==null ? null : this.getValue("channels").map(ch => {return {value:ch, label:ch}})} onChange={(options) => this.handleMultiSelect(options,'channels')}/>
+              </CCol>
+            </CFormGroup>
+            <CFormGroup row>
+              <CCol md="12">
+                <CLabel htmlFor="timeWindow">Ventana de tiempo:</CLabel>
                   <CFormGroup row>
-                      <CFormGroup variant="custom-radio" inline> {/* la prop 'name' tiene que ser la misma para todos para que esten en el mismo grupo*/}
-                          <CInputRadio custom id="l" name="inline-radios" onChange={(event) => this.handleChangeInputRadio(event,'l','size')}/>
-                          <CLabel variant="custom-checkbox" htmlFor="l">Grande</CLabel>
-                      </CFormGroup>
-                      <CFormGroup variant="custom-radio" inline>
-                          <CInputRadio custom id="m" name="inline-radios" onChange={(event) => this.handleChangeInputRadio(event,'m','size')}/>
-                          <CLabel variant="custom-checkbox" htmlFor="m">Chico</CLabel>
-                      </CFormGroup>
+                    <CCol md="6">
+                        <CInput id="minTimeWindow" placeholder={"tiempo mínimo (seg)"} type="number" min="0" step="0.01" value={this.getValue('minTimeWindow')} onChange={(event) => this.handleChange(event,'minTimeWindow')}/>
+                    </CCol>
+                    <CCol md="6">
+                      <CInput id="maxTimeWindow" placeholder={"tiempo máximo (seg)"} type="number" min="0" step="0.01" value={this.getValue('maxTimeWindow')} onChange={(event) => this.handleChange(event,'maxTimeWindow')}/>
+                    </CCol>
                   </CFormGroup>
+              </CCol>
+            </CFormGroup>
+          </div>:
+          <div>
+            <CFormGroup row>
+              <CCol xs="12" md="12">
+                <CLabel>Cantidad de epocas:{this.state.numberOfEpochs}</CLabel>
+              </CCol>
+            </CFormGroup>
+            <CFormGroup row>
+              <CCol md="12">
+                <CLabel htmlFor="freq-inf">Canales</CLabel>
+                <Select 
+                options={this.state.options} 
+                isMulti 
+                value={this.getValue("channels")==null ? 
+                  null : 
+                  this.getValue("channels").map(ch => {return {value:ch, label:ch}})
+                }
+                onChange={(options) => this.handleMultiSelect(options,'channels')}
+                />
+              </CCol>
+            </CFormGroup>
+            <CFormGroup row>
+              <CCol md="12">
+                <CLabel htmlFor="freq-inf">Epocas</CLabel>
+                <Select 
+                options={this.state.epochOptions} 
+                value={
+                  this.getValue("epochs")==null ? 
+                  null : 
+                  epochsToOptions(this.getValue("epochs"),this.state.eventIds,this.state.eventSamples,this.state.samplingFreq)
+                } 
+                onChange={(option) => this.handleSingleSelect(optionsToEpochs(option),'epochs')}
+                />
+              </CCol>
+            </CFormGroup>
+          </div>
+        }
+        <CFormGroup row>
+                <CCol md="12">
+                    <CLabel htmlFor="size">Tamaño de gráfico</CLabel>
+                    <CCol md="12">
+                      <CFormGroup row>
+                          <CFormGroup variant="custom-radio" inline> {/* la prop 'name' tiene que ser la misma para todos para que esten en el mismo grupo*/}
+                              <CInputRadio custom id="l" name="inline-radios" onChange={(event) => this.handleChangeInputRadio(event,'l','size')}/>
+                              <CLabel variant="custom-checkbox" htmlFor="l">Grande</CLabel>
+                          </CFormGroup>
+                          <CFormGroup variant="custom-radio" inline>
+                              <CInputRadio custom id="m" name="inline-radios" onChange={(event) => this.handleChangeInputRadio(event,'m','size')}/>
+                              <CLabel variant="custom-checkbox" htmlFor="m">Chico</CLabel>
+                          </CFormGroup>
+                      </CFormGroup>
+                    </CCol>
                 </CCol>
-            </CCol>
-        </CFormGroup>
+            </CFormGroup>
     </div>
     )
   }
