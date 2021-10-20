@@ -45,11 +45,12 @@ class ChartChannels extends Component {
             theme: theme,
             container: this.chartId
         })
-            // Hide title.
-            .setTitleFillStyle(emptyFill)
 
         if(this.props.epoch!=null){
-            this.chart.setTitle('Epoca '+this.props.epoch)
+            this.chart.setTitle('Epoca: '+this.props.epoch)
+        }else{
+            // Hide title.
+            this.chart.setTitleFillStyle(emptyFill)
         }
         // Configurure Axes Scrolling modes.
          this.axisX = this.chart.getDefaultAxisX()

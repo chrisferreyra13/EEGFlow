@@ -6,11 +6,12 @@ import {
   CFormGroup,
   CLabel,
   CInput,
-  CInputRadio
+  CInputRadio,
+  CCard,
+  CCardBody,
 } from '@coreui/react'
 import { element, node } from 'prop-types';
 import {
-  SamplesToTimes,
   epochsToOptions,
   optionsToEpochs
 } from '../../tools/Utils';
@@ -59,7 +60,7 @@ class ChartTemporalForm extends Component{
       outputType:outputType,
       epochsExists:epochsExists,
       epochOptions:epochOptions,
-      numberOfEpochs:epochs.length,
+      numberOfEpochs:epochs==null? null : epochs.length,
       eventSamples:eventSamples,
       eventIds:eventIds,
       samplingFreq:samplingFreq,
@@ -71,7 +72,7 @@ class ChartTemporalForm extends Component{
     this.handleMultiSelect=this.handleMultiSelect.bind(this);
     this.checkRadioButton=this.checkRadioButton.bind(this);
     this.getValue=this.getValue.bind(this);
-    this.handleSingleSelect=this.handleSingleSelect.bind(this);
+    this.handleSelect=this.handleSelect.bind(this);
 
   }
   checkRadioButton(inputId,radioButtonIds){
@@ -83,7 +84,7 @@ class ChartTemporalForm extends Component{
     }) 
   }
 
-  handleSingleSelect(option,id){
+  handleSelect(option,id){
     this.props.onChange(id, option.value);
   }
 
@@ -122,27 +123,23 @@ class ChartTemporalForm extends Component{
     return (
       <div>
         {
-          this.state.outputType=='raw' ?
+          this.state.outputType=='raw' ? // por defecto raw pero si despues era epochs se actualiza
           <div>
             {
               this.state.epochsExists ?
-              <div>
-                <CFormGroup row>
-                  <CCol xs="12" md="12">
-                    <CLabel>Epoca detectada en el diagrama:</CLabel>
-                  </CCol>
-                </CFormGroup>
-                <CFormGroup row>
-                  <CCol xs="12" md="12">
-                    <CLabel>tiene que ejecutar el proceso primero y despues</CLabel>
-                  </CCol>
-                </CFormGroup>
-                <CFormGroup row>
-                  <CCol xs="12" md="12">
-                    <CLabel>elegir la epoca que quiere visualizar</CLabel>
-                  </CCol>
-                </CFormGroup>
-              </div>: null
+              <CFormGroup row style={{margin:'0', width:'380px'}}>
+                <CCol md="12">
+                  <CCard color="danger" className="text-white text-center">
+                    <CCardBody>
+                      <header>Advertencia!</header>
+                      <p>
+                        Bloque epocas detectado en el diagrama: 
+                        Tiene que ejecutar el proceso primero.
+                      </p>
+                    </CCardBody>
+                  </CCard>
+                </CCol>
+              </CFormGroup>: null
             }
             
             <CFormGroup row>
@@ -156,10 +153,20 @@ class ChartTemporalForm extends Component{
                 <CLabel htmlFor="timeWindow">Ventana de tiempo:</CLabel>
                   <CFormGroup row>
                     <CCol md="6">
-                        <CInput id="minTimeWindow" placeholder={"tiempo mínimo (seg)"} type="number" min="0" step="0.01" value={this.getValue('minTimeWindow')} onChange={(event) => this.handleChange(event,'minTimeWindow')}/>
+                        <CInput 
+                        id="minTimeWindow" 
+                        placeholder={"tiempo mínimo (seg)"} 
+                        type="number" min="0" step="0.01" 
+                        value={this.getValue('minTimeWindow')==null ? '': this.getValue('minTimeWindow')} 
+                        onChange={(event) => this.handleChange(event,'minTimeWindow')}/>
                     </CCol>
                     <CCol md="6">
-                      <CInput id="maxTimeWindow" placeholder={"tiempo máximo (seg)"} type="number" min="0" step="0.01" value={this.getValue('maxTimeWindow')} onChange={(event) => this.handleChange(event,'maxTimeWindow')}/>
+                      <CInput 
+                      id="maxTimeWindow" 
+                      placeholder={"tiempo máximo (seg)"} 
+                      type="number" min="0" step="0.01" 
+                      value={this.getValue('maxTimeWindow')==null ? '': this.getValue('maxTimeWindow')} 
+                      onChange={(event) => this.handleChange(event,'maxTimeWindow')}/>
                     </CCol>
                   </CFormGroup>
               </CCol>
@@ -195,7 +202,7 @@ class ChartTemporalForm extends Component{
                   null : 
                   epochsToOptions(this.getValue("epochs"),this.state.eventIds,this.state.eventSamples,this.state.samplingFreq)
                 } 
-                onChange={(option) => this.handleSingleSelect(optionsToEpochs(option),'epochs')}
+                onChange={(option) => this.handleSelect(optionsToEpochs(option),'epochs')}
                 />
               </CCol>
             </CFormGroup>

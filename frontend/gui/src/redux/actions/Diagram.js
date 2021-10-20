@@ -427,7 +427,8 @@ export const fetchSignal = (id, channels, plotParams, nodeId, dataType, plotProc
                 time_window:[plotParams.minTimeWindow,plotParams.maxTimeWindow],
                 freq_window:[plotParams.minFreqWindow,plotParams.maxFreqWindow],
                 channels: channels==undefined ? '': channels,
-                type: plotParams["type"]==undefined ? '': plotParams["type"]
+                type: plotParams["type"]==undefined ? '': plotParams["type"],
+                epochs: plotParams.epochs==null ? '': plotParams.epochs,
             }
             if(plotParams["type"]=='welch'){
                 requestParams["n_fft"]=plotParams["n_fft"] == undefined ? '': plotParams["n_fft"]

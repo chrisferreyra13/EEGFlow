@@ -7,8 +7,14 @@ import {
   CLabel,
   CInput,
   CInputRadio,
-  CInputCheckbox
+  CInputCheckbox,
+  CCard,
+  CCardBody,
 } from '@coreui/react'
+import {
+  epochsToOptions,
+  optionsToEpochs
+} from '../../tools/Utils';
 
 class ChartPSDForm extends Component{
   constructor(props){
@@ -31,7 +37,32 @@ class ChartPSDForm extends Component{
     const normalizationOptions=[ //agregar si es necesario
       {value:'length',label:'Largo'},
       {value:'full',label:'Completa'},
-  ]
+    ]
+
+    let nodePlot= null;//this.props.elements.find((elem) => elem.id==this.props.nodeId)
+    let epochsExists=false
+    this.props.elements.forEach(elem => {
+      if(elem.id==this.props.nodeId)
+        nodePlot=elem
+      
+      if(elem.elementType!=undefined)
+        if(elem.elementType=='EPOCHS')
+          epochsExists=true
+    })
+    let outputType=nodePlot.inputData.outputType==null? 'raw' : nodePlot.inputData.outputType
+    let eventSamples=null;
+    let eventIds=null;
+    let samplingFreq=null;
+    let epochOptions=null;
+    let epochs=null;
+    if(outputType=='epochs'){
+      eventSamples=nodePlot.inputData.summary["events_selected"]["event_samples"]
+      eventIds=nodePlot.inputData.summary["events_selected"]["event_ids"]
+      samplingFreq=nodePlot.inputData.summary["sampling_freq"]
+      epochs=Array.from({length: eventIds.length}, (v, k) => (k+1).toString()); 
+      epochOptions=epochsToOptions(epochs,eventIds,eventSamples,samplingFreq)
+    }
+
 
     this.state={
       default:{
@@ -44,14 +75,22 @@ class ChartPSDForm extends Component{
         normalization:null,
         average:null,
         size:'m',
-        type:'welch'
+        type:'welch',
+        epochs:null,
       },
       channelsOptions:channelsOptions.map(ch => {
         return {value:ch,label:ch}
       }),
       windowOptions:windowOptions,
       averageOptions:averageOptions,
-      normalizationOptions:normalizationOptions
+      normalizationOptions:normalizationOptions,
+      outputType:outputType,
+      epochsExists:epochsExists,
+      epochOptions:epochOptions,
+      numberOfEpochs:epochs==null? null : epochs.length,
+      eventSamples:eventSamples,
+      eventIds:eventIds,
+      samplingFreq:samplingFreq,
     }
 
     this.handleChange = this.handleChange.bind(this);
@@ -74,6 +113,7 @@ class ChartPSDForm extends Component{
   handleMultiSelect(options,id){
     this.props.onChange(id, options.map((option) => option.value));
   }
+
   handleSelect(option,id){
     this.props.onChange(id, option.value);
   }
@@ -104,7 +144,47 @@ class ChartPSDForm extends Component{
   render(){
         
     return (
-      <div> 
+      <div>
+        {
+          this.state.epochsExists==true && this.state.outputType=='raw' ?
+          <CFormGroup row style={{margin:'0', width:'380px'}}>
+            <CCol md="12">
+              <CCard color="danger" className="text-white text-center">
+                <CCardBody>
+                  <header>Advertencia!</header>
+                  <p>
+                    Bloque epocas detectado en el diagrama: 
+                    Tiene que ejecutar el proceso primero.
+                  </p>
+                </CCardBody>
+              </CCard>
+            </CCol>
+          </CFormGroup>: null
+        }
+        {
+          this.state.outputType=='epochs' ?
+          <div>
+            <CFormGroup row>
+              <CCol xs="12" md="12">
+                <CLabel>Cantidad de epocas:{this.state.numberOfEpochs}</CLabel>
+              </CCol>
+            </CFormGroup>
+            <CFormGroup row>
+              <CCol md="12">
+                <CLabel htmlFor="freq-inf">Epocas</CLabel>
+                <Select 
+                options={this.state.epochOptions} 
+                value={
+                  this.getValue("epochs")==null ? 
+                  null : 
+                  epochsToOptions(this.getValue("epochs"),this.state.eventIds,this.state.eventSamples,this.state.samplingFreq)
+                } 
+                onChange={(option) => this.handleSelect(optionsToEpochs(option),'epochs')}
+                />
+              </CCol>
+            </CFormGroup>
+          </div> : null
+        }
         <CFormGroup row>
           <CCol md="12">
             <CLabel htmlFor="channels">Canales</CLabel>
@@ -112,19 +192,21 @@ class ChartPSDForm extends Component{
             {/*<CInput id="channels" placeholder="Ch1,Ch2,Ch3" required value={value('channels')} onChange={(event) => this.handleChange(event,'channels')}/>*/}
           </CCol>
         </CFormGroup>
-        <CFormGroup row>
-          <CCol md="12">
-            <CLabel htmlFor="timeWindow">Ventana de tiempo:</CLabel>
-              <CFormGroup row>
-                <CCol md="6">
-                    <CInput id="minTimeWindow" placeholder={"tiempo mínimo (seg)"} type="number" min="0" step="0.01" required value={this.getValue('minTimeWindow')} onChange={(event) => this.handleChange(event,'minTimeWindow')}/>
-                </CCol>
-                <CCol md="6">
-                  <CInput id="maxTimeWindow" placeholder={"tiempo máximo (seg)"} type="number" min="0" step="0.01" required value={this.getValue('maxTimeWindow')} onChange={(event) => this.handleChange(event,'maxTimeWindow')}/>
-                </CCol>
-              </CFormGroup>
-          </CCol>
-        </CFormGroup>
+        {this.state.outputType=='raw' ?
+          <CFormGroup row>
+            <CCol md="12">
+              <CLabel htmlFor="timeWindow">Ventana de tiempo:</CLabel>
+                <CFormGroup row>
+                  <CCol md="6">
+                      <CInput id="minTimeWindow" placeholder={"tiempo mínimo (seg)"} type="number" min="0" step="0.01" value={this.getValue('minTimeWindow')} onChange={(event) => this.handleChange(event,'minTimeWindow')}/>
+                  </CCol>
+                  <CCol md="6">
+                    <CInput id="maxTimeWindow" placeholder={"tiempo máximo (seg)"} type="number" min="0" step="0.01" value={this.getValue('maxTimeWindow')} onChange={(event) => this.handleChange(event,'maxTimeWindow')}/>
+                  </CCol>
+                </CFormGroup>
+            </CCol>
+          </CFormGroup>: null
+        }
         <CFormGroup row>
           <CCol md="12">
             <CLabel htmlFor="frequencyWindow">Ventana de frecuencias:</CLabel>
@@ -177,7 +259,7 @@ class ChartPSDForm extends Component{
                         <CLabel htmlFor="n_per_seg">Segmento de Welch (puntos):</CLabel>
                     </CCol>
                     <CCol md="4">
-                        <CInput id="n_per_seg" placeholder={"Ninguno"} type="number" min="0" step="1" value={this.getValue('n_per_seg')} onChange={(event) => this.handleChange(event,'n_per_seg')}/>
+                        <CInput id="n_per_seg" placeholder={"Igual a FFT"} type="number" min="0" step="1" value={this.getValue('n_per_seg')} onChange={(event) => this.handleChange(event,'n_per_seg')}/>
                     </CCol>
                 </CFormGroup>
                 <CFormGroup row>

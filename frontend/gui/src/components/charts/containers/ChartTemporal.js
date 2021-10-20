@@ -56,18 +56,9 @@ class ChartTemporal extends Component {
 
 		let style={} //Seteando las dimensiones del grafico en base a los parametros
 		switch(params.size){
-			case 'l':
-				style={
-					height:'75vh',
-				}
-				break;
-			case 'm':
-				style={
-					height:'60vh',
-					width:'600px'
-				}
-				break;
-		
+			case 'l':style={height:'75vh',}; break;
+			case 'm':style={height:'60vh',width:'600px'}; break;
+			default: style={height:'75vh',}; break;
 		}
 
 		let data=[];
@@ -96,6 +87,7 @@ class ChartTemporal extends Component {
 				if(s.processId==nodePlot.processParams.processId && s.dataType==dataType)return true
 				return false
 			})
+
 			if(signalData==undefined){
 				fetchSignal=true;
 				if(METHOD_NODES.includes(nodeInput.elementType)){fetchMethodResult=true;}
@@ -184,7 +176,7 @@ class ChartTemporal extends Component {
 			methodResultExists:methodResultExists,
 			minIndex:minIndex,
 			maxIndex:maxIndex,
-			outputType:outputType
+			outputType:outputType,
 
 		}
 
@@ -225,6 +217,7 @@ class ChartTemporal extends Component {
 				minIndex:minIndex,
 				maxIndex:maxIndex,
 				params:{
+					...this.state.params,
 					channels:plotChannels
 				}
 			})
@@ -291,8 +284,8 @@ class ChartTemporal extends Component {
 			const nodeInput=this.props.elements.find((elem) => elem.id==this.state.inputNodeId)
 			if(nodeInput!=undefined){
 				let signalData=nodeInput.signalsData.find(s => {
-					if(s.processId==this.state.processId && s.dataType==this.state.dataType)return true
-					return false
+					if(s.processId==this.state.processId && s.dataType==this.state.dataType)return true;
+					return false;
 				})
 				if(signalData!=undefined){
 					if(this.props.inputsReady.includes(signalData.id) && this.state.oldSignalId!=signalData.id){

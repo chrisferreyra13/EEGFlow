@@ -41,7 +41,13 @@ class ChartPSD extends Component {
             container: this.chartId
         })
         
-        this.chart.setTitle('PSD')
+        
+        if(this.props.epoch!=null){
+            this.chart.setTitle('PSD Epoca: '+this.props.epoch)
+        }else{
+            // Hide title.
+            this.chart.setTitle('PSD')
+        }
         // Configurure Axes Scrolling modes.
         this.chart
             .getDefaultAxisX()

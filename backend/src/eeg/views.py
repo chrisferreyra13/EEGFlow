@@ -32,7 +32,7 @@ from cconsciente.settings.base import MEDIA_TEMP, MEDIA_STORED, MEDIA_PROC_TEMP_
 from .utils import *
 
 import mne
-from mne import Epochs
+
 import numpy as np
 
 ####VARIABLES####
@@ -100,7 +100,7 @@ class RunProcess(APIView):
             else:
                 if step['save_output']==True:
                     if type(output)==dict:
-                        if type(output["instance"])==Epochs:output_type='epochs'
+                        if isinstance(output["instance"],mne.BaseEpochs):output_type='epochs'
                         else: output_type='raw'
 
                         process_result_id=make_output_instance_file(
@@ -113,7 +113,7 @@ class RunProcess(APIView):
                             make_method_result_file(request,data=output["method_result"],process_result_id=process_result_id)
                         
                     else: 
-                        if type(output)==Epochs:output_type='epochs'
+                        if isinstance(output,mne.BaseEpochs):output_type='epochs'
                         else: output_type='raw'
 
                         process_result_id=make_output_instance_file(
@@ -434,7 +434,7 @@ class GetPSD(APIView):
         if LOAD_RESTORE_PARAM_NAME not in request.query_params:
             return Response('ID parameter is missing.',
                             status=status.HTTP_400_BAD_REQUEST)
-
+        
         id=request.query_params[LOAD_RESTORE_PARAM_NAME]
 
         # Check if is a number or an id result and get the filepath
@@ -479,8 +479,14 @@ class GetPSD(APIView):
         if type(channels)==Response:
             return channels 
 
-        if channels==None: # Si es None, agarro todos
-            channels_idxs=mne.pick_types(instance.info,eeg=True) #Retorna los indices internos de raw
+        if channels==None or channels=='prev': # Si es None, agarro todos
+            channels_idxs=mne.pick_types(instance.info,eeg=True) #Retorna los indices internos del instance
+            
+            if channels=='prev': # select just two channels for preview purposes
+                if len(channels_idxs)>=2:
+                    channels_idxs=channels_idxs[:2]
+                else: channels_idxs=channels_idxs[0]
+
             eeg_info=mne.pick_info(instance.info, sel=channels_idxs)
             returned_channels=eeg_info["ch_names"]
             
@@ -493,6 +499,31 @@ class GetPSD(APIView):
                 return Response('An invalid list of channels has been provided.',
                             status=status.HTTP_400_BAD_REQUEST)
 
+        if 'epochs' not in request.query_params:
+            epochs=None
+        else:
+            epochs=request.query_params["epochs"]
+            if type(epochs)==str:
+                if (not epochs) or (epochs == ''):    # Si no envian nada, lo aplico en todos los canales
+                    epochs=None
+                else:
+                    try:
+                        epochs=int(epochs)
+                    except:
+                        return Response('An invalid epoch has been provided.',
+                            status=status.HTTP_400_BAD_REQUEST)
+
+            elif type(epochs)==list:
+                if len(epochs)==0:
+                    return Response('An invalid list of epochs has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    try:
+                        epochs=[int(epo) for epo in epochs]
+                    except:
+                        return Response('An invalid epoch has been provided.',
+                            status=status.HTTP_400_BAD_REQUEST)
+        
         #get type of psd
         if 'type' not in request.query_params:
             type_of_psd='welch'
@@ -505,13 +536,14 @@ class GetPSD(APIView):
                     return Response('An invalid type of psd has been provided.',
                         status=status.HTTP_400_BAD_REQUEST)
 
+        
         #get time and freq window
         if 'time_window' not in request.query_params:
-            time_window=[instance.times.min(),instance.times.max()]
+            time_window=[None,None]#[instance.times.min(),instance.times.max()]
         else:
             time_window=request.query_params['time_window']
-            if (not time_window) or (time_window == []) or (time_window == ''):    # Por defecto uso toda la duracion de la señal
-                time_window=[instance.times.min(),instance.times.max()]
+            if (not time_window) or (time_window == []) or (time_window == ','):    # Por defecto uso toda la duracion de la señal
+                time_window=[None,None]#[instance.times.min(),instance.times.max()]
             else:
                 try:
                     time_window=[float(t) for t in time_window.split(',')]
@@ -519,9 +551,13 @@ class GetPSD(APIView):
                     return Response('An invalid time window has been provided.',
                         status=status.HTTP_400_BAD_REQUEST)
                 
-                if time_window[0]>time_window[1]:
+                if epochs is not None:
+                    time_window=[None,None]
+
+                elif time_window[0]>time_window[1]:
                     return Response('An invalid time window has been provided.',
                         status=status.HTTP_400_BAD_REQUEST)
+                
 
         if 'freq_window' not in request.query_params:
             freq_window=[0,instance.info["sfreq"]/2] #Mas o menos todo el rango de frecuencias
@@ -539,14 +575,32 @@ class GetPSD(APIView):
                 if freq_window[0]>freq_window[1]:
                     return Response('An invalid frequency window has been provided.',
                         status=status.HTTP_400_BAD_REQUEST)
+        
 
         if type_of_psd=='welch':
             fields=["n_fft","n_overlap","n_per_seg","window","average"]
-            defaults=[int(instance.info["sfreq"]*(time_window[1]-time_window[0])/2),0,None,'boxcar','mean']
+            defaults=[0,None,'boxcar','mean']
+            if time_window[0] is None or time_window[1] is None:
+                xmin=0
+                xmax=0
+                diff=0
+                if isinstance(instance,mne.BaseEpochs):
+                    xmin=instance.times[0]
+                    xmax=instance.times[-1]
+                    diff=int(instance.info["sfreq"]*(xmax-xmin))
+                else:
+                    xmin=instance.first_samp
+                    xmax=instance.last_samp
+                    diff=int(xmax-xmin)
+
+                defaults.insert(0,diff)
+            else:
+                defaults.insert(0,int(instance.info["sfreq"]*(time_window[1]-time_window[0])))
+
             welch_params=check_params(request.query_params,params_names=fields,params_values=defaults)
             if type(welch_params)==Response: return welch_params
 
-            psds,freqs=psd(
+            data,freqs=psd(
                 instance=instance,
                 freq_window=freq_window,time_window=time_window,
                 picks=channels_idxs,
@@ -563,7 +617,7 @@ class GetPSD(APIView):
             multitaper_params=check_params(request.query_params,params_names=fields,params_values=defaults)
             if type(multitaper_params)==Response: return multitaper_params
 
-            psds,freqs=psd(
+            data,freqs=psd(
                 instance=instance,
                 freq_window=freq_window,time_window=time_window,
                 picks=channels_idxs,
@@ -573,6 +627,18 @@ class GetPSD(APIView):
                 low_bias=multitaper_params["low_bias"],
                 normalization=multitaper_params["normalization"],
             )
+        
+        if len(np.shape(data))==1 and epochs is None: # raw object
+            psds=data 
+        else:
+            psds=[]
+            if type(epochs)==list: #por ahora no vamos a usar este, pero lo dejo
+                for j in range(epochs):
+                    psds.append(data[j])
+            
+            else:
+                epoch_idx=epochs-1 #correction: label -> index
+                psds=data[epoch_idx]    
         
         response=Response({
             'signal':psds,

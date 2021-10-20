@@ -25,9 +25,9 @@ class ChartChannel extends Component {
         this.chart = lightningChart().ChartXY({ container: this.chartId, theme: myTheme  })
         // Set the Title of the chart.
         if(this.props.epoch!=null){
-            this.chart.setTitle('Epoca '+this.props.epoch+' Canal ' +this.props.channel)
+            this.chart.setTitle('Epoca: '+this.props.epoch+' | Canal: ' +this.props.channel)
         }else{
-            this.chart.setTitle('Canal ' +this.props.channel)
+            this.chart.setTitle('Canal: ' +this.props.channel)
         }
         // Add LineSeries to the chart.
         this.lineSeries = this.chart.addLineSeries()
