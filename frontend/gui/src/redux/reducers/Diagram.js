@@ -19,63 +19,13 @@ import {
     DELETE_ITEM_INPUTS_READY,
 } from '../actions/Diagram';
 import allowedElements from './_elements';
+import initialElements from './_initialElements';
 
 import {v4 as uuidv4} from 'uuid';
 import { element } from 'prop-types';
 
 const initialState={
-    elements:[{
-        id: '1',
-        type: 'input',
-        elementType: 'TIME_SERIES',
-        sourcePosition:'right',
-        data: { label: 'Señal en tiempo' },
-        position: { x: 150, y: 50 },
-        draggable:false,
-        params:{
-            id:'40',
-        },
-        signalsData:[],
-        processParams:{
-            processed:false,
-        },
-    },
-    {
-        id: '2',
-        type: 'output',
-        elementType: 'PLOT_TIME_SERIES',
-        formType:'ENABLE_PLOT_TIME_SERIES_FORM',
-        targetPosition:'left',
-        data: { label: 'Grafico en tiempo' },
-        //style: { borderColor: '#2eb85c', boxShadow: '0px 0px 0.5px #2eb85c' },
-        position: { x: 500, y: 20 },
-        draggable:true,
-        inputData:{
-            fetchInput:true,
-            inputNodeId:'1',
-            outputType:null,
-            summary:null,
-        },
-        params:{
-            channels:null,
-            minXWindow:null,
-            maxXWindow:null,
-            size:'l',
-        },
-        processParams:{
-            processed:false,
-        },
-        
-    },
-    {
-        animated:true,
-        arrowHeadType: "arrowclosed",
-        id: "reactflow__edge-1null-2null",
-        source:"1",
-        style:{stroke:"blue"},
-        target:"2",
-    },
-    ],
+    elements:initialElements[1],
     nodesCount: 2,
     lastId: 2,
     processes_status:{}, //[TOSTART, PROCESSING, SUCCESFULL, FAIL]

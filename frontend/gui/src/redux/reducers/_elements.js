@@ -30,6 +30,7 @@ export default [
     isFetching:false,
   },
   //PLOTS//
+  //TIME_SERIES
   {
     id: null,
     type: 'output',
@@ -56,6 +57,7 @@ export default [
     },
     processParams:processParamsTemplate,
   },
+  //PSD
   {
     id: null,
     type: 'output',
@@ -85,6 +87,7 @@ export default [
     processParams:processParamsTemplate,
   
   },
+  //TIME-FREQUENCY
   {
     id: null,
     type: 'output',
@@ -112,6 +115,7 @@ export default [
   },
   ////////
   //PREPROCESSING METHODS//
+  //EVENTS
   {
     id: null,
     type: 'default',
@@ -130,6 +134,7 @@ export default [
     signalsData:signalsDataTemplate,
     processParams:processParamsTemplate,
   },
+  //EPOCHS
   {
     id: null,
     type: 'default',
@@ -149,6 +154,7 @@ export default [
     signalsData:signalsDataTemplate,
     processParams:processParamsTemplate,
   },
+  //TIME_WINDOW
   {
     id: null,
     type: 'default',
@@ -161,6 +167,7 @@ export default [
     position: { x: 550, y: 80 },
     params:null,
   },
+  //REMOVE
   {
     id: null,
     type: 'default',
@@ -175,6 +182,7 @@ export default [
   },
   /////////////////////////
   //FILTERS//
+  //NOTCH
   {
     id: null,
     type: 'default',
@@ -192,6 +200,7 @@ export default [
     signalsData:signalsDataTemplate,
     processParams:processParamsTemplate,
   },
+  //BETA
   {
     id: null,
     type: 'default',
@@ -209,6 +218,7 @@ export default [
     signalsData:signalsDataTemplate,
     processParams:processParamsTemplate,
   },
+  //ALPHA
   {
     id: null,
     type: 'default',
@@ -226,6 +236,7 @@ export default [
     signalsData:signalsDataTemplate,
     processParams:processParamsTemplate,
   },
+  //THETA
   {
     id: null,
     type: 'default',
@@ -243,6 +254,7 @@ export default [
     signalsData:signalsDataTemplate,
     processParams:processParamsTemplate,
   },
+  //DELTA
   {
     id: null,
     type: 'default',
@@ -260,6 +272,7 @@ export default [
     signalsData:signalsDataTemplate,
     processParams:processParamsTemplate,
   },
+  //CUSTOM FILTER
   {
     id: null,
     type: 'default',
@@ -281,6 +294,7 @@ export default [
   },
   ////////
   //METHODS//
+  //ICA
   {
     id: null,
     type: 'default',
@@ -295,6 +309,7 @@ export default [
     signalsData:signalsDataTemplate,
     processParams:processParamsTemplate,
   },
+  //MAX PEAK
   {
     id: null,
     type: 'default',

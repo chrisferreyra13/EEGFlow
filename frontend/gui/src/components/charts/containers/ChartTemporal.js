@@ -3,6 +3,7 @@ import {
 	CCard,
 	CCardBody,
 	CCardGroup,
+	CCol
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {fetchSignal,deleteItemInputsReady,fetchMethodResult} from '../../../redux/actions/Diagram'
@@ -55,11 +56,11 @@ class ChartTemporal extends Component {
 		this.preprocessMethodResult=this.preprocessMethodResult.bind(this);
 
 		let style={} //Seteando las dimensiones del grafico en base a los parametros
-		switch(params.size){
+		/*switch(params.size){
 			case 'l':style={height:'75vh',}; break;
 			case 'm':style={height:'60vh',width:'600px'}; break;
 			default: style={height:'75vh',}; break;
-		}
+		}*/
 
 		let data=[];
 		let dataReady=false;
@@ -333,35 +334,35 @@ class ChartTemporal extends Component {
 		
 		return (
 			<>
-				
-				<CCardBody style={{alignItems:'center'}}>
-					{ this.state.dataReady ?
-						<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
-							{this.state.params.channels.length==1 ?
-							<ChartChannelTime
-							methodResult={this.state.methodResult}
-							data={this.state.data[0]}
-							chartStyle={{height: '100%', width:'100%', alignItems:'center'}}
-							channel={this.state.params.channels[0]} //Lo dejamos por las dudas --->//==undefined ? nodeInput.dataParams.chNames[0] : this.state.params.channels[0]}
-							epoch={this.state.params.epochs}
-							/> :
-							<ChartChannelsTime
-							methodResult={this.state.methodResult}
-							data={this.state.data}
-							chartStyle={{height: '100%', width:'100%', alignItems:'center'}}
-							channels={this.state.params.channels}
-							epoch={this.state.params.epochs}
-							/>
-							}
-						</div>
-						:
-						<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
-							<h4>Cargando...</h4>
-							<CIcon size= "xl" name="cil-cloud-download"/>
-						</div>
-					}
-				</CCardBody>
-				
+				<CCol xs="12" xl={this.props.plotSize}>
+					<CCardBody style={{alignItems:'center'}}>
+						{ this.state.dataReady ?
+							<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
+								{this.state.params.channels.length==1 ?
+								<ChartChannelTime
+								methodResult={this.state.methodResult}
+								data={this.state.data[0]}
+								chartStyle={{height: '100%', width:'100%', alignItems:'center'}}
+								channel={this.state.params.channels[0]} //Lo dejamos por las dudas --->//==undefined ? nodeInput.dataParams.chNames[0] : this.state.params.channels[0]}
+								epoch={this.state.params.epochs}
+								/> :
+								<ChartChannelsTime
+								methodResult={this.state.methodResult}
+								data={this.state.data}
+								chartStyle={{height: '100%', width:'100%', alignItems:'center'}}
+								channels={this.state.params.channels}
+								epoch={this.state.params.epochs}
+								/>
+								}
+							</div>
+							:
+							<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
+								<h4>Cargando...</h4>
+								<CIcon size= "xl" name="cil-cloud-download"/>
+							</div>
+						}
+					</CCardBody>
+				</CCol>
 			</>
 		)
     }

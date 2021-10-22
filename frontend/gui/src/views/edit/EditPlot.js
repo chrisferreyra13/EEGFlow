@@ -1,5 +1,9 @@
 import React, { Component, lazy } from 'react'
 import {connect, connectAdvanced} from 'react-redux'
+import {
+  CCol,
+  CRow
+} from  '@coreui/react'
 
 //import {fetchSignal} from '../../redux/actions/Diagram'
 
@@ -21,13 +25,48 @@ class EditPlot extends Component {
           plotType:elem.elementType,
           id:elem.id,
           isUse:false,
-          fetchInput:elem.fetchInput
+          fetchInput:elem.fetchInput,
+          size:elem.params.size==null ? 'm' : elem.params.size
         }
       }else return null
     })
 
+    let fullRow=false
+    let rowElements=0;
+    let grid=[]
+    let content;
+    grid=nodePlots.map((node) =>
+      {
+        if(node.params.size=='m'){
+          if(fullRow==false){
+            content=<div key={node.id}>
+                      {this.chartSelection(node)}
+                    </div>
+            rowElements+=1;
+            if(rowElements==2){
+              fullRow=true
+            }
+          }else{
+            content=<CRow key={node.id}>
+                      {this.chartSelection(node)}
+                    </CRow>
+            rowElements=1;
+            fullRow=false;
+          }
+        }else{
+          content=<CRow key={node.id}>
+                      {this.chartSelection(node)}
+                  </CRow>
+          rowElements=1;
+          fullRow=true;
+        }
+        return content
+      }
+    )
+
     this.state={
       nodePlots:nodePlots.filter((nodePlot) => nodePlot!=null),
+      grid:grid
     }
 
     //this.idSelection=this.idSelection.bind(this);
@@ -53,15 +92,21 @@ class EditPlot extends Component {
   }
   
   render(){
-
+    let fullRow=false;
     return (
       <>
         <div>
-          {this.state.nodePlots.map((node) =>
-            <div key={node.id}>
-              {this.chartSelection(node)}
-            </div>   
-          )}
+          {this.state.grid.map((gridItem,j) =>{
+            <div>
+              {
+                this.state.nodePlots[j].size=='m' ?
+                <gridItem plotSize='6'/>
+                :
+                <gridItem plotSize='12'/>
+              }
+            </div>         
+          })
+          }
         </div>         
       </>
     )
