@@ -42,9 +42,7 @@ def epochs(**kwargs):
     if channels==None: # Si es None, agarro todos
         channels_idxs=mne.pick_types(input.info,eeg=True) #Retorna los indices internos de raw
         eeg_info=mne.pick_info(input.info, sel=channels_idxs)
-        returned_channels=eeg_info["ch_names"]
     else:
-        returned_channels=channels
         ch_names=input.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
         if set(channels).issubset(set(ch_names)):
             channels_idxs=mne.pick_channels(ch_names, include=channels) #Retorna los indices internos de raw
@@ -109,7 +107,7 @@ def events(**kwargs):
     if new_events is not None:
         try:
             output=add_events(
-                raw=input,
+                instance=input,
                 new_events=new_events
                 )
 
@@ -141,7 +139,7 @@ def peak_step(**kwargs):
 
     try:
         peaks=peak_finder(
-            raw=input,
+            instance=input,
             channels=channels,
             thresh=peak_params["thresh"]
             )
@@ -173,12 +171,12 @@ def time_series_step(**kwargs):
 
     try:
         filepath=os.path.join(tu.upload_id,tu.upload_name)
-        raw=get_raw(MEDIA_TEMP,filepath)
+        instance=get_raw(MEDIA_TEMP,filepath)
     except TypeError:
         return Response('Invalid file extension',
                     status=status.HTTP_406_NOT_ACCEPTABLE)
 
-    return raw
+    return instance
 
 def result_step(**kwargs):
     return Response({
@@ -290,7 +288,7 @@ def filter_step(**kwargs):
             
             try:
                 output=notch_filter(
-                    raw=input,
+                    instance=input,
                     notch_freqs=notch_freqs,
                     channels=channels,
                     filter_method=filter_method,
@@ -313,7 +311,7 @@ def filter_step(**kwargs):
 
             try:
                 output=notch_filter(
-                    raw=input,
+                    instance=input,
                     notch_freqs=notch_freqs,
                     channels=channels,
                     filter_method=filter_method,
@@ -335,7 +333,7 @@ def filter_step(**kwargs):
             if type(iir_params)==Response: return iir_params
             try:
                 output=notch_filter(
-                    raw=input,
+                    instance=input,
                     notch_freqs=notch_freqs,
                     channels=channels,
                     filter_method=filter_method,
@@ -363,7 +361,7 @@ def filter_step(**kwargs):
             if type(fir_params)==Response: return fir_params
             try:
                 output=custom_filter(
-                    raw=input,
+                    instance=input,
                     low_freq=low_freq,
                     high_freq=high_freq,
                     channels=channels,
@@ -386,7 +384,7 @@ def filter_step(**kwargs):
             if type(iir_params)==Response: return iir_params
             try:
                 output=custom_filter(
-                    raw=input,
+                    instance=input,
                     low_freq=low_freq,
                     high_freq=high_freq,
                     channels=channels,
