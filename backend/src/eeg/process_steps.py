@@ -56,9 +56,11 @@ def epochs(**kwargs):
         return Response('Invalid file extension',
                     status=status.HTTP_406_NOT_ACCEPTABLE)
 
+    
+    instance=input.copy().pick_types(eeg=True)
     # build epochs instance for time-frequency plot
     epochs = mne.Epochs(
-        input, 
+        instance, 
         events, 
         tmin=tmin, tmax=tmax,
         )

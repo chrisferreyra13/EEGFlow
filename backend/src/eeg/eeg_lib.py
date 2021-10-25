@@ -149,10 +149,13 @@ def get_events(raw):
 
 
 def notch_filter(instance, notch_freqs=[50.0], channels=None, filter_method='fir', **kwargs):
-    print(instance)
-    instance_eeg = instance.copy().pick_types(eeg=True)
     
-    instance_eeg.load_data()
+    if isinstance(instance,mne.BaseEpochs):
+        instance.load_data()
+        instance_eeg = instance.copy().pick_types(eeg=True)
+    else:
+        instance_eeg = instance.copy().pick_types(eeg=True)
+        instance_eeg.load_data()
 
     if channels == None:  # Si es None, aplico el filtrado en todos los canales tipo EEG
         channels_idxs = mne.pick_types(instance.info, eeg=True)

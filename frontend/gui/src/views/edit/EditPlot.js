@@ -31,47 +31,54 @@ class EditPlot extends Component {
       }else return null
     })
 
-    let fullRow=false
-    let rowElements=0;
-    let grid=[]
-    let content;
-    grid=nodePlots.map((node) =>
-      {
-        if(node.params.size=='m'){
-          if(fullRow==false){
-            content=<div key={node.id}>
-                      {this.chartSelection(node)}
-                    </div>
-            rowElements+=1;
-            if(rowElements==2){
-              fullRow=true
-            }
-          }else{
-            content=<CRow key={node.id}>
-                      {this.chartSelection(node)}
-                    </CRow>
-            rowElements=1;
-            fullRow=false;
-          }
-        }else{
-          content=<CRow key={node.id}>
-                      {this.chartSelection(node)}
-                  </CRow>
-          rowElements=1;
-          fullRow=true;
-        }
-        return content
-      }
-    )
-
     this.state={
       nodePlots:nodePlots.filter((nodePlot) => nodePlot!=null),
-      grid:grid
     }
 
     //this.idSelection=this.idSelection.bind(this);
     this.chartSelection=this.chartSelection.bind(this);
+    this.buildGrid=this.buildGrid.bind(this);
 
+  }
+  buildGrid(){
+    let rowMediums=[]
+    let grid=[]
+    let content;
+    let mediumNode=null
+    this.state.nodePlots.forEach((node) =>
+      {
+        if(node.size=='m'){
+          content=this.chartSelection(node)
+          mediumNode=node
+          rowMediums.push(content)
+          if(rowMediums.length==2){
+            content=<CRow key={node.id}>
+                      {rowMediums.map(c => c)}
+                    </CRow>
+            
+            rowMediums=[]
+            grid.push(content)
+          }
+        
+        }else{
+          content=<CRow key={node.id}>
+                      {this.chartSelection(node)}
+                  </CRow>
+
+          grid.push(content)
+        }
+        
+
+      })
+    if(rowMediums.length==1){
+      content=<CRow key={mediumNode.id}>
+                {rowMediums.pop()}
+              </CRow>
+      
+      rowMediums=[]
+      grid.push(content)
+    }
+    return grid
   }
 
   chartSelection(node){
@@ -87,31 +94,22 @@ class EditPlot extends Component {
       return null
     }
     const chart=charts[node.plotType]
+    let plotSize='6'
+    if(node.size=='m')plotSize='6'
+    else plotSize='12'
 
-    return <chart.content nodeId={node.id}/> // Cambiar por props cuando se necesiten mas props
+    return <chart.content plotSize={plotSize} nodeId={node.id}/> // Cambiar por props cuando se necesiten mas props
   }
   
   render(){
-    let fullRow=false;
     return (
       <>
-        <div>
-          {this.state.grid.map((gridItem,j) =>{
-            <div>
-              {
-                this.state.nodePlots[j].size=='m' ?
-                <gridItem plotSize='6'/>
-                :
-                <gridItem plotSize='12'/>
-              }
-            </div>         
-          })
-          }
-        </div>         
+        {this.buildGrid().map(r => r)}      
       </>
     )
   }
 }
+
 
 const mapStateToProps = (state) => {
   return{

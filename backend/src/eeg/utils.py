@@ -87,7 +87,7 @@ def make_process_result_file(request,process_name,content):
     if user==None:
         user='anon'
 
-    filename=user+'.'+process_name+'.'+file_id+'.bin'
+    filename=user+'-'+process_name+'-'+file_id+'.bin'
     
     try:
         #with open(os.path.join(path,filename), 'wb+') as f:
@@ -99,6 +99,31 @@ def make_process_result_file(request,process_name,content):
     temp_process_output.save()
 
     return process_result_id
+
+def make_method_result_file(request,data,process_result_id=None):
+    if process_result_id is not None:
+        user=_get_user(request)
+        if user==None:
+            user='anon'
+
+        filename=user+'-'+process_result_id+'-method.pkl'
+        filepath=os.path.join(MEDIA_PROC_TEMP_OUTPUT_PATH,filename)
+        method_result_file = open(filepath, "wb")
+        pickle.dump(data, method_result_file)
+        method_result_file.close()
+
+    return process_result_id
+
+def get_method_result_data(media_path,filepath=None):
+    if filepath is None:
+        raise TypeError
+
+    full_filepath=os.path.join(media_path,filepath)
+    method_result_file = open(full_filepath, "rb")
+    method_result_data = pickle.load(method_result_file)
+    method_result_file.close()
+
+    return method_result_data
 
 def check_params(query_params,params_names=None,params_values=None):
     if params_names==None:
@@ -239,31 +264,6 @@ def get_channels_from_instance(channels,instance):
 
     return channels_idxs,returned_channels
 
-def make_method_result_file(request,data,process_result_id=None):
-    if process_result_id is not None:
-        user=_get_user(request)
-        if user==None:
-            user='anon'
-
-        filename=user+'_'+process_result_id+'_method.pkl'
-        filepath=os.path.join(MEDIA_PROC_TEMP_OUTPUT_PATH,filename)
-        method_result_file = open(filepath, "wb")
-        pickle.dump(data, method_result_file)
-        method_result_file.close()
-
-    return process_result_id
-
-
-def get_method_result_data(media_path,filepath=None):
-    if filepath is None:
-        raise TypeError
-
-    full_filepath=os.path.join(media_path,filepath)
-    method_result_file = open(full_filepath, "rb")
-    method_result_data = pickle.load(method_result_file)
-    method_result_file.close()
-
-    return method_result_data
 
 def prepare_epochs_summary(epochs,events):
     summary={}

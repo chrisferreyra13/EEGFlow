@@ -56,11 +56,11 @@ class ChartTemporal extends Component {
 		this.preprocessMethodResult=this.preprocessMethodResult.bind(this);
 
 		let style={} //Seteando las dimensiones del grafico en base a los parametros
-		/*switch(params.size){
+		switch(params.size){
 			case 'l':style={height:'75vh',}; break;
-			case 'm':style={height:'60vh',width:'600px'}; break;
+			case 'm':style={height:'60vh',}; break;
 			default: style={height:'75vh',}; break;
-		}*/
+		}
 
 		let data=[];
 		let dataReady=false;
@@ -334,7 +334,7 @@ class ChartTemporal extends Component {
 		
 		return (
 			<>
-				<CCol xs="12" xl={this.props.plotSize}>
+				<CCol xl={this.props.plotSize}>
 					<CCardBody style={{alignItems:'center'}}>
 						{ this.state.dataReady ?
 							<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>

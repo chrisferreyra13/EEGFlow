@@ -3,6 +3,7 @@ import {
 	CCard,
 	CCardBody,
 	CCardGroup,
+	CCol
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {fetchSignal,deleteItemInputsReady} from '../../../redux/actions/Diagram'
@@ -61,7 +62,7 @@ class ChartSpectrum extends Component {
 		let style={} //Seteando las dimensiones del grafico en base a los parametros
 		switch(params.size){
 			case 'l':style={height:'75vh',}; break;
-			case 'm':style={height:'60vh',width:'600px'}; break;
+			case 'm':style={height:'60vh',}; break;
 			default: style={height:'75vh',}; break;
 		}
 
@@ -227,7 +228,7 @@ class ChartSpectrum extends Component {
     render() {
 		return (
 			<>
-				
+				<CCol xl={this.props.plotSize}>
 					<CCardBody >
 						{ this.state.dataReady ?
 							<div style={this.state.style}>
@@ -245,7 +246,7 @@ class ChartSpectrum extends Component {
 							</div>
 						}
 					</CCardBody>
-				
+				</CCol>
 			</>
 			
 		)
