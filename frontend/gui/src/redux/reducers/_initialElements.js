@@ -152,6 +152,88 @@ export default [
             style: { stroke: "blue" },
             target: "2",
         },
+    ],
+    //Test epoch -> time-freq
+    [
+        {
+            id: '1',
+            type: 'input',
+            elementType: 'TIME_SERIES',
+            sourcePosition: 'right',
+            data: { label: 'Señal en tiempo' },
+            position: { x: 150, y: 50 },
+            draggable: false,
+            params: {
+                id: '40',
+            },
+            signalsData: [],
+            processParams: {
+                processed: false,
+            },
+        },
+        {
+            id: '2',
+            type: 'output',
+            elementType: 'PLOT_TIME_FREQUENCY',
+            formType: 'ENABLE_PLOT_TIME_FREQUENCY_FORM',
+            targetPosition: 'left',
+            data: {
+                label: 'Tiempo - Frecuencia'
+                },
+            position: { x: 550, y: 20 },
+            draggable: true,
+            inputData:{
+                fetchInput:false,
+                inputNodeId:null,
+                outputType:null,
+                summary:null,
+          
+                },
+            params:{
+                channels:null,
+                epochs:null,
+                minXWindow:null,
+                maxXWindow:null,
+                size:null,
+                },
+            processParams:processParamsTemplate,
+
+        },
+        {
+            id: '3',
+            type: 'default',
+            elementType: 'EPOCHS',
+            formType:'ENABLE_EPOCH_FORM',
+            targetPosition: 'left',
+            sourcePosition: 'right',
+            data: {
+            label: 'Epocas'
+            },
+            position: { x: 350, y: 80 },
+            params:{
+            tmin:null,
+            tmax:null,
+            channels:null,
+            },
+            signalsData:signalsDataTemplate,
+            processParams:processParamsTemplate,
+        },
+        {
+            animated: true,
+            arrowHeadType: "arrowclosed",
+            id: "reactflow__edge-1null-3null",
+            source: "1",
+            style: { stroke: "blue" },
+            target: "3",
+        },
+        {
+            animated: true,
+            arrowHeadType: "arrowclosed",
+            id: "reactflow__edge-3null-2null",
+            source: "3",
+            style: { stroke: "blue" },
+            target: "2",
+        },
     ]
 
 ]

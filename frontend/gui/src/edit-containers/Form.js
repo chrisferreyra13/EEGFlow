@@ -24,6 +24,7 @@ const CommonFilterForm = lazy(()=>import('../components/forms/CommonFilterForm.j
 const NotchFilterForm = lazy(()=>import('../components/forms/NotchFilterForm.js'))
 const ChartTemporalForm = lazy(()=>import('../components/forms/ChartTemporalForm.js'))
 const ChartPSDForm = lazy(()=>import('../components/forms/ChartPSDForm.js'))
+const ChartTFForm = lazy(()=>import('../components/forms/ChartTFForm.js'))
 const PeaksForm = lazy(()=>import('../components/forms/PeaksForm.js'))
 
 class Form extends Component{ 
@@ -129,6 +130,7 @@ const formSelection = (formType) => {
     ENABLE_NOTCH_FILTER_FORM: {title:'Filtro Notch',content:NotchFilterForm},
     ENABLE_PLOT_TIME_SERIES_FORM: {title:'Grafico en Tiempo',content:ChartTemporalForm},
     ENABLE_PLOT_PSD_FORM: {title:'Densidad Espectral de Potencia (PSD)',content:ChartPSDForm},
+    ENABLE_PLOT_TIME_FREQUENCY_FORM:{title:'Grafico tiempo - frecuencia',content:ChartTFForm},
     ENABLE_MAX_PEAK_FORM: {title:'Buscar picos',content:PeaksForm},
   };
 

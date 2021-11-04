@@ -370,58 +370,265 @@ class GetTimeFrequency(APIView):
             except TypeError:
                 return Response('Invalid file extension',
                             status=status.HTTP_406_NOT_ACCEPTABLE)
-        else:
+
+        else: # We apply tf just for epoch object
             return Response('Invalid file extension',
                         status=status.HTTP_406_NOT_ACCEPTABLE)
-            # try:
-            #     instance=get_raw(media_path,filepath)
-            # except TypeError:
-            #     return Response('Invalid file extension',
-            #                 status=status.HTTP_406_NOT_ACCEPTABLE)
         
         #get requested channels
         channels=get_request_channels(request.query_params)
         if type(channels)==Response:
-            return channels  
-        
-        if channels==None: # Si es None, agarro todos
-            channels_idxs=mne.pick_types(instance.info,eeg=True) #Retorna los indices internos de raw
+            return channels
+
+        if channels==None or channels=='prev': # Si es None, agarro todos
+            channels_idxs=mne.pick_types(instance.info,eeg=True) #Retorna los indices internos del instance
+            
+            if channels=='prev': # select just two channels for preview purposes
+                if len(channels_idxs)>=2:
+                    channels_idxs=channels_idxs[:2]
+                else: channels_idxs=channels_idxs[0]
+
             eeg_info=mne.pick_info(instance.info, sel=channels_idxs)
             returned_channels=eeg_info["ch_names"]
+            
         else:
             returned_channels=channels
             ch_names=instance.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
             if set(channels).issubset(set(ch_names)):
-                channels_idxs=mne.pick_channels(ch_names, include=channels) #Retorna los indices internos de raw
+                channels_idxs=mne.pick_channels(ch_names, include=channels) #Retorna los indices internos del instance
             else:
                 return Response('An invalid list of channels has been provided.',
                             status=status.HTTP_400_BAD_REQUEST)
 
-        epochs={}
+        if 'epochs' not in request.query_params:
+            epochs=None
+        else:
+            epochs=request.query_params["epochs"]
+            if type(epochs)==str:
+                if (not epochs) or (epochs == ''):    # Si no envian nada, lo aplico en todos los canales
+                    epochs=None
+                else:
+                    try:
+                        epochs=int(epochs)
+                    except:
+                        return Response('An invalid epoch has been provided.',
+                            status=status.HTTP_400_BAD_REQUEST)
+
+            elif type(epochs)==list:
+                if len(epochs)==0:
+                    return Response('An invalid list of epochs has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    try:
+                        epochs=[int(epo) for epo in epochs]
+                    except:
+                        return Response('An invalid epoch has been provided.',
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        #get type of tf
+        if 'type' not in request.query_params:
+            type_of_tf='morlet'
+        else:
+            type_of_tf=request.query_params['type']
+            if (not type_of_tf) or (type_of_tf == ''):    # Por defecto uso welch
+                type_of_tf='morlet'
+            else:
+                if type_of_tf not in ["morlet","multitaper","stockwell"]:
+                    return Response('An invalid type of time-frequency method has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+
+        # get if average result for morlet o multitaper (stockwell always average result)
+        if 'average' not in request.query_params:
+            average=False
+        else:
+            average=request.query_params["average"]
+            if (not average) or (average == ''):    # Si no envian nada, lo aplico en todos los canales
+                average=False
+            else:
+                if average in ["true","false"]:
+                    average=True if 'true' else False
+                else:
+                    return Response('An invalid average value has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+
+        # get min and max value of tf heatmap
+        if 'vrange' not in request.query_params:
+            vmin, vmax = None,None  # Define our color limits.
+        else:
+            vrange=request.query_params['vrange']
+            if (not vrange) or (vrange == []) or (vrange == ''):
+                vmin, vmax=None,None
+            else:
+                try:
+                    vmin, vmax=[float(f) for f in vrange.split(',')]
+                except:
+                    return Response('An invalid heatmap value range has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+                
+                if vmin>vmax:
+                    return Response('An invalid heatmap value range has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+
+        # get baseline correction
+        if 'baseline' not in request.query_params:
+            baseline = None
+        else:
+            baseline=request.query_params['baseline']
+            if (not baseline) or (baseline == []) or (baseline == ''):
+                baseline = None
+            else:
+                try:
+                    baseline=tuple([float(f) for f in baseline.split(',')])
+                except:
+                    return Response('An invalid baseline correction range has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+                
+                if vmin>vmax:
+                    return Response('An invalid baseline correction range has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+        
+        # get baseline correction mode: ‘mean’ | ‘ratio’ | ‘logratio’ | ‘percent’ | ‘zscore’ | ‘zlogratio’
+        if 'mode' not in request.query_params:
+            mode = 'mean'
+        else:
+            mode=request.query_params['mode']
+            if (not mode) or (mode == ''):
+                mode = 'mean'
+            else:
+                if mode not in ["mean","ratio","logratio","percent","zscore","zlogratio"]:
+                    return Response('An invalid baseline correction mode has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+
+        # get if return result in dB
+        if 'dB' not in request.query_params:
+            dB=False
+        else:
+            dB=request.query_params["dB"]
+            if (not dB) or (dB == ''):    # Si no envian nada, lo aplico en todos los canales
+                dB=False
+            else:
+                if dB in ["true","false"]:
+                    dB=True if 'true' else False
+                else:
+                    return Response('An invalid dB value has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+
+        # get freqs of tf
+        if 'freqs' not in request.query_params:
+            # * start, end, step
+            freqs=(5., 70., 3.) # ? por ahora pruebo esto
+        else:
+            freqs=request.query_params['freqs']
+            if (not freqs) or (freqs == []) or (freqs == ''):
+                freqs=(5., 70., 3.)
+            else:
+                try:
+                    freqs=tuple([float(f) for f in freqs.split(',')]) # "start,end,step" string
+                except:
+                    return Response('An invalid frequency range has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+                
+                if freqs[0]>freqs[1]:
+                    return Response('An invalid frequency range has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+
+        freqs=np.arange(freqs[0],freqs[1],freqs[2])
+
+        #TODO: ver como hacer para poner un n_cycles por defecto sin q explote
+        if 'n_cycles' not in request.query_params:
+            n_cycles=freqs/5.0
+        else:
+            n_cycles=request.query_params["n_cycles"]
+            if (not n_cycles) or (n_cycles == ''):    # Si no envian nada, lo aplico en todos los canales
+                n_cycles=freqs/5.0
+            else:
+                if len(n_cycles.split(','))==2:
+                    try:
+                        n_cycles=freqs/float(n_cycles.split(',')[1])
+                    except:
+                        return Response('An invalid number of cycles has been provided.',
+                            status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    try:
+                        n_cycles=float(n_cycles)
+                    except:
+                        return Response('An invalid number of cycles has been provided.',
+                            status=status.HTTP_400_BAD_REQUEST)      
+
+
+        # check params for different types of tf
+        if type_of_tf=='morlet':
+            fields=["use_fft","zero_mean"]
+            defaults=[False,True]
+            params=check_params(request.query_params,params_names=fields,params_values=defaults)
+            if type(params)==Response: return params
+
+            params["freqs"]=freqs
+            params["n_cycles"]=n_cycles
+            
+        elif type_of_tf=='multitaper':
+            fields=["time_bandwidth","use_fft"]
+            defaults=[4.0,True]
+            params=check_params(request.query_params,params_names=fields,params_values=defaults)
+            if type(params)==Response: return params
+
+            params["freqs"]=freqs
+            params["n_cycles"]=n_cycles
+        
+        else: # stockwell
+            fields=["fmin","fmax", "n_fft","width"]
+            defaults=[None,None,None,1.0]
+            params=check_params(request.query_params,params_names=fields,params_values=defaults)
+            if type(params)==Response: return params
 
         return_itc=False
-        type_of_tf='morlet'
-        average=True
+        data=time_frequency(
+                    instance=instance,
+                    picks=channels_idxs,
+                    type_of_tf=type_of_tf,
+                    average=average,
+                    return_itc=return_itc,
+                    **params
+                    )
+
         if return_itc:
-            power,itc=time_frequency(
-                instance=instance,
-                picks=channels_idxs,
-                type_of_tf=type_of_tf,
-                average=average
-                )
+            tfr,itc=data
         else:
-            power=time_frequency(
-                instance,
-                picks=channels_idxs,
-                type_of_tf=type_of_tf, 
-                return_itc=False,
-                average=average
-                )
+            tfr=data
         
+
+        tmin,tmax=(None,None) # lo usamos por defecto por ahora -> todo el rango para viz
+        fmin,fmax=(None,None) 
+        tfr = mne.time_frequency.tfr._preproc_tfr_instance(
+            tfr, channels_idxs, tmin, tmax, fmin, fmax, vmin, vmax, dB, mode,
+            baseline, exclude=None, copy=True)
+
+        tmin, tmax = tfr.times[[0, -1]]
+        if vmax is None:
+            vmax = np.abs(tfr.data).max()
+        if vmin is None:
+            vmin = -np.abs(tfr.data).max()
+
+        power=[]
+        if average:
+            power=tfr.data
+        else:
+            if type(epochs)==list: #por ahora no vamos a usar este, pero lo dejo
+                for j in range(epochs):
+                    power.append(tfr.data[j])
+            
+            else:
+                epoch_idx=epochs-1 #correction: label -> index
+                power=tfr.data[epoch_idx]
+
         response=Response({
-            'signal':power.data,
-            'times':power.times,
-            'freqs':power.freqs,
+            'signal':power,
+            'utils':{
+                'times':tfr.times,
+                'freqs':tfr.freqs,
+                'vmin':vmin,
+                'vmax':vmax,
+            },
             'sampling_freq':instance.info['sfreq'],
             'ch_names': returned_channels,
             })

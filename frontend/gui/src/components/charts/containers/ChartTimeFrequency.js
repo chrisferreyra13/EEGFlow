@@ -15,38 +15,46 @@ class ChartTimeFrequency extends Component {
         super(props);
 		const nodePlot=this.props.elements.find((elem) => elem.id==this.props.nodeId) //Busco nodoPlot para setear los params
 		let params={}
+		const outputType=nodePlot.inputData.outputType==null? 'raw' : nodePlot.inputData.outputType
 		if(nodePlot.params.channels==null){ 
-			params={ //Default params
-				channels:null,
-				minXWindow:null,
-     			maxXWindow:null,
-				size:'l'
-				
+			if(outputType=='raw'){
+				params={ //Default params
+					...nodePlot.params,
+					channels:'prev',
+					epochs:null,
+					minXWindow:nodePlot.params.minTimeWindow,
+					maxXWindow:nodePlot.params.maxTimeWindow,
+					size:nodePlot.params.size==null ? 'l' : nodePlot.params.size,
+				}
+			}else{
+				params={ //Default params
+					...nodePlot.params,
+					channels:'prev',
+					epochs:'1',
+					minXWindow:nodePlot.params.minTimeWindow,
+					maxXWindow:nodePlot.params.maxTimeWindow,
+					size:nodePlot.params.size==null ? 'l' : nodePlot.params.size
+				}
 			}
 		}else{
 			params={
+				...nodePlot.params,
 				channels:nodePlot.params.channels,
+				epochs:nodePlot.params.epochs,
+				minXWindow:parseFloat(nodePlot.params.minFreqWindow),
+				maxXWindow:parseFloat(nodePlot.params.maxFreqWindow),
 				size:nodePlot.params.size==null ? 'm' : nodePlot.params.size
+
 			}
-				
 		}
 
 		this.preprocessData=this.preprocessData.bind(this);
 
 		let style={} //Seteando las dimensiones del grafico en base a los parametros
 		switch(params.size){
-			case 'l':
-				style={
-					height:'75vh',
-				}
-				break;
-			case 'm':
-				style={
-					height:'60vh',
-					width:'600px'
-				}
-				break;
-		
+			case 'l':style={height:'75vh',}; break;
+			case 'm':style={height:'60vh',}; break;
+			default: style={height:'75vh',}; break;
 		}
 
 		let data=[];
@@ -54,59 +62,70 @@ class ChartTimeFrequency extends Component {
 
 		let channels;
 		let oldSignalId=null;
+		let fetchSignal=false;
 
 		let limit;
 		let minIndex=0;
 		let maxIndex=0;
 		const dataType='TIME_FREQUENCY';
-		if(nodePlot.inputData.inputNodeId!=null){
+		if(nodePlot.inputData.fetchInput){
 			const nodeInput=this.props.elements.find((elem) => elem.id==nodePlot.inputData.inputNodeId)
-			//let signalData=nodeInput.signalsData.find(d => d.dataType==dataType)
 
-			if(nodeInput.params.channels==undefined){
-				channels=nodePlot.params.channels
-			}
-			else{
-				channels=nodeInput.params.channels
-			}
+			if(nodeInput.params.channels==undefined){channels=params.channels;}
+			else{channels=nodeInput.params.channels;}
+
 			let signalData=nodeInput.signalsData.find(s => {
-				if(s.processId==nodePlot.processParams.processId && s.dataType==dataType)return true
+				if(s.processId==nodePlot.processParams.processId && s.dataType==dataType)return true;
 				return false
 			})
-			if(signalData==undefined){
-				this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType,nodePlot.processParams.processId)
-				this.props.updatePlotParams(nodePlot.id,{...nodePlot.params})
-			}
+			
+			if(signalData==undefined){fetchSignal=true;}
 			else{
 				if(!signalData.dataReady){
 					this.props.deleteItemInputsReady(signalData.id)
 					oldSignalId=signalData.id
-					this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType,nodePlot.processParams.processId)
-					this.props.updatePlotParams(nodePlot.id,{...nodePlot.params})
+					fetchSignal=true;
 				}
 				else{
 					if(Object.keys(this.props.prevParams).includes(nodePlot.id)){
 						if(JSON.stringify(this.props.prevParams[nodePlot.id])!==JSON.stringify(nodePlot.params)){
 							this.props.deleteItemInputsReady(signalData.id)
 							oldSignalId=signalData.id
-							this.props.fetchSignal(nodeInput.params.id,channels,nodePlot.params,nodeInput.id,dataType,nodePlot.processParams.processId)
-							this.props.updatePlotParams(nodePlot.id,{...nodePlot.params})
+							fetchSignal=true;
 						}
 					}
 				}
 			}
-		
+			if(fetchSignal){
+				this.props.fetchSignal(nodeInput.params.id,channels,params,nodeInput.id,dataType,nodePlot.processParams.processId)
+				this.props.updatePlotParams(nodePlot.id,{...params})
+			}
+
+			let prepareData=false
 			if(signalData!=undefined){
 				if(this.props.inputsReady.includes(signalData.id)){
-					if(signalData.chNames.some(ch => params.channels.includes(ch))){ //Check if at least one channels is in plot params
-						data=this.preprocessData(signalData,params,false)
+					if(params.channels=='prev'){
+						// if 'prev' (when the user didn't set channels) use signalData as default
+						params.channels=signalData.chNames
+						prepareData=true
+					}
+					else{
+						if(signalData.chNames.some(ch => params.channels.includes(ch))){
+							prepareData=true
+							params.channels=signalData.chNames.filter(ch => params.channels.includes(ch))
+						}
+							
+					}
+					if(prepareData){ //Check if at least one channels is in plot params
+					
+						data=this.preprocessData(signalData,params.channels,params,false)
 						dataReady=true
 					}
+					
 				}
 			}
-			
-			
 		}
+
 		this.state={
 			dataReady:dataReady,
 			inputNodeId:nodePlot.inputData.inputNodeId,
@@ -118,35 +137,31 @@ class ChartTimeFrequency extends Component {
 			oldSignalId:oldSignalId,
 			minIndex:minIndex,
 			maxIndex:maxIndex,
+			outputType:outputType,
 
 		}
 
     }
 
-	preprocessData(signalData, plotParams,updating){
-		let times=signalData.times
-		let freqs=signalData.freqs
-		let power=signalData.data[0] // solo funciona si es average
-		/*let minIndex=0;
-		let maxIndex=limit;
-		if(plotParams.minXWindow!=null){
-			minIndex=Math.round(plotParams.minXWindow*signalData.sFreq)
-			if(minIndex>=limit) minIndex=0; //Se paso, tira error
-		}
-		if(plotParams.maxXWindow!=null){
-			maxIndex=Math.round(plotParams.maxXWindow*signalData.sFreq)
-			if(maxIndex>limit) maxIndex=limit; //Se paso, tira error
-    	}*/
+	preprocessData(signalData,plotChannels,plotParams,updating){
+
 		let data={
-			power:power,
-			times:times,
-			freqs:freqs
+			power:signalData.data,
+			times:signalData.utils.times,
+			freqs:signalData.utils.freqs,
+			vMin:signalData.utils.vmin,
+			vMax:signalData.utils.vmax,
+			sFreq:signalData.sFreq
 		}
 		
 		if(updating)
 			this.setState({
 				data:data,
 				dataReady:true,
+				params:{
+					...plotParams,
+					channels:plotChannels
+				} 
 			})
 		else return data
 
@@ -154,20 +169,32 @@ class ChartTimeFrequency extends Component {
 	
 	componentDidUpdate(prevProps,prevState){
 		if(prevProps.inputsReady!==this.props.inputsReady){
-			let minIndex=0;
+			let prepareData=false;
+			let plotChannels=null;
 			let dataReady=false;
 			const nodeInput=this.props.elements.find((elem) => elem.id==this.state.inputNodeId)
 			if(nodeInput!=undefined){
 				let signalData=nodeInput.signalsData.find(s => {
-					if(s.processId==this.state.processId && s.dataType==this.state.dataType)return true
+					if(s.processId==this.state.processId && s.dataType==this.state.dataType)return true;
 					return false
 				})
 				if(signalData!=undefined){
 					if(this.props.inputsReady.includes(signalData.id) && this.state.oldSignalId!=signalData.id){
 						if(this.state.dataReady==false){
-							if(signalData.chNames.some(ch => this.state.params.channels.includes(ch))){ //Check if at least one channels is in plot params
-								this.preprocessData(signalData,this.state.params,true)
-								//dataReady=true
+							if(this.state.params.channels=='prev'){
+								plotChannels=signalData.chNames
+								prepareData=true
+							}
+							else{
+								//Check if at least one channels is in plot params
+								if(signalData.chNames.some(ch => this.state.params.channels.includes(ch))){
+									prepareData=true
+									plotChannels=signalData.chNames.filter(ch => this.state.params.channels.includes(ch))
+								}
+							}
+							if(prepareData){
+								this.preprocessData(signalData,plotChannels,this.state.params,true)
+								dataReady=true
 							}
 						}
 					}
@@ -189,6 +216,7 @@ class ChartTimeFrequency extends Component {
 								data={this.state.params.channels.length==1 ?this.state.data[0]: this.state.data}
 								chartStyle={{height: '100%', width:'100%'}}
 								channels={this.state.params.channels}
+								epoch={this.state.params.epochs}
 								/> 
 							</div>
 							:

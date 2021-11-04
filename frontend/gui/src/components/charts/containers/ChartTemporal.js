@@ -185,7 +185,7 @@ class ChartTemporal extends Component {
 
 	preprocessData(signalData, plotChannels,plotParams,updating){
 		let dataX=[]
-		if(signalData.times!=undefined)
+		if(signalData.utils.times!=undefined)
 			dataX=signalData.times
 
 		let limit = signalData.data[0].length;

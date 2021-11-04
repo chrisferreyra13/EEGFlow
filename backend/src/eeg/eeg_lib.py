@@ -6,57 +6,70 @@ from django.conf import settings
 from cconsciente.settings.base import MEDIA_TEMP, MEDIA_STORED, MEDIA_PROC_TEMP_OUTPUT_PATH
 
 
-def convert_power_to_db(x):
+def convert_to_db(x, data_type='power'):
     '''
     For Power and Energy, use 10*log10(x). For amplitude, use 20*log10(x) ;)
     '''
-    return 10*np.log10(np.maximum(x, np.finfo(float).tiny))
+    if data_type=='power' or data_type=='energy':
+        return 10*np.log10(np.maximum(x, np.finfo(float).tiny))
+    else: # amplitude -> db
+        return 20*np.log10(np.maximum(x, np.finfo(float).tiny))
+
+    
 
 
 # Instance must be epochs or evoked
 def time_frequency(instance, picks=None, type_of_tf='morlet', return_itc=True, **kwargs):
     average = kwargs["average"]
-    freqs = np.logspace(*np.log10([6, 35]), num=8)
-    n_cycles = freqs / 2.  # different number of cycle per frequency
-    time_bandwidth = 4.0  # Same frequency-smoothing as (1) 3 tapers.
-
     if type_of_tf == 'morlet':
-        power = mne.time_frequency.tfr_morlet(
+        tfr = mne.time_frequency.tfr_morlet(
             instance,
             picks=picks,
-            freqs=freqs,
-            n_cycles=n_cycles,
+            freqs=kwargs["freqs"],
+            n_cycles=kwargs["n_cycles"],
             use_fft=True,
             return_itc=return_itc,
-            decim=3,
+            decim=1,
             n_jobs=1,
             average=average,
         )
     elif type_of_tf == 'multitaper':
-        power = mne.time_frequency.tfr_multitaper(
+        tfr = mne.time_frequency.tfr_multitaper(
             instance,
             picks=picks,
-            freqs=freqs,
-            n_cycles=n_cycles,
-            time_bandwidth=time_bandwidth,
+            freqs=kwargs["freqs"],
+            n_cycles=kwargs["n_cycles"],
+            time_bandwidth=kwargs["time_bandwidth"],
             use_fft=True,
             return_itc=return_itc,
-            decim=3,
+            decim=1,
             n_jobs=1,
             average=average,
         )
 
     elif type_of_tf == 'stockwell':
-        print('hola')
+        tfr = mne.time_frequency.tfr_stockwell(
+            instance,
+            picks=picks,
+            fmin=kwargs["fmin"],
+            fmax=kwargs["fmax"],
+            n_fft=kwargs["n_fft"],
+            width=kwargs["width"],
+            return_itc=return_itc,
+            decim=1,
+            n_jobs=1,
+            average=average,
+        )
+
 
     if return_itc:
-        return power, itc
+        return tfr, itc
     else:
-        return power
+        return tfr
 
 
 # Instance can be epochs or raw
-def psd(instance, freq_window, time_window=[None, None], picks=None, type_of_psd='welch', **kwargs):
+def psd(instance, freq_window, time_window=(None, None), picks=None, type_of_psd='welch', **kwargs):
 
     if type_of_psd == 'welch':
         psds, freqs = mne.time_frequency.psd_welch(
@@ -90,7 +103,7 @@ def psd(instance, freq_window, time_window=[None, None], picks=None, type_of_psd
     psds_db = []
     # psd_db=[]
     for psd in psds:
-        psds_db.append(map(convert_power_to_db, psd))
+        psds_db.append(map(convert_to_db, psd))
 
     return psds_db, freqs
 

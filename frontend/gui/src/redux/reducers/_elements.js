@@ -92,13 +92,14 @@ export default [
     id: null,
     type: 'output',
     elementType: 'PLOT_TIME_FREQUENCY',
+    formType:'ENABLE_PLOT_TIME_FREQUENCY_FORM',
     targetPosition: 'left',
     data: {
       label: 'Tiempo - Frecuencia'
     },
     position: { x: 550, y: 80 },
     params:{
-      channels:['EEG 001'],
+      channels:null,
       epochs:null,
       minXWindow:null,
       maxXWindow:null,

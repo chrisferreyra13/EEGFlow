@@ -25,7 +25,7 @@ import {v4 as uuidv4} from 'uuid';
 import { element } from 'prop-types';
 
 const initialState={
-    elements:initialElements[1],
+    elements:initialElements[2],
     nodesCount: 2,
     lastId: 2,
     processes_status:{}, //[TOSTART, PROCESSING, SUCCESFULL, FAIL]
@@ -321,13 +321,6 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                     return item
                 }
             })
-            /*
-            inputsReady=inputsReady.filter((nodeId) => { // elimino si quedo uno viejo
-                if(nodesWithData.includes(nodeId)){return true}
-                else {return false}
-            })
-            inputsReady=[...new Set(inputsReady)] //elimino las copias
-            */
 
             return Object.assign({},state,{
                 elements: elements,
@@ -347,11 +340,8 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                 processId:rest.processId,
                 dataReady:true,
             }
-            if(rest.signalData["freqs"]!=undefined){
-                newSignalData['freqs']=rest.signalData['freqs']
-            }
-            if(rest.signalData["times"]!=undefined){
-                newSignalData['times']=rest.signalData['times']
+            if(rest.signalData["utils"]!=undefined){
+                newSignalData['utils']=rest.signalData['utils']
             }
             
             elements=state.elements.map((item) => {

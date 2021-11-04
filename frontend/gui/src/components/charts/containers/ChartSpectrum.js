@@ -148,25 +148,25 @@ class ChartSpectrum extends Component {
 	preprocessData(signalData,plotChannels,plotParams,updating){
 
 		let minIndex=0;
-		let limit=signalData.freqs.length;
+		let limit=signalData.utils.freqs.length;
 		let maxIndex=limit;
 		let target;
 		let goal;
 		if(plotParams.minXWindow!=null){
 			goal=plotParams.minXWindow
-			target=signalData.freqs.reduce((prev, curr) => Math.abs(curr - goal) < Math.abs(prev - goal) ? curr : prev);
-			minIndex=signalData.freqs.findIndex(f => f==target)
+			target=signalData.utils.freqs.reduce((prev, curr) => Math.abs(curr - goal) < Math.abs(prev - goal) ? curr : prev);
+			minIndex=signalData.utils.freqs.findIndex(f => f==target)
 			if(minIndex>=limit) minIndex=0; //Se paso, tira error
 		}
 		if(plotParams.maxXWindow!=null){
 			goal=plotParams.maxXWindow
-			target=signalData.freqs.reduce((prev, curr) => Math.abs(curr - goal) < Math.abs(prev - goal) ? curr : prev);
-			maxIndex=signalData.freqs.findIndex(f => f==target)
+			target=signalData.utils.freqs.reduce((prev, curr) => Math.abs(curr - goal) < Math.abs(prev - goal) ? curr : prev);
+			maxIndex=signalData.utils.freqs.findIndex(f => f==target)
 			if(maxIndex>limit) maxIndex=limit; //Se paso, tira error
     	}
     	
 		let data=PrepareDataForPlot(
-			signalData.freqs, //if empty [] --> SampleToTimes 
+			signalData.utils.freqs, //if empty [] --> SampleToTimes 
 			signalData.data,
 			signalData.sFreq,
 			signalData.chNames,

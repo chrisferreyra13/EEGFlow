@@ -449,10 +449,33 @@ export const fetchSignal = (id, channels, plotParams, nodeId, dataType, plotProc
             endpoint=endpoint+ 'time_frequency/?'
             requestParams={
                 id:id,
-                time_window:[plotParams.minTimeWindow,plotParams.maxTimeWindow],
-                freq_window:[plotParams.minFreqWindow,plotParams.maxFreqWindow],
                 channels: channels==undefined ? '': channels,
-                //type: plotParams["type"]==undefined ? '': plotParams["type"]
+                epochs: plotParams.epochs==null ? '': plotParams.epochs,
+                vrange:[plotParams.vmin,plotParams.vmax],
+                baseline:plotParams["baseline"] == undefined ? '': plotParams["baseline"],
+                mode:plotParams["mode"] == undefined ? '': plotParams["mode"],
+                average:plotParams["average"] == undefined ? '': plotParams["average"],
+                dB:plotParams["dB"] == undefined ? '': plotParams["dB"],
+            }
+            switch(plotParams["type"]){
+                case 'morlet':
+                    requestParams["freqs"]=[plotParams.minFreq,plotParams.maxFreq,plotParams.stepFreq]
+                    requestParams["n_cycles"]=plotParams["n_cycles"] == undefined ? '': plotParams["n_cycles"]
+                    requestParams["use_fft"]=plotParams["use_fft"] == undefined ? '': plotParams["use_fft"]
+                    requestParams["zero_mean"]=plotParams["zero_mean"] == undefined ? '': plotParams["zero_mean"]
+                    break
+                case 'multitaper':
+                    requestParams["freqs"]=[plotParams.minFreq,plotParams.maxFreq,plotParams.stepFreq]
+                    requestParams["n_cycles"]=plotParams["n_cycles"] == undefined ? '': plotParams["n_cycles"]
+                    requestParams["use_fft"]=plotParams["use_fft"] == undefined ? '': plotParams["use_fft"]
+                    requestParams["time_bandwidth"]=plotParams["time_bandwidth"] == undefined ? '': plotParams["time_bandwidth"]
+                    break
+                case 'stockwell':
+                    requestParams["fmin"]=plotParams["fmin"] == undefined ? '': plotParams["fmin"]
+                    requestParams["fmax"]=plotParams["fmax"] == undefined ? '': plotParams["fmax"]
+                    requestParams["width"]=plotParams["width"] == undefined ? '': plotParams["width"]
+                    requestParams["n_fft"]=plotParams["n_fft"] == undefined ? '': plotParams["n_fft"]
+                    break
             }
             break
         default:
