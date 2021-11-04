@@ -166,7 +166,6 @@ class ChartChannels extends Component {
             .setGridStrokeYStyle(emptyLine)
             .disposeTickMarkerY()
         )
-
     }
     componentDidMount() {
         // Chart can only be created when the component has mounted the DOM as 

@@ -855,7 +855,6 @@ class GetPSD(APIView):
             })
         
         return response
-
 class GetEvents(APIView):
 
     def get(self, request, format=None):
