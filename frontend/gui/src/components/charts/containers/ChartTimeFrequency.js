@@ -1,12 +1,12 @@
 import React, { Component } from 'react'
 import {
 	CCardBody,
+	CCol,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {fetchSignal,deleteItemInputsReady} from '../../../redux/actions/Diagram'
 import {connect} from 'react-redux'
 import ChartTFR from '../ChartTFR'
-import {PrepareDataForPlot} from '../../../tools/Utils'
 
 import {updatePlotParams} from '../../../redux/actions/Plot' 
 
@@ -22,28 +22,27 @@ class ChartTimeFrequency extends Component {
 					...nodePlot.params,
 					channels:'prev',
 					epochs:null,
-					minXWindow:nodePlot.params.minTimeWindow,
-					maxXWindow:nodePlot.params.maxTimeWindow,
 					size:nodePlot.params.size==null ? 'l' : nodePlot.params.size,
+					dB:nodePlot.params.dB==null ? 'false' : nodePlot.params.dB,
+					average:nodePlot.params.average==null ? 'false' : nodePlot.params.average,
+
 				}
 			}else{
 				params={ //Default params
 					...nodePlot.params,
 					channels:'prev',
 					epochs:'1',
-					minXWindow:nodePlot.params.minTimeWindow,
-					maxXWindow:nodePlot.params.maxTimeWindow,
-					size:nodePlot.params.size==null ? 'l' : nodePlot.params.size
+					size:nodePlot.params.size==null ? 'l' : nodePlot.params.size,
+					dB:nodePlot.params.dB==null ? 'false' : nodePlot.params.dB,
+					average:nodePlot.params.average==null ? 'false' : nodePlot.params.average,
 				}
 			}
 		}else{
 			params={
 				...nodePlot.params,
-				channels:nodePlot.params.channels,
-				epochs:nodePlot.params.epochs,
-				minXWindow:parseFloat(nodePlot.params.minFreqWindow),
-				maxXWindow:parseFloat(nodePlot.params.maxFreqWindow),
-				size:nodePlot.params.size==null ? 'm' : nodePlot.params.size
+				size:nodePlot.params.size==null ? 'm' : nodePlot.params.size,
+				dB:nodePlot.params.dB==null ? 'false' : nodePlot.params.dB,
+				average:nodePlot.params.average==null ? 'false' : nodePlot.params.average,
 
 			}
 		}
@@ -51,6 +50,7 @@ class ChartTimeFrequency extends Component {
 		this.preprocessData=this.preprocessData.bind(this);
 
 		let style={} //Seteando las dimensiones del grafico en base a los parametros
+		
 		switch(params.size){
 			case 'l':style={height:'75vh',}; break;
 			case 'm':style={height:'60vh',}; break;
@@ -208,15 +208,17 @@ class ChartTimeFrequency extends Component {
 		
 		return (
 			<>
-				
-				<CCardBody >
+				<CCol xl={this.props.plotSize}>
+					<CCardBody >
 						{ this.state.dataReady ?
 							<div style={this.state.style}>
 								<ChartTFR
-								data={this.state.params.channels.length==1 ?this.state.data[0]: this.state.data}
+								data={this.state.data}
 								chartStyle={{height: '100%', width:'100%'}}
 								channels={this.state.params.channels}
 								epoch={this.state.params.epochs}
+								dB={this.state.params.dB=='false' ? false : true}
+								average={this.state.params.average=='false' ? false : true}
 								/> 
 							</div>
 							:
@@ -226,7 +228,7 @@ class ChartTimeFrequency extends Component {
 							</div>
 						}
 					</CCardBody>
-				
+				</CCol>
 			</>
 		)
     }

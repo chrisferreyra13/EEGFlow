@@ -40,14 +40,21 @@ class ChartTFR extends Component {
         // Hide the chart title
         //
       if(channelIndex==0){
-        if(this.props.epoch!=null){
-          chart.setTitle('Epoca: '+this.props.epoch)
-        }else{
-          chart.setTitleFillStyle(emptyFill)
+        if(this.props.average){
+          chart.setTitle('Promedio de epocas')
         }
+        else{
+          if(this.props.epoch!=null){
+            chart.setTitle('Epoca: '+this.props.epoch)
+          }else{
+            chart.setTitleFillStyle(emptyFill)
+          }
+        }
+        
       }else{
         chart.setTitleFillStyle(emptyFill);
       }
+      const powerUnit=this.props.dB==true ? 'dB' : '\u03BCV²/Hz';
       // Define function that maps Uint8 [0, 255] to Decibels.
       //const intensityDataToDb = (intensity) =>
       //minDecibels + (intensity / 255) * (maxDecibels - minDecibels);
@@ -101,41 +108,41 @@ class ChartTFR extends Component {
               steps: [
                 {
                   value: lutRange[0],
-                  color: ColorHSV(0, 1, 0),
+                  color: ColorHSV(221, 1, 0.82),
                   label: `${lutRangeString[0]}`,
                 },
                 {
                   value: lutRange[1],
-                  color: ColorHSV(270, 0.84, 0.2),
+                  color: ColorHSV(200, 0.70, 0.89),
                   label: `${lutRangeString[1]}`,
                 },
                 {
                   value: lutRange[2],
-                  color: ColorHSV(289, 0.86, 0.35),
+                  color: ColorHSV(176, 0.43, 0.94),
                   label: `${lutRangeString[2]}`,
                 },
                 {
                   value: lutRange[3],
-                  color: ColorHSV(324, 0.97, 0.56),
+                  color: ColorHSV(0, 0, 1),
                   label: `${lutRangeString[3]}`,
                 },
                 {
                   value: lutRange[4],
-                  color: ColorHSV(1, 1, 1),
+                  color: ColorHSV(20, 0.40, 0.99),
                   label: `${lutRangeString[4]}`,
                 },
                 {
                   value: lutRange[5],
-                  color: ColorHSV(44, 0.64, 1),
+                  color: ColorHSV(357, 0.80, 0.84),
                   label: `${lutRangeString[5]}`,
                 },
                 {
                   value: lutRange[6],
-                  color: ColorHSV(62, 0.32, 1),
+                  color: ColorHSV(354, 0.89, 0.72),
                   label: `${lutRangeString[6]}`,
                 },
               ],
-              units: "\u03BCV²/Hz",
+              units: powerUnit,
               interpolate: true,
             }),
           })
@@ -146,7 +153,7 @@ class ChartTFR extends Component {
             .addRow(series.getName())
             .addRow("X:", "", series.axisX.formatValue(dataPoint.x))
             .addRow("Y:", "", series.axisY.formatValue(dataPoint.y))
-            .addRow("", scientificNotString(dataPoint.intensity,2) + " \u03BCV²/Hz")
+            .addRow("", scientificNotString(dataPoint.intensity,2) + " "+powerUnit)
         );
     
       // Set default X axis settings
@@ -191,13 +198,13 @@ class ChartTFR extends Component {
       let maxTime=0;
       let minFreq=0;
       let maxFreq=0;
-      
+      minTime=this.props.data.times[0];
+      maxTime=this.props.data.times[this.props.data.times.length-1];
+      minFreq=this.props.data.freqs[0];
+      maxFreq=this.props.data.freqs[this.props.data.freqs.length-1];
       for (let i = 0; i < this.props.channels.length; i += 1) {
         // Create a chart for the channel
-        minTime=this.props.data.times[0];
-        maxTime=this.props.data.times[this.props.data.times.length-1];
-        minFreq=this.props.data.freqs[0];
-        maxFreq=this.props.data.freqs[this.props.data.freqs.length-1];
+        
         const ch = this.createChannel(
           this.dashboard,
           i,
@@ -236,7 +243,11 @@ class ChartTFR extends Component {
         })
         .setPosition({ x: 100, y: 50 })
         .setOrigin({ x: 1, y: 0 });
-      charts.forEach((c) => legend.add(c.chart));
+        
+      charts.forEach((c,j) => {
+        legend.add(c.chart).setTitle(this.props.channels[j])
+        
+      });
       // Link chart X axis scales
       const syncedAxes = charts.map(chart => chart.series.axisX)
       synchronizeAxisIntervals(...syncedAxes)

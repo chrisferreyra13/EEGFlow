@@ -40,7 +40,7 @@ class ChartTFForm extends Component{
         if(elem.elementType=='EPOCHS')
           epochsExists=true
     })
-    let outputType=nodePlot.inputData.outputType==null? 'raw' : nodePlot.inputData.outputType
+    let outputType=nodePlot.inputData.outputType
     let eventSamples=null;
     let eventIds=null;
     let samplingFreq=null;
@@ -101,17 +101,11 @@ class ChartTFForm extends Component{
     const checked = e.target.checked;
     
     if (checkboxId=='average'){ // for generic use, convert this 'if' in switch case
-      if (checked) {
-        this.setState({
-         enableEpochs:false //the use don't need to select epoch for average option
-        })
-       } else {
-         this.setState({
-           enableEpochs:true
-          })
-       }
+      this.setState({
+        enableEpochs:!checked //the use don't need to select epoch for average option
+       })
     }
-    
+    this.props.onChange(checkboxId, checked==true ? 'true' : 'false');
   }
 
   checkRadioButton(inputId,radioButtonIds){
@@ -159,7 +153,7 @@ class ChartTFForm extends Component{
     return (
       <div>
         {
-          this.state.epochsExists==true && this.state.outputType=='raw' ?
+          this.state.epochsExists==true && this.state.outputType==null ?
           <CFormGroup row style={{margin:'0', width:'380px'}}>
             <CCol md="12">
               <CCard color="danger" className="text-white text-center">
@@ -209,7 +203,7 @@ class ChartTFForm extends Component{
                     id="vmin"
                     placeholder={"valor minimo"}
                     type="number"
-                    min="0" step="0.01"
+                    step="0.01"
                     value={this.getValue("vmin")==null ? '' : this.getValue("vmin")}
                     onChange={(event) => this.handleChange(event,'vmin')}/>
                 </CCol>
@@ -218,7 +212,7 @@ class ChartTFForm extends Component{
                   id="vmax"
                   placeholder={"valor maximo"}
                   type="number"
-                  min="0" step="0.01"
+                  step="0.01"
                   value={this.getValue("vmax")==null ? '' : this.getValue("vmax")}
                   onChange={(event) => this.handleChange(event,'vmax')}/>
                 </CCol>
@@ -255,7 +249,12 @@ class ChartTFForm extends Component{
           </CCol>
           <CCol md="6">
             <CFormGroup variant="custom-checkbox" inline>
-              <CInputCheckbox custom id="dB" name="inline-checkbox2" value="true"/>
+              <CInputCheckbox
+              custom id="dB" 
+              name="inline-checkbox2" 
+              value="true"
+              onClick={(e) => this.handleCheckbox(e,'dB')}
+              />
               <CLabel variant="custom-checkbox" htmlFor="dB">dB</CLabel>
             </CFormGroup>
           </CCol>
@@ -286,13 +285,15 @@ class ChartTFForm extends Component{
                 <CCol md="12">
                   <CLabel htmlFor="freqs">Rango de frecuencias (freqs):</CLabel>
                     <CFormGroup row>
-                      <CCol md="3">
-                          <CInput id="minFreq" placeholder={"frecuencia mínima (Hz)"} type="number" min="0" step="0.01" required value={this.getValue('minFreq')} onChange={(event) => this.handleChange(event,'minFreq')}/>
+                      <CCol md="5">
+                          <CInput id="minFreq" placeholder={"frec. mínima (Hz)"} type="number" min="0" step="0.01" required value={this.getValue('minFreq')} onChange={(event) => this.handleChange(event,'minFreq')}/>
                       </CCol>
-                      <CCol md="3">
-                        <CInput id="maxFreq" placeholder={"frecuencia máxima (Hz)"} type="number" min="0" step="0.01" required value={this.getValue('maxFreq')} onChange={(event) => this.handleChange(event,'maxFreq')}/>
+                      <CCol md="5">
+                        <CInput id="maxFreq" placeholder={"frec. máxima (Hz)"} type="number" min="0" step="0.01" required value={this.getValue('maxFreq')} onChange={(event) => this.handleChange(event,'maxFreq')}/>
                       </CCol>
-                      <CCol md="3">
+                    </CFormGroup>
+                    <CFormGroup row>
+                      <CCol md="4">
                         <CInput id="stepFreq" placeholder={"paso (Hz)"} type="number" min="0" step="0.01" required value={this.getValue('stepFreq')} onChange={(event) => this.handleChange(event,'stepFreq')}/>
                       </CCol>
                     </CFormGroup>
@@ -303,7 +304,7 @@ class ChartTFForm extends Component{
                   <CLabel htmlFor="n_cycles">Numero de ciclos:</CLabel>
                 </CCol>
                 <CCol md="5">
-                  <CInput id="n_cycles" placeholder={"ejemplos: 7 o freqs/5"} required value={this.getValue('n_cycles')} onChange={(event) => this.handleChange(event,'n_cycles')}/>
+                  <CInput id="n_cycles" placeholder={"ejemplos: 7 o freqs,5"} required value={this.getValue('n_cycles')} onChange={(event) => this.handleChange(event,'n_cycles')}/>
                 </CCol>
               </CFormGroup>
               {this.getValue('type')=='morlet' ?
@@ -311,14 +312,24 @@ class ChartTFForm extends Component{
                 <CFormGroup row>
                   <CCol md="6">
                     <CFormGroup variant="custom-checkbox" inline>
-                      <CInputCheckbox custom id="use_fft" name="inline-checkbox1" value="true"/>
+                      <CInputCheckbox 
+                      custom id="use_fft" 
+                      name="inline-checkbox1" 
+                      value="true"
+                      onClick={(e) => this.handleCheckbox(e,'use_fft')}
+                      />
                       <CLabel variant="custom-checkbox" htmlFor="use_fft">Convolución FFT</CLabel>
                     </CFormGroup>
                   </CCol>
                   <CCol md="6">
                     <CFormGroup variant="custom-checkbox" inline>
-                      <CInputCheckbox custom id="zero_mean" name="inline-checkbox2" value="true"/>
-                      <CLabel variant="custom-checkbox" htmlFor="bias">Media Cero</CLabel>
+                      <CInputCheckbox 
+                      custom id="zero_mean" 
+                      name="inline-checkbox2" 
+                      value="true"
+                      onClick={(e) => this.handleCheckbox(e,'zero_mean')}
+                      />
+                      <CLabel variant="custom-checkbox" htmlFor="zero_mean">Media Cero</CLabel>
                     </CFormGroup>
                   </CCol>
                 </CFormGroup>
@@ -327,7 +338,12 @@ class ChartTFForm extends Component{
                 <CFormGroup row>
                   <CCol md="12">
                     <CFormGroup variant="custom-checkbox" inline>
-                      <CInputCheckbox custom id="use_fft" name="inline-checkbox1" value="true"/>
+                      <CInputCheckbox 
+                      custom id="use_fft" 
+                      name="inline-checkbox1" 
+                      value="true"
+                      onClick={(e) => this.handleCheckbox(e,'use_fft')}
+                      />
                       <CLabel variant="custom-checkbox" htmlFor="use_fft">Convolución FFT</CLabel>
                     </CFormGroup>
                   </CCol>

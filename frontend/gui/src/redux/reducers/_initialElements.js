@@ -211,9 +211,9 @@ export default [
             },
             position: { x: 350, y: 80 },
             params:{
-            tmin:null,
-            tmax:null,
-            channels:null,
+                tmin:null,
+                tmax:null,
+                channels:null,
             },
             signalsData:signalsDataTemplate,
             processParams:processParamsTemplate,

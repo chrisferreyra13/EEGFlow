@@ -437,6 +437,7 @@ class GetTimeFrequency(APIView):
                     return Response('An invalid type of time-frequency method has been provided.',
                         status=status.HTTP_400_BAD_REQUEST)
 
+        
         # get if average result for morlet o multitaper (stockwell always average result)
         if 'average' not in request.query_params:
             average=False
@@ -456,7 +457,7 @@ class GetTimeFrequency(APIView):
             vmin, vmax = None,None  # Define our color limits.
         else:
             vrange=request.query_params['vrange']
-            if (not vrange) or (vrange == []) or (vrange == ''):
+            if (not vrange) or (vrange == []) or (vrange == '') or (vrange == ','):
                 vmin, vmax=None,None
             else:
                 try:
@@ -581,6 +582,7 @@ class GetTimeFrequency(APIView):
             params=check_params(request.query_params,params_names=fields,params_values=defaults)
             if type(params)==Response: return params
 
+
         return_itc=False
         data=time_frequency(
                     instance=instance,
@@ -600,7 +602,7 @@ class GetTimeFrequency(APIView):
         tmin,tmax=(None,None) # lo usamos por defecto por ahora -> todo el rango para viz
         fmin,fmax=(None,None) 
         tfr = mne.time_frequency.tfr._preproc_tfr_instance(
-            tfr, channels_idxs, tmin, tmax, fmin, fmax, vmin, vmax, dB, mode,
+            tfr, None, tmin, tmax, fmin, fmax, vmin, vmax, dB, mode,
             baseline, exclude=None, copy=True)
 
         tmin, tmax = tfr.times[[0, -1]]
@@ -784,6 +786,7 @@ class GetPSD(APIView):
                         status=status.HTTP_400_BAD_REQUEST)
         
 
+        print(request.query_params)
         if type_of_psd=='welch':
             fields=["n_fft","n_overlap","n_per_seg","window","average"]
             defaults=[0,None,'boxcar','mean']
@@ -849,7 +852,9 @@ class GetPSD(APIView):
         
         response=Response({
             'signal':psds,
-            'freqs':freqs,
+            'utils':{
+                'freqs':freqs,
+            },
             'sampling_freq':instance.info['sfreq'],
             'ch_names': returned_channels,
             })
