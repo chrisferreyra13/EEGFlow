@@ -102,7 +102,7 @@ class ChartTemporal extends Component {
 				}
 				else{
 					if(Object.keys(this.props.prevParams).includes(nodePlot.id)){
-						if(JSON.stringify(this.props.prevParams[nodePlot.id])!==JSON.stringify(nodePlot.params)){
+						if(JSON.stringify(this.props.prevParams[nodePlot.id])!==JSON.stringify(params)){
 							this.props.deleteItemInputsReady(signalData.id)
 							oldSignalId=signalData.id
 							fetchSignal=true

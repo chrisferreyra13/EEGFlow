@@ -97,7 +97,8 @@ class ChartPSDForm extends Component{
     this.handleChangeInputRadio = this.handleChangeInputRadio.bind(this);
     this.handleMultiSelect=this.handleMultiSelect.bind(this);
     this.handleSelect=this.handleSelect.bind(this);
-    this.checkRadioButton=this.checkRadioButton.bind(this);
+    this.checkButtonsById=this.checkButtonsById.bind(this);
+    this.checkButtonsByBool=this.checkButtonsByBool.bind(this);
     this.getValue=this.getValue.bind(this);
     this.handleCheckbox=this.handleCheckbox.bind(this);
 
@@ -106,7 +107,17 @@ class ChartPSDForm extends Component{
     const checked = e.target.checked;
     this.props.onChange(checkboxId, checked==true ? 'true' : 'false');
   }
-  checkRadioButton(inputId,radioButtonIds){
+  checkButtonsByBool(inputIds){
+    inputIds.forEach(id =>{
+      if(this.getValue(id)!=null){
+        if(this.getValue(id)=='true') // el id tiene que ser igual al valor del button
+          document.getElementById(id).checked=true
+        else
+          document.getElementById(id).checked=false
+      }
+    })
+  }
+  checkButtonsById(inputId,radioButtonIds){
     radioButtonIds.forEach(id => {
       if(this.getValue(inputId)==id) // el id tiene que ser igual al valor del button
         document.getElementById(id).checked=true
@@ -131,8 +142,9 @@ class ChartPSDForm extends Component{
   }
   componentDidMount(){
     this.props.onMountForm();
-    this.checkRadioButton('type',['welch','multitaper'])
-    this.checkRadioButton('size',['m','l'])
+    this.checkButtonsById('type',['welch','multitaper'])
+    this.checkButtonsById('size',['m','l'])
+    this.checkButtonsByBool(['adaptive','bias'])
   }
   getValue(inputId){
     if(Object.keys(this.props.values).length === 0 && this.props.values.constructor === Object){

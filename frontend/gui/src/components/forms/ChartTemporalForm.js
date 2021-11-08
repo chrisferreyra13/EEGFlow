@@ -52,7 +52,7 @@ class ChartTemporalForm extends Component{
         epochs:null,
         minTimeWindow:null,
         maxTimeWindow:null,
-        size:'s'
+        size:'m'
       },
       options:options.map(ch => {
         return {value:ch,label:ch}

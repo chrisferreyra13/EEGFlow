@@ -478,15 +478,18 @@ class GetTimeFrequency(APIView):
             if (not baseline) or (baseline == []) or (baseline == ''):
                 baseline = None
             else:
-                try:
-                    baseline=tuple([float(f) for f in baseline.split(',')])
-                except:
-                    return Response('An invalid baseline correction range has been provided.',
-                        status=status.HTTP_400_BAD_REQUEST)
+                if baseline == ',':
+                    baseline=(None, None) # Apply baseline correction to full time range
+                else:
+                    try:
+                        baseline=tuple([float(f) for f in baseline.split(',')])
+                    except:
+                        return Response('An invalid baseline correction range has been provided.',
+                            status=status.HTTP_400_BAD_REQUEST)
                 
-                if vmin>vmax:
-                    return Response('An invalid baseline correction range has been provided.',
-                        status=status.HTTP_400_BAD_REQUEST)
+                    if baseline[1]>baseline[0]:
+                        return Response('An invalid baseline correction range has been provided.',
+                            status=status.HTTP_400_BAD_REQUEST)
         
         # get baseline correction mode: ‘mean’ | ‘ratio’ | ‘logratio’ | ‘percent’ | ‘zscore’ | ‘zlogratio’
         if 'mode' not in request.query_params:

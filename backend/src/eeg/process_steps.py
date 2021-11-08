@@ -1,3 +1,4 @@
+from django.core.files import base
 from .eeg_lib import *
 from .utils import *
 from cconsciente.settings.base import MEDIA_TEMP, MEDIA_STORED, MEDIA_PROC_TEMP_OUTPUT_PATH
@@ -34,6 +35,28 @@ def epochs(**kwargs):
                 return Response('An invalid max time has been provided.',
                     status=status.HTTP_400_BAD_REQUEST)
 
+
+    # get baseline correction
+    if 'baseline' not in params:
+        baseline = None
+    else:
+        baseline=params['baseline']
+        if (not baseline) or (baseline == []) or (baseline == ''):
+            baseline = None
+        else:
+            if baseline == ',':
+                baseline=(None, None) # Apply baseline correction to full time range
+            else:
+                try:
+                    baseline=tuple([float(f) for f in baseline.split(',')])
+                except:
+                    return Response('An invalid baseline correction range has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+            
+                if baseline[0]>baseline[1]:
+                    return Response('An invalid baseline correction range has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+
     #get requested channels
     channels=get_request_channels(params)
     if type(channels)==Response:
@@ -57,12 +80,13 @@ def epochs(**kwargs):
                     status=status.HTTP_406_NOT_ACCEPTABLE)
 
     
-    instance=input.copy().pick_types(eeg=True)
     # build epochs instance for time-frequency plot
     epochs = mne.Epochs(
-        instance, 
-        events, 
+        raw=input, 
+        events=events, 
         tmin=tmin, tmax=tmax,
+        picks=channels_idxs,
+        baseline=baseline
         )
 
     return {"instance":epochs,"events":events}

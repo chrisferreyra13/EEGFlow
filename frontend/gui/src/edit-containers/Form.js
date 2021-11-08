@@ -17,7 +17,6 @@ import CIcon from '@coreui/icons-react'
 import {okForm, cancelForm, updateForm} from '../redux/actions/Form'
 import { runSingleProcess, updateNodePropierties } from '../redux/actions/Diagram'
 
-
 const EventsForm = lazy(()=>import('../components/forms/EventsForm.js'))
 const CustomFilterForm = lazy(()=>import('../components/forms/CustomFilterForm.js'))
 const CommonFilterForm = lazy(()=>import('../components/forms/CommonFilterForm.js'))
@@ -26,6 +25,7 @@ const ChartTemporalForm = lazy(()=>import('../components/forms/ChartTemporalForm
 const ChartPSDForm = lazy(()=>import('../components/forms/ChartPSDForm.js'))
 const ChartTFForm = lazy(()=>import('../components/forms/ChartTFForm.js'))
 const PeaksForm = lazy(()=>import('../components/forms/PeaksForm.js'))
+const EpochsForm = lazy(()=>import('../components/forms/EpochsForm.js'))
 
 class Form extends Component{ 
   constructor(props){
@@ -132,6 +132,7 @@ const formSelection = (formType) => {
     ENABLE_PLOT_PSD_FORM: {title:'Densidad Espectral de Potencia (PSD)',content:ChartPSDForm},
     ENABLE_PLOT_TIME_FREQUENCY_FORM:{title:'Grafico tiempo - frecuencia',content:ChartTFForm},
     ENABLE_MAX_PEAK_FORM: {title:'Buscar picos',content:PeaksForm},
+    ENABLE_EPOCH_FORM: {title:'Crear Epocas',content:EpochsForm},
   };
 
   return forms[formType];

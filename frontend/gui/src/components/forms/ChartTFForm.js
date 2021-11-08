@@ -92,7 +92,8 @@ class ChartTFForm extends Component{
     this.handleChangeInputRadio = this.handleChangeInputRadio.bind(this);
     this.handleMultiSelect=this.handleMultiSelect.bind(this);
     this.handleSelect=this.handleSelect.bind(this);
-    this.checkRadioButton=this.checkRadioButton.bind(this);
+    this.checkButtonsById=this.checkButtons.bind(this);
+    this.checkButtonsByBool=this.checkButtonsByBool.bind(this);
     this.getValue=this.getValue.bind(this);
     this.handleCheckbox=this.handleCheckbox.bind(this);
 
@@ -108,13 +109,23 @@ class ChartTFForm extends Component{
     this.props.onChange(checkboxId, checked==true ? 'true' : 'false');
   }
 
-  checkRadioButton(inputId,radioButtonIds){
-    radioButtonIds.forEach(id => {
+  checkButtons(inputId,buttonsIds){
+    buttonsIds.forEach(id => {
       if(this.getValue(inputId)==id) // el id tiene que ser igual al valor del button
         document.getElementById(id).checked=true
       else
         document.getElementById(id).checked=false
     }) 
+  }
+  checkButtonsByBool(inputIds){
+    inputIds.forEach(id =>{
+      if(this.getValue(id)!=null){
+        if(this.getValue(id)=='true') // el id tiene que ser igual al valor del button
+          document.getElementById(id).checked=true
+        else
+          document.getElementById(id).checked=false
+      }
+    })
   }
 
   handleMultiSelect(options,id){
@@ -133,8 +144,9 @@ class ChartTFForm extends Component{
   }
   componentDidMount(){
     this.props.onMountForm();
-    this.checkRadioButton('type',['morlet','multitaper','stockwell'])
-    this.checkRadioButton('size',['m','l'])
+    this.checkButtons('type',['morlet','multitaper','stockwell'])
+    this.checkButtons('size',['m','l'])
+    this.checkButtonsByBool(['average','dB','use_fft','zero_mean'])
   }
   getValue(inputId){
     if(Object.keys(this.props.values).length === 0 && this.props.values.constructor === Object){
@@ -224,7 +236,7 @@ class ChartTFForm extends Component{
               <CLabel htmlFor="baseline">Corrección de linea de base:</CLabel>
           </CCol>
           <CCol md="5">
-              <CInput id="baseline" placeholder={"ejemplo: 0,0.1"} value={this.getValue('baseline')} onChange={(event) => this.handleChange(event,'baseline')}/>
+              <CInput id="baseline" placeholder={"ejemplos: 0,0.1 o ,"} value={this.getValue('baseline')} onChange={(event) => this.handleChange(event,'baseline')}/>
           </CCol>
         </CFormGroup>
         <CFormGroup row>
@@ -241,7 +253,7 @@ class ChartTFForm extends Component{
               <CInputCheckbox 
               custom id="average" 
               name="inline-checkbox1" 
-              value="true"
+              value={"true"}
               onClick={(e) => this.handleCheckbox(e,'average')}
               />
               <CLabel variant="custom-checkbox" htmlFor="average">Promediar</CLabel>
@@ -365,10 +377,10 @@ class ChartTFForm extends Component{
                     <CLabel htmlFor="freqs">Rango de frecuencias:</CLabel>
                       <CFormGroup row>
                         <CCol md="4">
-                            <CInput id="fmin" placeholder={"frecuencia mínima (Hz)"} type="number" min="0" step="0.01" value={this.getValue('fmin')} onChange={(event) => this.handleChange(event,'fmin')}/>
+                            <CInput id="fmin" placeholder={"frec. mínima (Hz)"} type="number" min="0" step="0.01" value={this.getValue('fmin')} onChange={(event) => this.handleChange(event,'fmin')}/>
                         </CCol>
                         <CCol md="4">
-                          <CInput id="fmax" placeholder={"frecuencia máxima (Hz)"} type="number" min="0" step="0.01" value={this.getValue('fmax')} onChange={(event) => this.handleChange(event,'fmax')}/>
+                          <CInput id="fmax" placeholder={"frec. máxima (Hz)"} type="number" min="0" step="0.01" value={this.getValue('fmax')} onChange={(event) => this.handleChange(event,'fmax')}/>
                         </CCol>
                       </CFormGroup>
                   </CCol>
