@@ -119,7 +119,7 @@ class ChartTFForm extends Component{
   }
   checkButtonsByBool(inputIds){
     inputIds.forEach(id =>{
-      if(this.getValue(id)!=null){
+      if(document.getElementById(id)!=null){
         if(this.getValue(id)=='true') // el id tiene que ser igual al valor del button
           document.getElementById(id).checked=true
         else
@@ -133,6 +133,18 @@ class ChartTFForm extends Component{
   }
 
   handleSelect(option,id){
+    if(id=='mode'){
+      if(option.value=='logratio' || option.value=='zlogratio'){
+        if(document.getElementById('dB').checked==false){
+          this.props.onChange('dB', 'true');
+          document.getElementById('dB').checked=true
+          document.getElementById('dB').disabled=true
+        }
+      }
+      else{
+        document.getElementById('dB').disabled=false
+      }
+    }
     this.props.onChange(id, option.value);
   }
 

@@ -155,18 +155,25 @@ export default [
     signalsData:signalsDataTemplate,
     processParams:processParamsTemplate,
   },
-  //TIME_WINDOW
+  //SET_REFERENCE
   {
     id: null,
     type: 'default',
-    elementType: 'TIME_WINDOW',
+    elementType: 'SET_REFERENCE',
+    formType:'ENABLE_SET_REFERENCE_FORM',
     targetPosition: 'left',
     sourcePosition: 'right',
     data: {
-      label: 'Ventana Temporal'
+      label: 'Cambiar Referencia'
     },
     position: { x: 550, y: 80 },
-    params:null,
+    params:{
+      type:null,
+      ref_channels:null,
+      anode:null,
+      cathode:null,
+      average:null,
+    },
   },
   //REMOVE
   {

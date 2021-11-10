@@ -26,16 +26,25 @@ class ChartChannels extends Component {
         let theme = Themes.light
         // Define channels.
         const channels = this.props.channels
-        let intervalMin=this.props.data[0][0].y
-        let intervalMax=this.props.data[0][0].y
-        this.props.data[0].forEach((p) => {
-            if(p.y<intervalMin){
-                intervalMin=p.y
+        let intervalMin=0
+        let intervalMax=0
+        let idx=0;
+        do{
+            intervalMin=this.props.data[idx][0].y
+            intervalMax=this.props.data[idx][0].y
+            this.props.data[idx].forEach((p) => {
+                if(p.y<intervalMin){
+                    intervalMin=p.y
+                }
+                if(p.y>intervalMax){
+                    intervalMax=p.y
+                }
+            })
+            idx+=1;
+            if(idx>=this.props.data.length){
+                break
             }
-            if(p.y>intervalMax){
-                intervalMax=p.y
-            }
-        })
+        }while(intervalMax==0 && intervalMin==0)
         
         const channelHeight = Math.abs(intervalMax-intervalMin)
         const channelGap = 0.2

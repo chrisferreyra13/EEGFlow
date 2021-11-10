@@ -487,7 +487,7 @@ class GetTimeFrequency(APIView):
                         return Response('An invalid baseline correction range has been provided.',
                             status=status.HTTP_400_BAD_REQUEST)
                 
-                    if baseline[1]>baseline[0]:
+                    if baseline[0]>baseline[1]:
                         return Response('An invalid baseline correction range has been provided.',
                             status=status.HTTP_400_BAD_REQUEST)
         

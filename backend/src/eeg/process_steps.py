@@ -5,6 +5,86 @@ from cconsciente.settings.base import MEDIA_TEMP, MEDIA_STORED, MEDIA_PROC_TEMP_
 
 LOAD_RESTORE_PARAM_NAME = 'id'
 
+def set_reference(**kwargs):
+    input=kwargs["input"]
+    params=kwargs["params"]
+
+    #get type of tf
+    if 'type' not in params:
+        type_of_set_ref='monopolar'
+    else:
+        type_of_set_ref=params['type']
+        if (not type_of_set_ref) or (type_of_set_ref == ''):    # Por defecto uso monopolar
+            type_of_set_ref='monopolar'
+        else:
+            if type_of_set_ref not in ["monopolar","bipolar"]:
+                return Response('An invalid type of setting reference method has been provided.',
+                    status=status.HTTP_400_BAD_REQUEST)
+
+    #get ref_channels
+    ref_channels=get_request_channels(params,param_key='ref_channels')
+    if type(ref_channels)==Response:
+        return ref_channels  
+    
+    channel=None
+    if ref_channels==None: # Si es None, uso el primer channel por defecto
+        channels=mne.pick_types(input.info, eeg=True)
+        channel=channels[0]
+    else:
+        ch_names=input.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
+        if set(ref_channels).issubset(set(ch_names)):
+            if len(ref_channels)==2: # bipolar
+                anode=ref_channels[0]
+                cathode=ref_channels[1]
+            
+            elif len(ref_channels)==1: # monopolar
+                channel=ref_channels
+            else: # invalid
+                return Response('An invalid list of channel/s has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST) 
+        else:
+            return Response('An invalid list of channel/s has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)  
+        
+    # get if average result for morlet o multitaper (stockwell always average result)
+    if 'average' not in params:
+        average=False
+    else:
+        average=params["average"]
+        if (not average) or (average == ''):    # Si no envian nada, lo aplico en todos los canales
+            average=False
+        else:
+            if average in ["true","false"]:
+                average=True if 'true' else False
+            else:
+                return Response('An invalid average value has been provided.',
+                    status=status.HTTP_400_BAD_REQUEST)
+
+    if type_of_set_ref=='monopolar':
+        if average:
+            channel='average'
+
+        ref_params={"channel":channel}
+    else:
+        fields=["ch_name","drop_refs"]
+        defaults=[None,True]
+        ref_params=check_params(params,params_names=fields,params_values=defaults)
+        if type(ref_params)==Response: return ref_params
+        ref_params={
+            "anode":anode,
+            "cathode":cathode,
+            }
+
+    output=set_instance_reference(
+        instance=input,
+        type_of_set_ref=type_of_set_ref,
+        **ref_params
+        )
+    
+
+    return output
+
+
 def epochs(**kwargs):
     input=kwargs["input"]
     params=kwargs["params"]
@@ -439,4 +519,5 @@ steps={
     'MAX_PEAK':peak_step,
     'EVENTS': events,
     'EPOCHS':epochs,
+    "SET_REFERENCE":set_reference,
 }

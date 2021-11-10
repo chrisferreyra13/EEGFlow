@@ -1,4 +1,5 @@
 
+from enum import Flag
 import os
 from os import listdir
 from os.path import isfile, join
@@ -138,15 +139,30 @@ def check_params(query_params,params_names=None,params_values=None):
             p=query_params[param_name]
             
             if p!='' and p!='undefined' and p!=None:
-                if type(params[param_name])==int or params[param_name]==None:
+                if type(params[param_name])==int or params[param_name]==None or type(params[param_name])==float:
                     try:
-                        p=int(p)
+                        if type(params[param_name])==int:
+                            p=int(p)
+                        else:
+                            p=float(p)
+
                         params[param_name]=p
                     except:
                         return Response('An invalid {} field has been provided.'.format(param_name),
                                 status=status.HTTP_400_BAD_REQUEST)
+
+                elif type(params[param_name])==bool and p!='none':
+                    if p in ["true", "false"]:
+                        params[param_name]= True if p=='true' else False
+                    
+                    else:
+                        return Response('An invalid {} field has been provided.'.format(param_name),
+                                status=status.HTTP_400_BAD_REQUEST)
+
+
                 elif type(params[param_name])==str and p!='none':
                     params[param_name]=p
+
                 elif params[param_name]==None:
                     params[param_name]=None
     
@@ -225,11 +241,11 @@ def get_file_info(id):
 
     return file_info
 
-def get_request_channels(params):
-    if 'channels' not in params:
+def get_request_channels(params, param_key='channels'):
+    if param_key not in params:
         channels=None
     else:
-        channels=params["channels"]
+        channels=params[param_key]
         if type(channels)==str:
             if channels != 'prev':
                 if (not channels) or (channels == ''):    # Si no envian nada, lo aplico en todos los canales

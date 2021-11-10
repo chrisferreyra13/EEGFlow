@@ -25,7 +25,7 @@ import {v4 as uuidv4} from 'uuid';
 import { element } from 'prop-types';
 
 const initialState={
-    elements:initialElements[2],
+    elements:initialElements[3],
     nodesCount: 2,
     lastId: 2,
     processes_status:{}, //[TOSTART, PROCESSING, SUCCESFULL, FAIL]

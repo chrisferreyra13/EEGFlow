@@ -82,7 +82,9 @@ class ChartTemporal extends Component {
 			const nodeInput=this.props.elements.find((elem) => elem.id==nodePlot.inputData.inputNodeId)
 
 			if(nodeInput.params.channels==undefined){channels=params.channels}
-			else{channels=nodeInput.params.channels}
+			else{
+				channels=nodeInput.params.channels
+			}
 
 			let signalData=nodeInput.signalsData.find(s => {
 				if(s.processId==nodePlot.processParams.processId && s.dataType==dataType)return true
@@ -185,8 +187,9 @@ class ChartTemporal extends Component {
 
 	preprocessData(signalData, plotChannels,plotParams,updating){
 		let dataX=[]
-		if(signalData.utils.times!=undefined)
-			dataX=signalData.times
+		if(signalData.utils!=undefined)
+			if(signalData.utils.times!=undefined)
+				dataX=signalData.times
 
 		let limit = signalData.data[0].length;
 		let minIndex=0;

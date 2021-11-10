@@ -17,6 +17,33 @@ def convert_to_db(x, data_type='power'):
 
     
 
+def set_instance_reference(instance, type_of_set_ref='monopolar', **kwargs): 
+
+    if type_of_set_ref=='monopolar':
+        instance_eeg = instance.copy().pick_types(eeg=True)
+        instance_eeg.load_data()
+        channel=kwargs["channel"] # channel name or 'average'
+        instance_referenced=instance_eeg.set_eeg_reference(
+            ref_channels=channel,
+            projection=False
+        )
+
+    elif type_of_set_ref=='bipolar':
+        anode=kwargs["anode"]
+        cathode=kwargs["cathode"]
+        ch_name=kwargs["ch_name"]
+        drop_refs=kwargs["drop_refs"]
+
+        instance_referenced=mne.set_bipolar_reference(
+            instance,
+            anode=anode,
+            cathode=cathode,
+            ch_name=ch_name,
+            drop_refs=drop_refs
+        )
+
+    return instance_referenced
+
 
 # Instance must be epochs or evoked
 def time_frequency(instance, picks=None, type_of_tf='morlet', return_itc=True, **kwargs):
