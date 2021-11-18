@@ -319,11 +319,7 @@ export default [
             },
             position: { x: 400, y: 40 },
             params:{
-              type:'monopolar',
-              ref_channels:['EEG 005'],
-              anode:null,
-              cathode:null,
-              average:'',
+              type:null,
             },
             signalsData:signalsDataTemplate,
             processParams:processParamsTemplate,

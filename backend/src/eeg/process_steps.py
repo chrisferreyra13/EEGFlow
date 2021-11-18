@@ -20,31 +20,40 @@ def set_reference(**kwargs):
             if type_of_set_ref not in ["monopolar","bipolar"]:
                 return Response('An invalid type of setting reference method has been provided.',
                     status=status.HTTP_400_BAD_REQUEST)
-
-    #get ref_channels
-    ref_channels=get_request_channels(params,param_key='ref_channels')
-    if type(ref_channels)==Response:
-        return ref_channels  
     
-    channel=None
-    if ref_channels==None: # Si es None, uso el primer channel por defecto
-        channels=mne.pick_types(input.info, eeg=True)
-        channel=channels[0]
+    ch_names=input.info['ch_names']
+    if 'ref_channel' not in params:
+        ref_channel=None
     else:
-        ch_names=input.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
-        if set(ref_channels).issubset(set(ch_names)):
-            if len(ref_channels)==2: # bipolar
-                anode=ref_channels[0]
-                cathode=ref_channels[1]
-            
-            elif len(ref_channels)==1: # monopolar
-                channel=ref_channels
-            else: # invalid
-                return Response('An invalid list of channel/s has been provided.',
-                        status=status.HTTP_400_BAD_REQUEST) 
+        ref_channel=params['ref_channel']
+        if (not ref_channel) or (ref_channel == ''):    # Si no envian nada, lo aplico en todos los canales
+            ref_channel=None
         else:
-            return Response('An invalid list of channel/s has been provided.',
-                        status=status.HTTP_400_BAD_REQUEST)  
+            if set(ref_channel).issubset(set(ch_names)):
+                return Response('An invalid reference channel has been provided.',
+                    status=status.HTTP_400_BAD_REQUEST)
+
+    if 'anode' not in params:
+        anode=None
+    else:
+        anode=params['anode']
+        if (not anode) or (anode == ''):    # Si no envian nada, lo aplico en todos los canales
+            anode=None
+        else:
+            if set(anode).issubset(set(ch_names)):
+                return Response('An invalid anode has been provided.',
+                    status=status.HTTP_400_BAD_REQUEST)
+    
+    if 'cathode' not in params:
+        cathode=None
+    else:
+        cathode=params['cathode']
+        if (not cathode) or (cathode == ''):    # Si no envian nada, lo aplico en todos los canales
+            cathode=None
+        else:
+            if set(cathode).issubset(set(ch_names)):
+                return Response('An invalid cathode has been provided.',
+                    status=status.HTTP_400_BAD_REQUEST)  
         
     # get if average result for morlet o multitaper (stockwell always average result)
     if 'average' not in params:
@@ -55,25 +64,32 @@ def set_reference(**kwargs):
             average=False
         else:
             if average in ["true","false"]:
-                average=True if 'true' else False
+                average=True if average=='true' else False
             else:
                 return Response('An invalid average value has been provided.',
                     status=status.HTTP_400_BAD_REQUEST)
 
-    if type_of_set_ref=='monopolar':
-        if average:
-            channel='average'
 
-        ref_params={"channel":channel}
+    if type_of_set_ref=='monopolar':
+        if ref_channel is None and average is False:
+            return Response('No reference channel hasn´t been provided.',
+                    status=status.HTTP_400_BAD_REQUEST)
+        if average:
+            ref_channel='average'
+
+        ref_params={"channel":[ref_channel]}
     else:
+        if anode is None or cathode is None:
+            return Response('No reference channel hasn´t been provided.',
+                    status=status.HTTP_400_BAD_REQUEST)
+
         fields=["ch_name","drop_refs"]
-        defaults=[None,True]
+        defaults=[None,False]
         ref_params=check_params(params,params_names=fields,params_values=defaults)
         if type(ref_params)==Response: return ref_params
-        ref_params={
-            "anode":anode,
-            "cathode":cathode,
-            }
+        
+        ref_params["anode"]=anode
+        ref_params["cathode"]=cathode
 
     output=set_instance_reference(
         instance=input,
@@ -144,11 +160,11 @@ def epochs(**kwargs):
     
     if channels==None: # Si es None, agarro todos
         channels_idxs=mne.pick_types(input.info,eeg=True) #Retorna los indices internos de raw
-        eeg_info=mne.pick_info(input.info, sel=channels_idxs)
+        #eeg_info=mne.pick_info(input.info, sel=channels_idxs)
     else:
         ch_names=input.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
         if set(channels).issubset(set(ch_names)):
-            channels_idxs=mne.pick_channels(ch_names, include=channels) #Retorna los indices internos de raw
+            channels_idxs=mne.pick_channels(ch_names, include=channels,ordered=True) #Retorna los indices internos de raw
         else:
             return Response('An invalid list of channels has been provided.',
                         status=status.HTTP_400_BAD_REQUEST)

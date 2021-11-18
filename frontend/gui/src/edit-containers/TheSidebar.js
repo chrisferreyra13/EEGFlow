@@ -90,7 +90,7 @@ const TheSidebar = ({show, addNode, enableForm, diagramView, linkDiagram}) => {
             {/*<CDropdownItem>Seleccionar</CDropdownItem>*/}
             <CDropdownItem onClick={() => onClick('ENABLE_EVENT_FORM','EVENTS')} onDragStart={(event) => onDragStart(event, 'EVENTS')} draggable>Eventos</CDropdownItem>
             <CDropdownItem onClick={() => onClick('ENABLE_EPOCH_FORM','EPOCHS')} onDragStart={(event) => onDragStart(event, 'EPOCHS')} draggable>Epocas</CDropdownItem>
-            <CDropdownItem disable="false">Referencia</CDropdownItem>
+            <CDropdownItem onClick={() => onClick('ENABLE_SET_REFERENCE_FORM','SET_REFERENCE')} onDragStart={(event) => onDragStart(event, 'SET_REFERENCE')} draggable>Referencia</CDropdownItem>
             {/*<CDropdownItem onClick={() => onClick(null,'TIME_WINDOW')} onDragStart={(event) => onDragStart(event, 'TIME_WINDOW')} draggable>Ventana Temporal</CDropdownItem>*/}
             {/*<CDropdownItem onClick={() => onClick(null,'REMOVE')} onDragStart={(event) => onDragStart(event, 'REMOVE')} draggable>Eliminar</CDropdownItem>*/}
           </CDropdownMenu>
@@ -132,6 +132,18 @@ const TheSidebar = ({show, addNode, enableForm, diagramView, linkDiagram}) => {
           </CDropdownMenu>
         </CDropdown>
 
+        <CDropdown className="m-1 d-inline-block" variant="btn-group">
+        <CDropdownToggle color="secondary">
+          Exportar
+        </CDropdownToggle>
+          <CDropdownMenu
+            placement="right-start"
+            modifiers={[{name: 'flip', enabled: false }]}
+          >
+            <CDropdownItem onClick={() => onClick('ENABLE_EXPORT_DATA_FORM',null)}>Datos</CDropdownItem>
+            <CDropdownItem onClick={() => onClick('ENABLE_EXPORT_IMAGE_FORM',null)}>Imagen</CDropdownItem>
+          </CDropdownMenu>
+        </CDropdown>
       {/*<CSidebarMinimizer className="c-d-md-down-none"/>*/}
     </CSidebar>
   )

@@ -272,7 +272,7 @@ class GetTimeSeries(APIView):
             returned_channels=channels
             ch_names=instance.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
             if set(channels).issubset(set(ch_names)):
-                channels_idxs=mne.pick_channels(ch_names, include=channels) #Retorna los indices internos del instance
+                channels_idxs=mne.pick_channels(ch_names, include=channels,ordered=True) #Retorna los indices internos del instance
             else:
                 return Response('An invalid list of channels has been provided.',
                             status=status.HTTP_400_BAD_REQUEST)
@@ -395,7 +395,7 @@ class GetTimeFrequency(APIView):
             returned_channels=channels
             ch_names=instance.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
             if set(channels).issubset(set(ch_names)):
-                channels_idxs=mne.pick_channels(ch_names, include=channels) #Retorna los indices internos del instance
+                channels_idxs=mne.pick_channels(ch_names, include=channels,ordered=True) #Retorna los indices internos del instance
             else:
                 return Response('An invalid list of channels has been provided.',
                             status=status.HTTP_400_BAD_REQUEST)
@@ -447,7 +447,7 @@ class GetTimeFrequency(APIView):
                 average=False
             else:
                 if average in ["true","false"]:
-                    average=True if 'true' else False
+                    average=True if average=='true' else False
                 else:
                     return Response('An invalid average value has been provided.',
                         status=status.HTTP_400_BAD_REQUEST)
@@ -512,7 +512,7 @@ class GetTimeFrequency(APIView):
                 dB=False
             else:
                 if dB in ["true","false"]:
-                    dB=True if 'true' else False
+                    dB=True if dB=='true' else False
                 else:
                     return Response('An invalid dB value has been provided.',
                         status=status.HTTP_400_BAD_REQUEST)
@@ -706,7 +706,7 @@ class GetPSD(APIView):
             returned_channels=channels
             ch_names=instance.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
             if set(channels).issubset(set(ch_names)):
-                channels_idxs=mne.pick_channels(ch_names, include=channels) #Retorna los indices internos de raw
+                channels_idxs=mne.pick_channels(ch_names, include=channels,ordered=True) #Retorna los indices internos de raw
             else:
                 return Response('An invalid list of channels has been provided.',
                             status=status.HTTP_400_BAD_REQUEST)
@@ -789,7 +789,6 @@ class GetPSD(APIView):
                         status=status.HTTP_400_BAD_REQUEST)
         
 
-        print(request.query_params)
         if type_of_psd=='welch':
             fields=["n_fft","n_overlap","n_per_seg","window","average"]
             defaults=[0,None,'boxcar','mean']

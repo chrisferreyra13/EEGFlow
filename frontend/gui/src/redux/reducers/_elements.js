@@ -169,10 +169,6 @@ export default [
     position: { x: 550, y: 80 },
     params:{
       type:null,
-      ref_channels:null,
-      anode:null,
-      cathode:null,
-      average:null,
     },
   },
   //REMOVE

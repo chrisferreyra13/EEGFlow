@@ -33,12 +33,14 @@ def set_instance_reference(instance, type_of_set_ref='monopolar', **kwargs):
         cathode=kwargs["cathode"]
         ch_name=kwargs["ch_name"]
         drop_refs=kwargs["drop_refs"]
-
-        instance_referenced=mne.set_bipolar_reference(
-            instance,
+        instance_referenced = instance.copy().pick_types(eeg=True)
+        instance_referenced.load_data()
+        mne.set_bipolar_reference(
+            instance_referenced,
             anode=anode,
             cathode=cathode,
             ch_name=ch_name,
+            copy=False,
             drop_refs=drop_refs
         )
 
@@ -89,10 +91,10 @@ def time_frequency(instance, picks=None, type_of_tf='morlet', return_itc=True, *
         )
 
 
-    if return_itc:
-        return tfr, itc
-    else:
-        return tfr
+    # if return_itc:
+    #     return tfr, itc
+    # else:
+    return tfr
 
 
 # Instance can be epochs or raw
@@ -201,7 +203,7 @@ def notch_filter(instance, notch_freqs=[50.0], channels=None, filter_method='fir
         channels_idxs = mne.pick_types(instance.info, eeg=True)
     else:
         channels_idxs = mne.pick_channels(
-            instance_eeg.info['ch_names'], include=channels)
+            instance_eeg.info['ch_names'], include=channels,ordered=True)
 
     if filter_method == 'spectrum_fit':
         instance_eeg.apply_function(
@@ -262,7 +264,7 @@ def custom_filter(instance, low_freq=None, high_freq=None, channels=None, filter
         channels_idxs = mne.pick_types(instance.info, eeg=True)
     else:
         channels_idxs = mne.pick_channels(
-            instance_eeg.info['ch_names'], include=channels)
+            instance_eeg.info['ch_names'], include=channels,ordered=True)
 
     if filter_method == 'fir':
         instance_filtered = instance_eeg.filter(
@@ -296,7 +298,7 @@ def peak_finder(instance, channels=None, thresh=None):
         channels_idxs = mne.pick_types(instance.info, eeg=True)
     else:
         channels_idxs = mne.pick_channels(
-            instance_eeg.info['ch_names'], include=channels)
+            instance_eeg.info['ch_names'], include=channels,ordered=True)
 
     time_series = instance_eeg.get_data(picks=channels_idxs)
     peaks = []

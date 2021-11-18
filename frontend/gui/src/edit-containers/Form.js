@@ -16,6 +16,8 @@ import CIcon from '@coreui/icons-react'
 
 import {okForm, cancelForm, updateForm} from '../redux/actions/Form'
 import { runSingleProcess, updateNodePropierties } from '../redux/actions/Diagram'
+import ExportDataForm from '../components/forms/ExportDataForm'
+import ExportImageForm from '../components/forms/ExportImageForm'
 
 const EventsForm = lazy(()=>import('../components/forms/EventsForm.js'))
 const CustomFilterForm = lazy(()=>import('../components/forms/CustomFilterForm.js'))
@@ -26,6 +28,7 @@ const ChartPSDForm = lazy(()=>import('../components/forms/ChartPSDForm.js'))
 const ChartTFForm = lazy(()=>import('../components/forms/ChartTFForm.js'))
 const PeaksForm = lazy(()=>import('../components/forms/PeaksForm.js'))
 const EpochsForm = lazy(()=>import('../components/forms/EpochsForm.js'))
+const SetReferenceForm = lazy(()=>import('../components/forms/SetReferenceForm.js'))
 
 class Form extends Component{ 
   constructor(props){
@@ -37,9 +40,15 @@ class Form extends Component{
     this.onClickOkForm=this.onClickOkForm.bind(this);
     this.handleFieldChange=this.handleFieldChange.bind(this);
     this.handleMountForm=this.handleMountForm.bind(this);
+    this.onClickDownloadForm=this.onClickDownloadForm.bind(this);
 
   }
-  
+  onClickDownloadForm(formData){
+    console.log("download")
+
+    this.props.okForm()
+  }
+
   handleFieldChange = (fieldId, value) => { //Cargo los valores que despues se pasan como propiedad al form
     this.setState({
       values:{
@@ -75,7 +84,15 @@ class Form extends Component{
     return(
       <>
         <CCard className="card-form">
-          <CForm id="form" onSubmit={(formData)=>this.onClickOkForm(this.state.values)} className="form-horizontal">
+          <CForm 
+            id="form" 
+            onSubmit={
+              form.formProps.okFunction=='diagram'?
+              (formData)=>this.onClickOkForm(this.state.values) :
+              (formData)=>this.onClickDownloadForm(this.state.values)
+            }
+            className="form-horizontal"
+          >
             <CCardHeader>
               {form.title}
             </CCardHeader>       
@@ -85,8 +102,21 @@ class Form extends Component{
             <CCardFooter>
               <CRow>
                 <CCol xs="12" md="12">
-                  <CButton type="submit" size="sm" color="primary"><CIcon name="cil-scrubber" /> Aplicar</CButton>
-                  <CButton type="reset" size="sm" color="danger" onClick={() => this.props.cancelForm()}><CIcon name="cil-ban" /> Cancelar</CButton>
+                  <CButton 
+                    type="submit" 
+                    size="sm" 
+                    color="primary"
+                  >
+                    <CIcon name="cil-scrubber" /> {form.formProps.okButton.text}
+                  </CButton>
+                  <CButton 
+                    type="reset" 
+                    size="sm" 
+                    color="danger" 
+                    onClick={() => this.props.cancelForm()}
+                  >
+                    <CIcon name="cil-ban" /> {form.formProps.cancelButton.text}
+                    </CButton>
                 </CCol>
               </CRow>
             </CCardFooter>
@@ -123,18 +153,33 @@ const formSelection = (formType) => {
 
   if(formType===null) return null;
 
+  const formNodesProps={
+    okButton:{text:"Aplicar"},
+    cancelButton:{text:"Aplicar"},
+    okFunction: "diagram",
+  }
+  const formDownloadProps={
+    okButton:{text:"Descargar"},
+    cancelButton:{text:"Cerrar"},
+    okFunction: "download",
+  }
+
   const forms = {
-    ENABLE_EVENT_FORM: {title:'Editar Eventos',content:EventsForm},
-    ENABLE_CUSTOM_FILTER_FORM: {title:'Seleccionar Frecuencias',content:CustomFilterForm},
-    ENABLE_COMMON_FILTER_FORM: {title:'Filtro',content:CommonFilterForm},
-    ENABLE_NOTCH_FILTER_FORM: {title:'Filtro Notch',content:NotchFilterForm},
-    ENABLE_PLOT_TIME_SERIES_FORM: {title:'Grafico en Tiempo',content:ChartTemporalForm},
-    ENABLE_PLOT_PSD_FORM: {title:'Densidad Espectral de Potencia (PSD)',content:ChartPSDForm},
-    ENABLE_PLOT_TIME_FREQUENCY_FORM:{title:'Grafico tiempo - frecuencia',content:ChartTFForm},
-    ENABLE_MAX_PEAK_FORM: {title:'Buscar picos',content:PeaksForm},
-    ENABLE_EPOCH_FORM: {title:'Crear Epocas',content:EpochsForm},
+    ENABLE_EVENT_FORM: {title:'Editar Eventos',content:EventsForm, formProps:formNodesProps},
+    ENABLE_CUSTOM_FILTER_FORM: {title:'Seleccionar Frecuencias',content:CustomFilterForm, formProps:formNodesProps},
+    ENABLE_COMMON_FILTER_FORM: {title:'Filtro',content:CommonFilterForm, formProps:formNodesProps},
+    ENABLE_NOTCH_FILTER_FORM: {title:'Filtro Notch',content:NotchFilterForm, formProps:formNodesProps},
+    ENABLE_PLOT_TIME_SERIES_FORM: {title:'Grafico en Tiempo',content:ChartTemporalForm, formProps:formNodesProps},
+    ENABLE_PLOT_PSD_FORM: {title:'Densidad Espectral de Potencia (PSD)',content:ChartPSDForm, formProps:formNodesProps},
+    ENABLE_PLOT_TIME_FREQUENCY_FORM:{title:'Grafico tiempo - frecuencia',content:ChartTFForm, formProps:formNodesProps},
+    ENABLE_MAX_PEAK_FORM: {title:'Buscar picos',content:PeaksForm, formProps:formNodesProps},
+    ENABLE_EPOCH_FORM: {title:'Crear Epocas',content:EpochsForm, formProps:formNodesProps},
+    ENABLE_SET_REFERENCE_FORM: {title:'Cambiar Referencia',content:SetReferenceForm, formProps:formNodesProps},
+    ENABLE_EXPORT_DATA_FORM: {title:'Exportar Datos',content:ExportDataForm, formProps:formDownloadProps},
+    ENABLE_EXPORT_IMAGE_FORM: {title:'Exportar Imagen',content:ExportImageForm, formProps:formDownloadProps},
   };
 
-  return forms[formType];
+  if(forms[formType]==undefined) return null;
+  else return forms[formType];
 
 }

@@ -7,13 +7,15 @@ const initialStatePlot={
 }
 
 export const plotParams = (state = initialStatePlot, { type, ...rest }) => {
-    let plots={};
     switch (type) {
         case UPDATE_PLOT_PARAMS:
-            plots={}
-            plots[rest.id]=rest.params
+            const id=rest.id
+            const params=rest.params
           return Object.assign({}, state, {
-            plots:plots
+            plots:{
+              ...state.plots,
+              [id]:params
+            }
           })
 
         default:
