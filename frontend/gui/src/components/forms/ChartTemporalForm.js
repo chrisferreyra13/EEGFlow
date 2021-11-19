@@ -139,7 +139,7 @@ class ChartTemporalForm extends Component{
           </CFormGroup>: null
         }
         {
-          this.state.outputType=='raw' ? // por defecto raw pero si despues era epochs se actualiza
+          this.state.outputType=='raw' || this.state.outputType==null? // por defecto raw pero si despues era epochs se actualiza
           <div>
             <CFormGroup row>
               <CCol md="12">

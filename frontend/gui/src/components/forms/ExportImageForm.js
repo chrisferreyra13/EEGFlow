@@ -13,35 +13,31 @@ import { object } from 'prop-types';
 
 class ExportImageForm extends Component{
   constructor(props){
-    super(props);
+    super(props)
 
-    const channelsOptions = this.props.channels
+    const dataOptions=[{value:1,label:1},{value:2,label:2}]
+
     this.state={
       default:{
-        ref_channel:null,
-        anode:null,
-        cathode:null,
-        average:null,
-        type:'monopolar', //monopolar, bipolar
+        dataName:null,
+        fileName:null
       },
-      channelsOptions:channelsOptions.map(ch => {
-        return {value:ch,label:ch}
-      }),
-      enableChannels:true,
+      dataOptions:dataOptions,
+      option:null
     }
-
-    this.handleChange = this.handleChange.bind(this);
-    this.handleMultiSelect=this.handleMultiSelect.bind(this);
     this.handleSelect=this.handleSelect.bind(this);
+    this.handleChange=this.handleChange.bind(this);
     this.getValue=this.getValue.bind(this);
-    this.checkButtonsById=this.checkButtons.bind(this);
-    this.checkButtonsByBool=this.checkButtonsByBool.bind(this);
-    this.handleCheckbox=this.handleCheckbox.bind(this);
-    this.handleChangeInputRadio = this.handleChangeInputRadio.bind(this);
     this.getOption=this.getOption.bind(this);
 
   }
 
+  handleChange(event,id) {
+    this.props.onChange(id, event.target.value);
+  }
+  handleSelect(option){
+    this.props.onChange('dataName', option.value);
+  }
   getOption(id){
     const value=this.getValue(id);
     if(value==null){
@@ -51,55 +47,6 @@ class ExportImageForm extends Component{
     }
   }
 
-  handleCheckbox(e,checkboxId){
-    const checked = e.target.checked;
-    
-    if (checkboxId=='average'){ // for generic use, convert this 'if' in switch case
-      this.setState({
-        enableChannels:!checked //the use don't need to select epoch for average option
-       })
-    }
-    this.props.onChange(checkboxId, checked==true ? 'true' : 'false');
-  }
-
-  checkButtons(inputId,buttonsIds){
-    buttonsIds.forEach(id => {
-      if(this.getValue(inputId)==id) // el id tiene que ser igual al valor del button
-        document.getElementById(id).checked=true
-      else
-        document.getElementById(id).checked=false
-    }) 
-  }
-  checkButtonsByBool(inputIds){
-    inputIds.forEach(id =>{
-      if(document.getElementById(id)!=null){
-        if(this.getValue(id)=='true') // el id tiene que ser igual al valor del button
-          document.getElementById(id).checked=true
-        else
-          document.getElementById(id).checked=false
-      }
-    })
-  }
-
-  handleMultiSelect(options,id){
-    this.props.onChange(id, options.map((option) => option.value));
-  }
-
-  handleSelect(option,id){
-    this.props.onChange(id, option.value);
-  }
-
-  handleChange(event,id) {
-    this.props.onChange(id, event.target.value);
-  }
-  handleChangeInputRadio(event,buttonValue,id) {
-    this.props.onChange(id, buttonValue);
-  }
-
-  componentDidMount(){
-    this.props.onMountForm();
-    this.checkButtons('type',['monopolar','bipolar'])
-  }
   getValue(inputId){
     if(Object.keys(this.props.values).length === 0 && this.props.values.constructor === Object){
       return this.state.default[inputId] 
@@ -118,77 +65,26 @@ class ExportImageForm extends Component{
     return (
       <div>
         <CFormGroup row>
-            <CCol md="2">
-                <CLabel md="6" htmlFor="type">Tipo:</CLabel> 
+            <CCol md="5">
+                <CLabel htmlFor="ref_channel">Grafico:</CLabel>
             </CCol>
-            <CCol md="10">
-                <CFormGroup variant="custom-radio" inline> {/* la prop 'name' tiene que ser la misma para todos para que esten en el mismo grupo*/}
-                    <CInputRadio custom id="monopolar" name="reference-type" value="monopolar" onChange={(event) => this.handleChangeInputRadio(event,'monopolar','type')}/>
-                    <CLabel variant="custom-checkbox" htmlFor="monopolar">Monopolar</CLabel>
-                </CFormGroup>
-                <CFormGroup variant="custom-radio" inline>
-                    <CInputRadio custom id="bipolar" name="reference-type" value="bipolar" onChange={(event) => this.handleChangeInputRadio(event,'bipolar','type')}/>
-                    <CLabel variant="custom-checkbox" htmlFor="bipolar">Bipolar</CLabel>
-                </CFormGroup>
+            <CCol md="7">
+              <Select 
+              options={this.state.dataOptions}
+              value={this.getOption('dataName')} 
+              onChange={(option) => this.handleSelect(option)}
+              />
             </CCol>
         </CFormGroup>
-        {
-          this.getValue('type')=='monopolar' ?
-          <div>
-            <CFormGroup row>
-                <CCol md="5">
-                    <CLabel htmlFor="ref_channel">Canal:</CLabel>
-                </CCol>
-                <CCol md="7">
-                  <Select 
-                  options={this.state.enableChannels ? this.state.channelsOptions : null}
-                  value={this.getOption('ref_channel')} 
-                  onChange={(option) => this.handleSelect(option,'ref_channel')}
-                  />
-                </CCol>
-            </CFormGroup>
-            <CFormGroup row>
-              <CCol md="6">
-                <CFormGroup variant="custom-checkbox" inline>
-                  <CInputCheckbox 
-                  custom id="average" 
-                  name="inline-checkbox1" 
-                  value={"true"}
-                  onClick={(e) => this.handleCheckbox(e,'average')}
-                  />
-                  <CLabel variant="custom-checkbox" htmlFor="average">Promediar</CLabel>
-                </CFormGroup>
-              </CCol>
-            </CFormGroup>
-          </div>:
-          <div>
-            <CFormGroup row>
-              <CCol md="5">
-                  <CLabel htmlFor="mode">Anodo:</CLabel>
-              </CCol>
-              <CCol md="7">
-                  <Select 
-                  options={this.state.channelsOptions}
-                  value={this.getOption('anode')} 
-                  onChange={(option) => this.handleSelect(option,'anode')}
-                  />
-              </CCol>
-            </CFormGroup>
-            <CFormGroup row>
-              <CCol md="5">
-                  <CLabel htmlFor="mode">Catodo:</CLabel>
-              </CCol>
-              <CCol md="7">
-                  <Select 
-                  options={this.state.channelsOptions}
-                  value={this.getOption('cathode')} 
-                  onChange={(option) => this.handleSelect(option,'cathode')}
-                  />
-              </CCol>
-            </CFormGroup>
-          </div>
-        }
-    </div>
+        <CFormGroup row>
+          <CCol md="5">
+              <CLabel htmlFor="fileName">Nombre del archivo:</CLabel>
+          </CCol>
+          <CCol md="7">
+              <CInput id="fileName" placeholder={"ejemplo: patient_01"} value={this.getValue('fileName')} onChange={(event) => this.handleChange(event,'fileName')}/>
+          </CCol>
+        </CFormGroup>
+      </div>
     )
   }
 
@@ -201,6 +97,7 @@ const mapStateToProps = (state) => {
 }
   
 const mapDispatchToProps = (dispatch) => {
-	return {}
+	return {
+  }
 };
 export default connect(mapStateToProps, mapDispatchToProps)(ExportImageForm)

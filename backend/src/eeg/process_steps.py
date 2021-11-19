@@ -72,12 +72,17 @@ def set_reference(**kwargs):
 
     if type_of_set_ref=='monopolar':
         if ref_channel is None and average is False:
-            return Response('No reference channel hasn´t been provided.',
-                    status=status.HTTP_400_BAD_REQUEST)
+            # return Response('No reference channel hasn´t been provided.',
+            #         status=status.HTTP_400_BAD_REQUEST)
+            average=True    # Default 
+
+
         if average:
             ref_channel='average'
+            ref_params={"channel":ref_channel}
+        else:
+            ref_params={"channel":[ref_channel]}
 
-        ref_params={"channel":[ref_channel]}
     else:
         if anode is None or cathode is None:
             return Response('No reference channel hasn´t been provided.',

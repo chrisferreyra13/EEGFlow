@@ -15,14 +15,24 @@ class ExportDataForm extends Component{
   constructor(props){
     super(props)
 
-    const dataOptions=[{value:1,label:1},{value:2,label:2}]
+    const nodeOptions=[]
+    this.props.elements.forEach(element => {
+      if(element.elementType!=undefined){
+        if(element.type=='output'){
+          nodeOptions.push({
+            value:element.id,
+            label:'Nodo '+element.id
+          })
+        }
+      }
+    });
 
     this.state={
       default:{
-        dataName:null,
+        nodeId:null,
         fileName:null
       },
-      dataOptions:dataOptions,
+      nodeOptions:nodeOptions,
       option:null
     }
     this.handleSelect=this.handleSelect.bind(this);
@@ -36,7 +46,7 @@ class ExportDataForm extends Component{
     this.props.onChange(id, event.target.value);
   }
   handleSelect(option){
-    this.props.onChange('dataName', option.value);
+    this.props.onChange('nodeId', option.value);
   }
   getOption(id){
     const value=this.getValue(id);
@@ -66,12 +76,12 @@ class ExportDataForm extends Component{
       <div>
         <CFormGroup row>
             <CCol md="5">
-                <CLabel htmlFor="ref_channel">Datos:</CLabel>
+                <CLabel htmlFor="ref_channel">Grafico:</CLabel>
             </CCol>
             <CCol md="7">
               <Select 
-              options={this.state.dataOptions}
-              value={this.getOption('dataName')} 
+              options={this.state.nodeOptions}
+              value={this.getOption('nodeId')} 
               onChange={(option) => this.handleSelect(option)}
               />
             </CCol>

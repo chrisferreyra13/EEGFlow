@@ -189,7 +189,7 @@ class ChartTemporal extends Component {
 		let dataX=[]
 		if(signalData.utils!=undefined)
 			if(signalData.utils.times!=undefined)
-				dataX=signalData.times
+				dataX=signalData.utils.times
 
 		let limit = signalData.data[0].length;
 		let minIndex=0;

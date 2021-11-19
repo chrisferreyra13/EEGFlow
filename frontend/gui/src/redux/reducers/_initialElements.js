@@ -28,7 +28,7 @@ export default [
             params: {
                 id: '40',
             },
-            signalsData: [],
+            signalsData: signalsDataTemplate,
             processParams: {
                 processed: false,
             },
@@ -248,7 +248,7 @@ export default [
             params: {
                 id: '40',
             },
-            signalsData: [],
+            signalsData: signalsDataTemplate,
             processParams: {
                 processed: false,
             },

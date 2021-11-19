@@ -10,12 +10,14 @@ import {
   CRow,
   CForm,
 } from '@coreui/react'
+import streamSaver from 'streamsaver'
+
 
 
 import CIcon from '@coreui/icons-react'
 
 import {okForm, cancelForm, updateForm} from '../redux/actions/Form'
-import { runSingleProcess, updateNodePropierties } from '../redux/actions/Diagram'
+import { runSingleProcess, singleProcessFailure, updateNodePropierties } from '../redux/actions/Diagram'
 import ExportDataForm from '../components/forms/ExportDataForm'
 import ExportImageForm from '../components/forms/ExportImageForm'
 
@@ -33,8 +35,9 @@ const SetReferenceForm = lazy(()=>import('../components/forms/SetReferenceForm.j
 class Form extends Component{ 
   constructor(props){
     super(props)
+
     this.state={
-      values:{}
+      values:{},
     }
 
     this.onClickOkForm=this.onClickOkForm.bind(this);
@@ -44,8 +47,49 @@ class Form extends Component{
 
   }
   onClickDownloadForm(formData){
-    console.log("download")
+    if(formData.nodeId!=undefined || formData.nodeId!=null){
+      const nodePlot=this.props.elements.find(element => element.id==formData.nodeId);
+      const nodeInput=this.props.elements.find(element => element.id==nodePlot.inputData.inputNodeId);
+      if(nodeInput!=undefined){
+        // get string from "PLOT_TIME_SERIES", "PLOT_PSD",etc..
+        const dataType=nodePlot.elementType.substring(5) // from "PLOT_" to end
+        const signalData=nodeInput.signalsData.find(s => {
+          if(s.processId==nodePlot.processParams.processId && s.dataType==dataType)return true
+          return false
+        })
+        if(signalData!=undefined){
+          const blob = new Blob(signalData.data)
+          const fileStream = streamSaver.createWriteStream(formData.fileName+'.txt', {
+            size: blob.size // Makes the procentage visiable in the download
+          })
 
+          // One quick alternetive way if you don't want the hole blob.js thing:
+          // const readableStream = new Response(
+          //   Blob || String || ArrayBuffer || ArrayBufferView
+          // ).body
+          const readableStream = blob.stream()
+
+          // more optimized pipe version
+          // (Safari may have pipeTo but it's useless without the WritableStream)
+          if (window.WritableStream && readableStream.pipeTo) {
+            return readableStream.pipeTo(fileStream)
+              .then(() => console.log('done writing'))
+          }
+
+          // Write (pipe) manually
+          window.writer = fileStream.getWriter()
+
+          const reader = readableStream.getReader()
+          const pump = () => reader.read()
+            .then(res => res.done
+              ? window.writer.close()
+              : window.writer.write(res.value).then(pump))
+
+          pump()
+        }
+      }
+    }
+    
     this.props.okForm()
   }
 
@@ -94,7 +138,11 @@ class Form extends Component{
             className="form-horizontal"
           >
             <CCardHeader>
-              {form.title}
+              {
+                form.formProps.okFunction=='diagram'?
+                'Nodo '+this.props.nodeId+' - '+form.title :
+                form.title
+              }
             </CCardHeader>       
             <CCardBody>
               <form.content nodeId={this.props.nodeId} onChange={this.handleFieldChange} values={this.state.values} onMountForm={this.handleMountForm}/>

@@ -324,7 +324,9 @@ class GetTimeSeries(APIView):
 
         response=Response({
             'signal':time_series,
-            'times':times,
+            'utils':{
+                'times':times,
+            },
             'sampling_freq':instance.info['sfreq'],
             'ch_names': returned_channels,
             })
