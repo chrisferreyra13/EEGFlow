@@ -343,6 +343,7 @@ class ChartTemporal extends Component {
 							<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
 								{this.state.params.channels.length==1 ?
 								<ChartChannelTime
+								nodeId={this.props.nodeId}
 								methodResult={this.state.methodResult}
 								data={this.state.data[0]}
 								chartStyle={{height: '100%', width:'100%', alignItems:'center'}}
@@ -350,6 +351,7 @@ class ChartTemporal extends Component {
 								epoch={this.state.params.epochs}
 								/> :
 								<ChartChannelsTime
+								nodeId={this.props.nodeId}
 								methodResult={this.state.methodResult}
 								data={this.state.data}
 								chartStyle={{height: '100%', width:'100%', alignItems:'center'}}

@@ -15,29 +15,44 @@ class ExportImageForm extends Component{
   constructor(props){
     super(props)
 
-    const dataOptions=[{value:1,label:1},{value:2,label:2}]
+    const nodeOptions=[]
+    this.props.elements.forEach(element => {
+      if(element.elementType!=undefined){
+        if(element.type=='output'){
+          nodeOptions.push({
+            value:element.id,
+            label:'Nodo '+element.id
+          })
+        }
+      }
+    });
 
     this.state={
       default:{
-        dataName:null,
-        fileName:null
+        nodeId:null,
+        fileName:'',
+        format:'jpeg',
       },
-      dataOptions:dataOptions,
+      nodeOptions:nodeOptions,
       option:null
     }
     this.handleSelect=this.handleSelect.bind(this);
     this.handleChange=this.handleChange.bind(this);
     this.getValue=this.getValue.bind(this);
     this.getOption=this.getOption.bind(this);
-
+    this.handleChangeInputRadio=this.handleChangeInputRadio.bind(this);
   }
 
   handleChange(event,id) {
     this.props.onChange(id, event.target.value);
   }
   handleSelect(option){
-    this.props.onChange('dataName', option.value);
+    this.props.onChange('nodeId', option.value);
   }
+  handleChangeInputRadio(event,buttonValue,id) {
+    this.props.onChange(id, buttonValue);
+  }
+  
   getOption(id){
     const value=this.getValue(id);
     if(value==null){
@@ -70,8 +85,8 @@ class ExportImageForm extends Component{
             </CCol>
             <CCol md="7">
               <Select 
-              options={this.state.dataOptions}
-              value={this.getOption('dataName')} 
+              options={this.state.nodeOptions}
+              value={this.getOption('nodeId')} 
               onChange={(option) => this.handleSelect(option)}
               />
             </CCol>
@@ -81,7 +96,24 @@ class ExportImageForm extends Component{
               <CLabel htmlFor="fileName">Nombre del archivo:</CLabel>
           </CCol>
           <CCol md="7">
-              <CInput id="fileName" placeholder={"ejemplo: patient_01"} value={this.getValue('fileName')} onChange={(event) => this.handleChange(event,'fileName')}/>
+              <CInput id="fileName" placeholder={"ejemplo: grafico_1"} value={this.getValue('fileName')} onChange={(event) => this.handleChange(event,'fileName')}/>
+          </CCol>
+        </CFormGroup>
+        <CFormGroup row>
+          <CCol md="12">
+              <CLabel htmlFor="size">Formato de imagen</CLabel>
+              <CCol md="12">
+                  <CFormGroup row>
+                      <CFormGroup variant="custom-radio" inline> {/* la prop 'name' tiene que ser la misma para todos para que esten en el mismo grupo*/}
+                          <CInputRadio custom id="jpeg" name="inline-radios" onChange={(event) => this.handleChangeInputRadio(event,'jpeg','format')}/>
+                          <CLabel variant="custom-checkbox" htmlFor="jpeg">jpeg</CLabel>
+                      </CFormGroup>
+                      <CFormGroup variant="custom-radio" inline>
+                          <CInputRadio custom id="png" name="inline-radios" onChange={(event) => this.handleChangeInputRadio(event,'png','format')}/>
+                          <CLabel variant="custom-checkbox" htmlFor="png">png</CLabel>
+                      </CFormGroup>
+                  </CFormGroup>
+              </CCol>
           </CCol>
         </CFormGroup>
       </div>

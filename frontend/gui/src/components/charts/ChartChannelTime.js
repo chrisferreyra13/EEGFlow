@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import {connect} from 'react-redux'
 import {
     lightningChart,
     SolidLine,
@@ -10,6 +11,7 @@ import {
     ColorHSV,
     UIElementBuilders
 } from '@arction/lcjs'
+import {updateSavePlot} from '../../redux/actions/Plot'
 
 class ChartChannel extends Component {
     constructor(props) {
@@ -96,6 +98,17 @@ class ChartChannel extends Component {
 
     }
 
+    componentDidUpdate(prevProps){
+		if(prevProps.savePlot.save!==this.props.savePlot.save){
+            if(this.props.savePlot.save && this.props.savePlot.id==this.props.nodeId){
+                this.chart.saveToFile(
+                    this.props.savePlot.filename,
+                    'image/'+this.props.savePlot.format
+                    )
+                this.props.updateSavePlot(this.props.savePlot.id,this.props.savePlot.filename,this.props.savePlot.format)
+            }
+        }
+    }
     componentDidMount() {
         // Chart can only be created when the component has mounted the DOM as 
         // the chart needs the element with specified containerId to exist in the DOM
@@ -115,4 +128,15 @@ class ChartChannel extends Component {
     }
 }
 
-export default ChartChannel
+const mapStateToProps = (state) => {
+	return{
+	  savePlot:state.plotParams.savePlot
+	};
+}
+  
+const mapDispatchToProps = (dispatch) => {
+	return {
+        updateSavePlot:(nodeId,filename,format) => dispatch(updateSavePlot(nodeId,filename,format)),
+    }
+};
+export default connect(mapStateToProps, mapDispatchToProps)(ChartChannel)

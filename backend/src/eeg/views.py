@@ -309,6 +309,8 @@ class GetTimeSeries(APIView):
         if len(np.shape(data))==2 and epochs is None: # raw object
             time_series=data 
         else:
+            if epochs is None:
+                epochs=1 # default 
             n_epochs,n_channels,n_times=np.shape(data) #get the shape of the object
             time_series=[]
             times=instance.times

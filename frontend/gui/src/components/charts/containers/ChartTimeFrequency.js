@@ -213,6 +213,7 @@ class ChartTimeFrequency extends Component {
 						{ this.state.dataReady ?
 							<div style={this.state.style}>
 								<ChartTFR
+								nodeId={this.props.nodeId}
 								data={this.state.data}
 								chartStyle={{height: '100%', width:'100%'}}
 								channels={this.state.params.channels}

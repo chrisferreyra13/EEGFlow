@@ -1,9 +1,16 @@
 import {
-    UPDATE_PLOT_PARAMS
+    UPDATE_PLOT_PARAMS,
+    UPDATE_SAVE_PLOT,
 } from '../actions/Plot'
 
 const initialStatePlot={
-    plots:{}
+    plots:{},
+    savePlot:{
+      id:null,
+      save:false,
+      filename:null,
+      format:null
+    },
 }
 
 export const plotParams = (state = initialStatePlot, { type, ...rest }) => {
@@ -15,6 +22,16 @@ export const plotParams = (state = initialStatePlot, { type, ...rest }) => {
             plots:{
               ...state.plots,
               [id]:params
+            }
+          })
+        
+        case UPDATE_SAVE_PLOT:
+          return Object.assign({}, state, {
+            savePlot:{
+              id:rest.nodeId,
+              save:!state.savePlot.save,
+              filename:rest.filename,
+              format:rest.format
             }
           })
 

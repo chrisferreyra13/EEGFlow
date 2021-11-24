@@ -233,6 +233,7 @@ class ChartSpectrum extends Component {
 						{ this.state.dataReady ?
 							<div style={this.state.style}>
 								<ChartPSD
+								nodeId={this.props.nodeId}
 								data={this.state.params.channels.length==1 ?this.state.data[0]: this.state.data}
 								chartStyle={{height: '100%', width:'100%'}}
 								channels={this.state.params.channels} //Lo dejamos por las dudas --->//==undefined ? nodeInput.dataParams.chNames[0] : this.state.params.channels[0]}

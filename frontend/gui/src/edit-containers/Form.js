@@ -18,6 +18,7 @@ import CIcon from '@coreui/icons-react'
 
 import {okForm, cancelForm, updateForm} from '../redux/actions/Form'
 import { runSingleProcess, singleProcessFailure, updateNodePropierties } from '../redux/actions/Diagram'
+import {updateSavePlot} from '../redux/actions/Plot'
 import ExportDataForm from '../components/forms/ExportDataForm'
 import ExportImageForm from '../components/forms/ExportImageForm'
 
@@ -48,44 +49,55 @@ class Form extends Component{
   }
   onClickDownloadForm(formData){
     if(formData.nodeId!=undefined || formData.nodeId!=null){
-      const nodePlot=this.props.elements.find(element => element.id==formData.nodeId);
-      const nodeInput=this.props.elements.find(element => element.id==nodePlot.inputData.inputNodeId);
-      if(nodeInput!=undefined){
-        // get string from "PLOT_TIME_SERIES", "PLOT_PSD",etc..
-        const dataType=nodePlot.elementType.substring(5) // from "PLOT_" to end
-        const signalData=nodeInput.signalsData.find(s => {
-          if(s.processId==nodePlot.processParams.processId && s.dataType==dataType)return true
-          return false
-        })
-        if(signalData!=undefined){
-          const blob = new Blob(signalData.data)
-          const fileStream = streamSaver.createWriteStream(formData.fileName+'.txt', {
-            size: blob.size // Makes the procentage visiable in the download
+      if(formData.format!=undefined){
+        this.props.updateSavePlot(formData.nodeId,formData.fileName,formData.format)
+
+      }else{
+        const nodePlot=this.props.elements.find(element => element.id==formData.nodeId);
+        const nodeInput=this.props.elements.find(element => element.id==nodePlot.inputData.inputNodeId);
+        if(nodeInput!=undefined){
+          // get string from "PLOT_TIME_SERIES", "PLOT_PSD",etc..
+          const dataType=nodePlot.elementType.substring(5) // from "PLOT_" to end
+          const signalData=nodeInput.signalsData.find(s => {
+            if(s.processId==nodePlot.processParams.processId && s.dataType==dataType)return true
+            return false
           })
+          if(signalData!=undefined){
+            let blob;
+            if(dataType=='TIME_FREQUENCY'){
+              blob = new Blob(mapHeatmapDataToTxtFormat(signalData.data))
+            }else{
+              blob = new Blob(mapSignalDataToTxtFormat(signalData.data))
+            }
+            
+            const fileStream = streamSaver.createWriteStream(formData.fileName+'.txt', {
+              size: blob.size // Makes the procentage visiable in the download
+            })
 
-          // One quick alternetive way if you don't want the hole blob.js thing:
-          // const readableStream = new Response(
-          //   Blob || String || ArrayBuffer || ArrayBufferView
-          // ).body
-          const readableStream = blob.stream()
+            // One quick alternetive way if you don't want the hole blob.js thing:
+            // const readableStream = new Response(
+            //   Blob || String || ArrayBuffer || ArrayBufferView
+            // ).body
+            const readableStream = blob.stream()
 
-          // more optimized pipe version
-          // (Safari may have pipeTo but it's useless without the WritableStream)
-          if (window.WritableStream && readableStream.pipeTo) {
-            return readableStream.pipeTo(fileStream)
-              .then(() => console.log('done writing'))
-          }
+            // more optimized pipe version
+            // (Safari may have pipeTo but it's useless without the WritableStream)
+            if (window.WritableStream && readableStream.pipeTo) {
+              return readableStream.pipeTo(fileStream)
+                .then(() => console.log('done writing'))
+            }
 
-          // Write (pipe) manually
-          window.writer = fileStream.getWriter()
+            // Write (pipe) manually
+            window.writer = fileStream.getWriter()
 
-          const reader = readableStream.getReader()
-          const pump = () => reader.read()
-            .then(res => res.done
-              ? window.writer.close()
-              : window.writer.write(res.value).then(pump))
+            const reader = readableStream.getReader()
+            const pump = () => reader.read()
+              .then(res => res.done
+                ? window.writer.close()
+                : window.writer.write(res.value).then(pump))
 
-          pump()
+            pump()
+          }     
         }
       }
     }
@@ -110,7 +122,13 @@ class Form extends Component{
     this.setState({ values: {...params}});
     
   }
-  
+  componentDidUpdate(prevProps){
+		if(prevProps.formType!==this.props.formType){
+      this.setState({
+        values:{}
+      })
+    }
+  }
 
   onClickOkForm = (formData)  => {
     this.props.updateForm(formData)
@@ -192,6 +210,7 @@ const mapDispatchToProps = (dispatch) => {
     runSingleProcess: (params) => dispatch(runSingleProcess(params)),
     updateNodePropierties: (id,params) => dispatch(updateNodePropierties(id,params)),
     updateForm:(data) => dispatch(updateForm(data)),
+    updateSavePlot:(nodeId,filename,format) => dispatch(updateSavePlot(nodeId,filename,format)),
   }
 }
 
@@ -230,4 +249,32 @@ const formSelection = (formType) => {
   if(forms[formType]==undefined) return null;
   else return forms[formType];
 
+}
+const mapSignalDataToTxtFormat = (data) =>{
+  const dataMapped=[];
+  const len=data.lenght
+  data.forEach((d,j) => {
+    dataMapped.push(d)
+    if(j!=len-1)
+      dataMapped.push("\r\n")
+  })
+  return dataMapped
+}
+
+const mapHeatmapDataToTxtFormat = (data) =>{
+  const dataMapped=[];
+  const len_channels=data.lenght
+  const len_heatmap=data[0].lenght
+
+  data.forEach((heatmap,j) => {
+    heatmap.forEach((p,i) =>{
+      dataMapped.push(p)
+      if(i!=len_heatmap-1) //TODO: corregir y ver como hacer con varios canales
+        dataMapped.push("\r\n")
+    })
+    if(j!=len_channels-1)
+        dataMapped.push("\r\n")
+    
+  })
+  return dataMapped
 }
