@@ -222,7 +222,7 @@ const formSelection = (formType) => {
 
   const formNodesProps={
     okButton:{text:"Aplicar"},
-    cancelButton:{text:"Aplicar"},
+    cancelButton:{text:"Cancelar"},
     okFunction: "diagram",
   }
   const formDownloadProps={
@@ -252,7 +252,7 @@ const formSelection = (formType) => {
 }
 const mapSignalDataToTxtFormat = (data) =>{
   const dataMapped=[];
-  const len=data.lenght
+  const len=data.length
   data.forEach((d,j) => {
     dataMapped.push(d)
     if(j!=len-1)
@@ -263,13 +263,13 @@ const mapSignalDataToTxtFormat = (data) =>{
 
 const mapHeatmapDataToTxtFormat = (data) =>{
   const dataMapped=[];
-  const len_channels=data.lenght
-  const len_heatmap=data[0].lenght
+  const len_channels=data.length
+  const len_heatmap=data[0].length
 
   data.forEach((heatmap,j) => {
-    heatmap.forEach((p,i) =>{
+    heatmap.forEach((p, i) =>{
       dataMapped.push(p)
-      if(i!=len_heatmap-1) //TODO: corregir y ver como hacer con varios canales
+      if(j!=len_channels-1 || i!=len_heatmap-1)
         dataMapped.push("\r\n")
     })
     if(j!=len_channels-1)

@@ -248,7 +248,7 @@ def get_request_channels(params, param_key='channels'):
         channels=params[param_key]
         if type(channels)==str:
             if channels != 'prev':
-                if (not channels) or (channels == ''):    # Si no envian nada, lo aplico en todos los canales
+                if (not channels) or (channels == '') or (channels == []):    # Si no envian nada, lo aplico en todos los canales
                     channels=None
                 else:
                     try:
