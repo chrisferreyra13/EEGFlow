@@ -15,6 +15,7 @@ import {
     FETCH_METHOD_RESULT_RECEIVE,
     FETCH_METHOD_RESULT_FAILURE,
     SET_NODE_FILE_ID,
+    UPDATE_OUTPUT_NODE_COLOR,
     PROCESS_IS_COMPLETED,
     DELETE_ITEM_INPUTS_READY,
 } from '../actions/Diagram';
@@ -24,10 +25,12 @@ import initialElements from './_initialElements';
 import {v4 as uuidv4} from 'uuid';
 import { element } from 'prop-types';
 
-const nodesCount=initialElements[3].filter(elem => elem.elementType!=undefined).length
+const INITIAL_DIAGRAM=0;
+
+const nodesCount=initialElements[INITIAL_DIAGRAM].filter(elem => elem.elementType!=undefined).length
 
 const initialState={
-    elements:initialElements[3],
+    elements:initialElements[INITIAL_DIAGRAM],
     nodesCount: nodesCount,
     lastId: nodesCount,
     processes_status:{}, //[TOSTART, PROCESSING, SUCCESFULL, FAIL]
@@ -67,6 +70,7 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                 nodesCount: state.nodesCount+1,
                 lastId: lastId
             })
+            
 
         case UPDATE_NODE_PROPIERTIES:
             //var stateCopy=Object.assign({},state);
@@ -124,7 +128,7 @@ export const diagram= (state=initialState, {type, ...rest})=>{
             return Object.assign({},state,{
                 elements:elements
             })
-
+            
         case UPDATE_AFTER_DELETE_ELEMENTS:
             /*
             return Object.assign({},state,{
@@ -139,18 +143,41 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                 elements: elements,
                 nodesCount:state.nodesCount-rest.numOfNodesRemoved
             })
-        
+            
         case ADD_EDGE:
             elements=unpurge(state.elements,rest.newElements)
             return Object.assign({},state,{
                 elements: elements,
                 })
-  
+                
         case CHANGE_EDGE:
             elements=unpurge(state.elements,rest.newElements)
             return Object.assign({},state,{
                 elements: elements,
             })
+        
+        case UPDATE_OUTPUT_NODE_COLOR:
+            elements={}
+            elements=state.elements.map((item) => {
+                if(item.id==rest['outputNodeId']){
+                    if(rest["processed"]==true){
+                        return {
+                            ...item,
+                            style: { borderColor: '#2eb85c', boxShadow: '0px 0px 0.5px #2eb85c' },
+                        }
+                    }else{
+                        return {
+                            ...item,
+                            style: null,
+                        }
+                    } 
+                }
+                return item
+            })
+            return Object.assign({},state,{
+                elements:elements
+            })
+
 
         case SET_NODE_FILE_ID:
             elements={}
@@ -190,7 +217,7 @@ export const diagram= (state=initialState, {type, ...rest})=>{
             return Object.assign({},state,{
                 processes_status: processes_status, //SUCCESFULL
             })
-
+        
         case FETCH_RUN_PROCESS_REQUEST:
             processes_status={}
             processes_status=JSON.parse(JSON.stringify(state.processes_status))

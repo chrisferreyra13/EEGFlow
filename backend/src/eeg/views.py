@@ -27,7 +27,7 @@ from filemanager.models import StoredUpload, TemporaryUpload, TemporaryOutput
 from filemanager.utils import _get_file_id, _get_user
 from filemanager.filemanager_settings import PROCESS_TMP
 
-from cconsciente.settings.base import MEDIA_TEMP, MEDIA_STORED, MEDIA_PROC_TEMP_OUTPUT_PATH
+from eegflow.settings.base import MEDIA_TEMP, MEDIA_STORED, MEDIA_PROC_TEMP_OUTPUT_PATH
 
 from .utils import *
 

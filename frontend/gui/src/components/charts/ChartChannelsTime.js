@@ -116,6 +116,24 @@ class ChartChannels extends Component {
                 })                         
         })
 
+        // Style AutoCursor.
+        this.chart.setAutoCursor((autoCursor) => autoCursor
+            .setGridStrokeYStyle(emptyLine)
+            .disposeTickMarkerY()
+        )
+        const resultTableFormatter=(tableContentBuilder, activeSeries, x, y) => {
+            //let activeSeriesFormatted=LineSeries(activeSeries)
+            const seriesIndex = this.series.indexOf(activeSeries)
+            return tableContentBuilder
+                .addRow(activeSeries.getName())
+                .addRow('X', '', activeSeries.axisX.formatValue(x))
+                // Translate Y coordinate back to [0, 1].
+                .addRow('Y', '', activeSeries.axisY.formatValue(y - (seriesIndex + 0.5) * channelHeight + seriesIndex * channelGap))
+        }
+
+        this.series.forEach((series) => series.setCursorResultTableFormatter(resultTableFormatter))
+
+
         switch(this.props.methodResult.type){
             case "MAX_PEAK":
                 if(this.props.methodResult.data.length!=0){
@@ -171,12 +189,6 @@ class ChartChannels extends Component {
 
         }
         
-        // Style AutoCursor.
-        this.chart.setAutoCursor((autoCursor) => autoCursor
-            .setGridStrokeYStyle(emptyLine)
-            .disposeTickMarkerY()
-        )
-
     }
     componentDidUpdate(prevProps){
 		if(prevProps.savePlot.save!==this.props.savePlot.save){

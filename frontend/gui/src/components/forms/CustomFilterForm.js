@@ -109,10 +109,10 @@ class CustomFilterForm extends Component{
             <CLabel htmlFor="frequencyWindow">Ancho de banda:</CLabel>
               <CFormGroup row>
                 <CCol md="6">
-                    <CInput id="minFreqWindow" placeholder={"f. corte inf. (Hz)"} type="number" min="0" step="0.01" required value={this.getValue('l_freq')} onChange={(event) => this.handleChange(event,'l_freq')}/>
+                    <CInput id="minFreqWindow" placeholder={"f. corte inf. (Hz)"} type="number" min="0" step="0.01" value={this.getValue('l_freq')} onChange={(event) => this.handleChange(event,'l_freq')}/>
                 </CCol>
                 <CCol md="6">
-                  <CInput id="maxFreqWindow" placeholder={"f. corte sup (Hz)"} type="number" min="0" step="0.01" required value={this.getValue('h_freq')} onChange={(event) => this.handleChange(event,'h_freq')}/>
+                  <CInput id="maxFreqWindow" placeholder={"f. corte sup (Hz)"} type="number" min="0" step="0.01" value={this.getValue('h_freq')} onChange={(event) => this.handleChange(event,'h_freq')}/>
                 </CCol>
               </CFormGroup>
           </CCol>

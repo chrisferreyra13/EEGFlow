@@ -49,7 +49,7 @@ const TheSidebar = ({show, addNode, enableForm, diagramView, linkDiagram}) => {
     <CSidebar show={show} onShowChange={(val) => dispatch({type: 'set', sidebarShow: val })}>
       <div className="text-center"> {/* Aca antes habia un <td> pero no le gustaba del todo*/}
           <h6>  </h6>
-          <h1> BrainCloud </h1>
+          <h1> EEGFlow </h1>
       </div>
       {/*<CSidebarNav>
 

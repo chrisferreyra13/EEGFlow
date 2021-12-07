@@ -5,7 +5,7 @@ import {
   CRow
 } from  '@coreui/react'
 
-//import {fetchSignal} from '../../redux/actions/Diagram'
+import {setNodeFileId, updateOutputColor} from '../../redux/actions/Diagram'
 
 import { diagramView } from '../../redux/actions/EditSession'
 import { enableChartTemporal } from '../../redux/actions/SideBar'
@@ -19,6 +19,16 @@ class EditPlot extends Component {
   constructor(props){
     super(props);
     this.props.diagramView(false);
+
+    //First, check if fileId is exists and if is set.
+    if(this.props.fileId!=null && this.props.fileId!=''){
+      const timeSeries=this.props.elements.find(elem => elem.elementType=='TIME_SERIES')
+      if(timeSeries.params.id==null || timeSeries.params.id=='')
+        this.props.setNodeFileId(this.props.fileId)
+        const nodePlot=this.props.elements.find(elem => elem.elementType=='PLOT_TIME_SERIES')
+        this.props.updateOutputColor(nodePlot.id,true)
+    }
+
     const nodePlots=this.props.elements.map((elem) => { //Busco los nodos tipo 'output'
       if(filterId(elem)==true){
         return {
@@ -123,6 +133,8 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
   return {
     enableChartTemporal: () => dispatch(enableChartTemporal()),
+    setNodeFileId:(fileId) => dispatch(setNodeFileId(fileId)),
+    updateOutputColor: (nodeId,processed) => dispatch(updateOutputColor(nodeId,processed)),
     //fetchTimeSeries: (fileId) => dispatch(fetchTimeSeries(fileId)),
     diagramView: (activate) => dispatch(diagramView(activate)),
     //fetchSignal: (id) => dispatch(fetchSignal(id)),

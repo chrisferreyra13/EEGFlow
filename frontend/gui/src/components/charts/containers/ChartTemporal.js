@@ -77,6 +77,9 @@ class ChartTemporal extends Component {
 		let limit;
 		let minIndex=0;
 		let maxIndex=0;
+
+		let message='';
+
 		const dataType='TIME_SERIES';
 		if(nodePlot.inputData.inputNodeId!=null){
 			const nodeInput=this.props.elements.find((elem) => elem.id==nodePlot.inputData.inputNodeId)
@@ -114,6 +117,11 @@ class ChartTemporal extends Component {
 				}
 			}
 			if(fetchSignal){
+				message=<div>
+						<h4>Cargando...</h4>
+						<CIcon size= "xl" name="cil-cloud-download"/>
+						</div>
+				
 				this.props.fetchSignal(nodeInput.params.id,channels,params,nodeInput.id,dataType,nodePlot.processParams.processId)
 				this.props.updatePlotParams(nodePlot.id,{...params})
 			}
@@ -164,6 +172,11 @@ class ChartTemporal extends Component {
 				}
 			}
 			
+		}else{
+			message=<div>
+						<h4>No procesado.</h4>
+						<CIcon size= "xl" name="cil-x-circle"/>
+					</div>
 		}
 		this.state={
 			dataReady:dataReady,
@@ -180,6 +193,7 @@ class ChartTemporal extends Component {
 			minIndex:minIndex,
 			maxIndex:maxIndex,
 			outputType:outputType,
+			message:message
 
 		}
 
@@ -362,8 +376,7 @@ class ChartTemporal extends Component {
 							</div>
 							:
 							<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
-								<h4>Cargando...</h4>
-								<CIcon size= "xl" name="cil-cloud-download"/>
+								{this.state.message}
 							</div>
 						}
 					</CCardBody>

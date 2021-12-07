@@ -1,7 +1,8 @@
 from django.core.files import base
+from mne import event
 from .eeg_lib import *
 from .utils import *
-from cconsciente.settings.base import MEDIA_TEMP, MEDIA_STORED, MEDIA_PROC_TEMP_OUTPUT_PATH
+from eegflow.settings.base import MEDIA_TEMP, MEDIA_STORED, MEDIA_PROC_TEMP_OUTPUT_PATH
 
 LOAD_RESTORE_PARAM_NAME = 'id'
 
@@ -158,6 +159,21 @@ def epochs(**kwargs):
                     return Response('An invalid baseline correction range has been provided.',
                         status=status.HTTP_400_BAD_REQUEST)
 
+    # get event ids
+    if 'event_id' not in params:
+        event_id = None  # default: use all events
+    else:
+        event_id=params['event_id']
+        if (not event_id) or (event_id == []) or (event_id == '') or (event_id == ','):
+            event_id=None
+        else:
+            try:
+                event_id=[int(f) for f in event_id.split(',')]
+            except:
+                return Response('An invalid list of event ids has been provided.',
+                    status=status.HTTP_400_BAD_REQUEST)
+            
+
     #get requested channels
     channels=get_request_channels(params)
     if type(channels)==Response:
@@ -180,11 +196,20 @@ def epochs(**kwargs):
         return Response('Invalid file extension',
                     status=status.HTTP_406_NOT_ACCEPTABLE)
 
+    event_id=[id for id in event_id if id in events[:,2]]
+    if len(event_id)==0:
+        event_id=None #uso esto para que no explote
+        print("[INFO]: event ids don't match with true event ids")
+        #usar esto dps
+        #return Response('An invalid list of event ids has been provided.',
+        #            status=status.HTTP_400_BAD_REQUEST
+
     
     # build epochs instance for time-frequency plot
     epochs = mne.Epochs(
         raw=input, 
-        events=events, 
+        events=events,
+        event_id=event_id, 
         tmin=tmin, tmax=tmax,
         picks=channels_idxs,
         baseline=baseline

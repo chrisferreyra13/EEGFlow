@@ -6,7 +6,7 @@ import {
 } from '../actions/File'
 
 const initialStateFile={
-    fileId: '40',
+    fileId: '69', //40 .fif 69 .edf
     fileInfo:{
         projectId:"",
         projectName:"",

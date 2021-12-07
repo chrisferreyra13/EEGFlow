@@ -72,6 +72,8 @@ class ChartSpectrum extends Component {
 		let oldSignalId=null;
 		let fetchSignal=false;
 
+		let message='';
+
 		const dataType='PSD';
 		if(nodePlot.inputData.fetchInput){
 			const nodeInput=this.props.elements.find((elem) => elem.id==nodePlot.inputData.inputNodeId)
@@ -102,6 +104,10 @@ class ChartSpectrum extends Component {
 				}
 			}
 			if(fetchSignal){
+				message=<div>
+						<h4>Cargando...</h4>
+						<CIcon size= "xl" name="cil-cloud-download"/>
+						</div>
 				this.props.fetchSignal(nodeInput.params.id,channels,params,nodeInput.id,dataType,nodePlot.processParams.processId)
 				this.props.updatePlotParams(nodePlot.id,{...params})
 			}
@@ -129,6 +135,11 @@ class ChartSpectrum extends Component {
 					
 				}
 			}
+		}else{
+			message=<div>
+						<h4>No procesado.</h4>
+						<CIcon size= "xl" name="cil-x-circle"/>
+					</div>
 		}
 
 		this.state={
@@ -141,6 +152,7 @@ class ChartSpectrum extends Component {
 			data:data,
 			oldSignalId:oldSignalId,
 			outputType:outputType,
+			message:message,
 
 		}
     }
@@ -242,8 +254,7 @@ class ChartSpectrum extends Component {
 							</div>
 							:
 							<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
-								<h4>Cargando...</h4>
-								<CIcon size= "xl" name="cil-cloud-download"/>
+								{this.state.message}
 							</div>
 						}
 					</CCardBody>

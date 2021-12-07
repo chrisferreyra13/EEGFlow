@@ -30,6 +30,7 @@ class EpochsForm extends Component{
         tmin:null,
         tmax:null,
         baseline:null,
+        event_id:null,
       },
       options:options.map(ch => {
         return {value:ch,label:ch}
@@ -88,6 +89,16 @@ class EpochsForm extends Component{
         </CFormGroup>
         <CFormGroup row>
           <CCol md="12">
+            <CLabel htmlFor="event_id">IDs de eventos:</CLabel>
+              <CFormGroup row>
+                <CCol md="12">
+                    <CInput id="event_id" placeholder={"1,2,32"} required value={this.getValue('event_id')} onChange={(event) => this.handleChange(event,'event_id')}/>
+                </CCol>
+              </CFormGroup>
+          </CCol>
+        </CFormGroup>
+        <CFormGroup row>
+          <CCol md="12">
             <CLabel htmlFor="timeWindow">Ventana de tiempo relativa al evento:</CLabel>
               <CFormGroup row>
                 <CCol md="6">
@@ -121,6 +132,7 @@ class EpochsForm extends Component{
               <CInput id="baseline" placeholder={"ejemplos: 0,0.1 o ,"} value={this.getValue('baseline')} onChange={(event) => this.handleChange(event,'baseline')}/>
           </CCol>
         </CFormGroup>
+        
       </div>
     )
   }

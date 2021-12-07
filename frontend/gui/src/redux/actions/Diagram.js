@@ -46,6 +46,16 @@ export function updateAfterDeleteElements(newElements, numOfNodesRemoved){
     }
 }
 
+
+export const UPDATE_OUTPUT_NODE_COLOR='UPDATE_OUTPUT_NODE_COLOR'
+export function updateOutputColor(outputNodeId,processed){
+    return {
+        type:UPDATE_OUTPUT_NODE_COLOR,
+        outputNodeId:outputNodeId,
+        processed:processed
+    }
+}
+
 export const SET_NODE_FILE_ID='SET_NODE_FILE_ID'
 export function setNodeFileId(fileId){
     return {
@@ -394,19 +404,6 @@ function errorFetchingSignal(payload){
         nodeId:payload["nodeId"]
     }
 }
-
-/*function selectSignalType(type){
-    switch(type){
-        case 'TIME_SERIES':
-            return 'time_series/?'
-        case 'PSD':
-            return 'psd/?'
-        case 'TIME_FREQUENCY':
-            return 'time_frequency/?'
-        default:
-            return 'time_series/?'
-    }
-}*/
 
 export const fetchSignal = (id, channels, plotParams, nodeId, dataType, plotProcessId) => async (dispatch) => {
     let endpoint=API_ROOT;

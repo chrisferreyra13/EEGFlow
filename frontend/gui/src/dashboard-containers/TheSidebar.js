@@ -28,7 +28,7 @@ const TheSidebar = () => {
     >
       <td className="text-center">
                       <h6>  </h6>
-                      <h1> BrainCloud </h1>
+                      <h1> EEGFlow </h1>
                     </td>
       <CSidebarNav>
 

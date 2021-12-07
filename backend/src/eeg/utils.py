@@ -18,7 +18,7 @@ from filemanager.storage_manager import get_temporary_upload
 from filemanager.models import TemporaryUpload, TemporaryOutput
 from filemanager.utils import _get_file_id, _get_user
 
-from cconsciente.settings.base import MEDIA_TEMP, MEDIA_STORED, MEDIA_PROC_TEMP_OUTPUT_PATH
+from eegflow.settings.base import MEDIA_TEMP, MEDIA_STORED, MEDIA_PROC_TEMP_OUTPUT_PATH
 
 
 LOAD_RESTORE_PARAM_NAME = 'id'

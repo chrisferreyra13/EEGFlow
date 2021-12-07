@@ -54,7 +54,7 @@ CORS_ORIGIN_WHITELIST = (
     'http://localhost:3000',
 )
 
-ROOT_URLCONF = 'cconsciente.urls'
+ROOT_URLCONF = 'eegflow.urls'
 
 TEMPLATES = [
     {

@@ -3,7 +3,7 @@ import mne
 import os
 import numpy as np
 from django.conf import settings
-from cconsciente.settings.base import MEDIA_TEMP, MEDIA_STORED, MEDIA_PROC_TEMP_OUTPUT_PATH
+from eegflow.settings.base import MEDIA_TEMP, MEDIA_STORED, MEDIA_PROC_TEMP_OUTPUT_PATH
 
 
 def convert_to_db(x, data_type='power'):

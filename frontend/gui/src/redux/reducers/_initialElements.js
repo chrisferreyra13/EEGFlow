@@ -26,7 +26,7 @@ export default [
             position: { x: 150, y: 50 },
             draggable: false,
             params: {
-                id: '40',
+                id: null,
             },
             signalsData: signalsDataTemplate,
             processParams: {
@@ -81,7 +81,7 @@ export default [
             position: { x: 150, y: 50 },
             draggable: false,
             params: {
-                id: '40',
+                id: null,
             },
             signalsData: [],
             processParams: {
@@ -164,7 +164,7 @@ export default [
             position: { x: 150, y: 50 },
             draggable: false,
             params: {
-                id: '40',
+                id: null,
             },
             signalsData: [],
             processParams: {
@@ -246,7 +246,7 @@ export default [
             position: { x: 150, y: 50 },
             draggable: false,
             params: {
-                id: '40',
+                id: null,
             },
             signalsData: signalsDataTemplate,
             processParams: {
