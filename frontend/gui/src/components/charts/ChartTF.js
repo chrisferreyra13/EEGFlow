@@ -16,15 +16,18 @@ import {
 } from "@arction/lcjs"
 import {updateSavePlot} from '../../redux/actions/Plot'
 // Use theme if provided
-class ChartTFR extends Component {
+class ChartTF extends Component {
     constructor(props) {
         super(props)
         // Generate random ID to use as the containerId for the chart and the target div id.
         this.chartId = Math.trunc(Math.random() * 100000).toString(10)
+        this.state={
+          showITC:Object.keys(this.props.data).includes('itc') ? true: false
+        }
     }
     createChannel(
       dashboard,
-      channelIndex,
+      chartIndex,
       rows,columns,
       minFreq,maxFreq,
       minTime,maxTime,
@@ -35,12 +38,15 @@ class ChartTFR extends Component {
         .createChartXY({
           columnIndex: 0,
           columnSpan: 1,
-          rowIndex: channelIndex,
+          rowIndex: chartIndex,
           rowSpan: 1,
         })
         // Hide the chart title
         //
-      if(channelIndex==0){
+      const isITC=chartIndex==this.props.channels.length? true:false
+      if(isITC){
+        chart.setTitle('ITC')
+      }else{
         if(this.props.average){
           chart.setTitle('Promedio de epocas')
         }
@@ -51,11 +57,13 @@ class ChartTFR extends Component {
             chart.setTitleFillStyle(emptyFill)
           }
         }
-        
-      }else{
-        chart.setTitleFillStyle(emptyFill);
       }
-      const powerUnit=this.props.dB==true ? 'dB' : '\u03BCV²/Hz';
+      
+      let unit='';
+      if(!isITC){
+        unit=this.props.dB==true ? 'dB' : '\u03BCV²/Hz';
+      }
+      
       // Define function that maps Uint8 [0, 255] to Decibels.
       //const intensityDataToDb = (intensity) =>
       //minDecibels + (intensity / 255) * (maxDecibels - minDecibels);
@@ -85,8 +93,24 @@ class ChartTFR extends Component {
         return Number.parseFloat(x).toExponential(f);
       }
       let lutRangeString=lutRange.map(v => {
-
-        return v==0 ? '0' : scientificNotString(v,1)
+        if(v==0){
+          return '0'
+        }
+        else{
+          if(Math.abs(v)<1000){
+            if(Math.abs(v)<10){
+              return v.toFixed(2).toString();
+            }else{
+              if(Math.abs(maxValue-minValue)<10){return v.toFixed(1).toString();}
+              else{return Math.round(v).toString();}
+              
+            }
+          }
+          else{
+            return scientificNotString(v,1)
+          }
+        }
+        
       })
       const series = chart
         .addHeatmapGridSeries({
@@ -143,7 +167,7 @@ class ChartTFR extends Component {
                   label: `${lutRangeString[6]}`,
                 },
               ],
-              units: powerUnit,
+              Units: unit,
               interpolate: true,
             }),
           })
@@ -154,7 +178,7 @@ class ChartTFR extends Component {
             .addRow(series.getName())
             .addRow("X:", "", series.axisX.formatValue(dataPoint.x))
             .addRow("Y:", "", series.axisY.formatValue(dataPoint.y))
-            .addRow("", scientificNotString(dataPoint.intensity,2) + " "+powerUnit)
+            .addRow("", scientificNotString(dataPoint.intensity,2) + " "+unit)
         );
     
       // Set default X axis settings
@@ -171,7 +195,7 @@ class ChartTFR extends Component {
       // Set default X axis settings
       series.axisY
         .setInterval(start.y, end.y)
-        .setTitle(this.props.channels[channelIndex]+' (Hz)')
+        .setTitle('Frecuencia (Hz)')
         .setScrollStrategy(AxisScrollStrategies.fitting);
     
       return {
@@ -180,13 +204,15 @@ class ChartTFR extends Component {
       };
     };
     createDashboard(){
+      let numberOfRows=this.state.showITC? this.props.channels.length+1:this.props.channels.length
+      
       const lc = lightningChart();
       this.dashboard = lc
         .Dashboard({
           theme: Themes.light,
           container: this.chartId,
           numberOfColumns: 1,
-          numberOfRows: this.props.channels.length,
+          numberOfRows: numberOfRows,
         })
         // Hide the dashboard splitter
         .setSplitterStyle(emptyLine);
@@ -228,11 +254,34 @@ class ChartTFR extends Component {
         // Add the created chart and series to collection
         charts.push(ch);
       }
-    
+      if(this.state.showITC){
+        const ch = this.createChannel(
+          this.dashboard,
+          this.props.channels.length,
+          this.props.data.freqs.length,
+          this.props.data.times.length,
+          minFreq,
+          maxFreq,
+          minTime,
+          maxTime,
+          0, //vmin
+          1 //vmax
+        );
+
+        // Set the heatmap data
+        ch.series.invalidateIntensityValues({
+          iRow: 0,
+          iColumn: 0,
+          values: this.props.data.itc[0],
+        });
+        // Add the created chart and series to collection
+        charts.push(ch);
+      }
+
       charts[charts.length - 1].series.axisX
         .setTickStrategy(AxisTickStrategies.Numeric)
         .setScrollStrategy(AxisScrollStrategies.fitting)
-        .setTitle('seg')
+        .setTitle('Tiempo (seg)')
         .setMouseInteractions(true);
       // Add LegendBox.
       const legend = this.dashboard
@@ -244,9 +293,15 @@ class ChartTFR extends Component {
         })
         .setPosition({ x: 100, y: 50 })
         .setOrigin({ x: 1, y: 0 });
-        
+      
+      //Add charts to legend box and set the title
       charts.forEach((c,j) => {
-        legend.add(c.chart).setTitle(this.props.channels[j])
+        if(j==this.props.channels.length){
+          legend.add(c.chart)
+        }else{
+          legend.add(c.chart).setTitle(this.props.channels[j])
+        }
+        
         
       });
       // Link chart X axis scales
@@ -293,4 +348,4 @@ const mapDispatchToProps = (dispatch) => {
         updateSavePlot:(nodeId,filename,format) => dispatch(updateSavePlot(nodeId,filename,format)),
     }
 };
-export default connect(mapStateToProps, mapDispatchToProps)(ChartTFR)
+export default connect(mapStateToProps, mapDispatchToProps)(ChartTF)

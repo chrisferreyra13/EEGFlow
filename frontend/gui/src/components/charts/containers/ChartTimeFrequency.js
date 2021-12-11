@@ -6,7 +6,7 @@ import {
 import CIcon from '@coreui/icons-react'
 import {fetchSignal,deleteItemInputsReady} from '../../../redux/actions/Diagram'
 import {connect} from 'react-redux'
-import ChartTFR from '../ChartTFR'
+import ChartTF from '../ChartTF'
 
 import {updatePlotParams} from '../../../redux/actions/Plot' 
 
@@ -25,6 +25,7 @@ class ChartTimeFrequency extends Component {
 					size:nodePlot.params.size==null ? 'l' : nodePlot.params.size,
 					dB:nodePlot.params.dB==null ? 'false' : nodePlot.params.dB,
 					average:nodePlot.params.average==null ? 'false' : nodePlot.params.average,
+					itc:nodePlot.params.return_itc==null ? 'false' : nodePlot.params.return_itc,
 
 				}
 			}else{
@@ -35,6 +36,7 @@ class ChartTimeFrequency extends Component {
 					size:nodePlot.params.size==null ? 'l' : nodePlot.params.size,
 					dB:nodePlot.params.dB==null ? 'false' : nodePlot.params.dB,
 					average:nodePlot.params.average==null ? 'false' : nodePlot.params.average,
+					itc:nodePlot.params.return_itc==null ? 'false' : nodePlot.params.return_itc,
 				}
 			}
 		}else{
@@ -43,6 +45,7 @@ class ChartTimeFrequency extends Component {
 				size:nodePlot.params.size==null ? 'm' : nodePlot.params.size,
 				dB:nodePlot.params.dB==null ? 'false' : nodePlot.params.dB,
 				average:nodePlot.params.average==null ? 'false' : nodePlot.params.average,
+				itc:nodePlot.params.return_itc==null ? 'false' : nodePlot.params.return_itc,
 
 			}
 		}
@@ -156,15 +159,18 @@ class ChartTimeFrequency extends Component {
     }
 
 	preprocessData(signalData,plotChannels,plotParams,updating){
-
 		let data={
-			power:signalData.data,
+			power:signalData.data.power,
 			times:signalData.utils.times,
 			freqs:signalData.utils.freqs,
 			vMin:signalData.utils.vmin,
 			vMax:signalData.utils.vmax,
 			sFreq:signalData.sFreq
 		}
+		if(plotParams.itc=="true"){
+			data["itc"]=signalData.data.itc
+		}
+		
 		
 		if(updating)
 			this.setState({
@@ -224,7 +230,7 @@ class ChartTimeFrequency extends Component {
 					<CCardBody >
 						{ this.state.dataReady ?
 							<div style={this.state.style}>
-								<ChartTFR
+								<ChartTF
 								nodeId={this.props.nodeId}
 								data={this.state.data}
 								chartStyle={{height: '100%', width:'100%'}}

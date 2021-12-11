@@ -452,6 +452,7 @@ export const fetchSignal = (id, channels, plotParams, nodeId, dataType, plotProc
                 baseline:plotParams["baseline"] == undefined ? '': plotParams["baseline"],
                 mode:plotParams["mode"] == undefined ? '': plotParams["mode"],
                 average:plotParams["average"] == undefined ? '': plotParams["average"],
+                return_itc:plotParams["return_itc"] == undefined ? '': plotParams["return_itc"],
                 dB:plotParams["dB"] == undefined ? '': plotParams["dB"],
             }
             switch(plotParams["type"]){

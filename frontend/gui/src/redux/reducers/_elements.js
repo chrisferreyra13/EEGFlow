@@ -155,6 +155,24 @@ export default [
     signalsData:signalsDataTemplate,
     processParams:processParamsTemplate,
   },
+  //BAD_CHANNELS
+  {
+    id: null,
+    type: 'default',
+    elementType: 'BAD_CHANNELS',
+    formType:'ENABLE_BAD_CHANNELS_FORM',
+    targetPosition: 'left',
+    sourcePosition: 'right',
+    data: {
+      label: 'Ignorar canales'
+    },
+    position: { x: 550, y: 80 },
+    params:{
+      channels:null,
+    },
+    signalsData:signalsDataTemplate,
+    processParams:processParamsTemplate,
+  },
   //SET_REFERENCE
   {
     id: null,
@@ -170,6 +188,8 @@ export default [
     params:{
       type:null,
     },
+    signalsData:signalsDataTemplate,
+    processParams:processParamsTemplate,
   },
   //REMOVE
   {

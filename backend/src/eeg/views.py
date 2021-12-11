@@ -442,6 +442,20 @@ class GetTimeFrequency(APIView):
                         status=status.HTTP_400_BAD_REQUEST)
 
         
+        # return itc if return_itc is true
+        if 'return_itc' not in request.query_params:
+            return_itc=False
+        else:
+            return_itc=request.query_params["return_itc"]
+            if (not return_itc) or (return_itc == ''):
+                return_itc=False
+            else:
+                if return_itc in ["true","false"]:
+                    return_itc=True if return_itc=='true' else False
+                else:
+                    return Response('An invalid return_itc value has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+
         # get if average result for morlet o multitaper (stockwell always average result)
         if 'average' not in request.query_params:
             average=False
@@ -589,8 +603,9 @@ class GetTimeFrequency(APIView):
             params=check_params(request.query_params,params_names=fields,params_values=defaults)
             if type(params)==Response: return params
 
+        if not average: #just in case
+            return_itc=False
 
-        return_itc=False
         data=time_frequency(
                     instance=instance,
                     picks=channels_idxs,
@@ -602,8 +617,12 @@ class GetTimeFrequency(APIView):
 
         if return_itc:
             tfr,itc=data
+            itc_data=itc.data
+            #print(itc)
         else:
             tfr=data
+            itc_data=[]
+        
         
 
         tmin,tmax=(None,None) # lo usamos por defecto por ahora -> todo el rango para viz
@@ -631,7 +650,10 @@ class GetTimeFrequency(APIView):
                 power=tfr.data[epoch_idx]
 
         response=Response({
-            'signal':power,
+            'signal':{
+                'power':power,
+                'itc':itc_data
+            },
             'utils':{
                 'times':tfr.times,
                 'freqs':tfr.freqs,

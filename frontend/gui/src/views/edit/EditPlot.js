@@ -23,10 +23,11 @@ class EditPlot extends Component {
     //First, check if fileId is exists and if is set.
     if(this.props.fileId!=null && this.props.fileId!=''){
       const timeSeries=this.props.elements.find(elem => elem.elementType=='TIME_SERIES')
-      if(timeSeries.params.id==null || timeSeries.params.id=='')
+      if(timeSeries.params.id==null || timeSeries.params.id==''){
         this.props.setNodeFileId(this.props.fileId)
         const nodePlot=this.props.elements.find(elem => elem.elementType=='PLOT_TIME_SERIES')
         this.props.updateOutputColor(nodePlot.id,true)
+      }
     }
 
     const nodePlots=this.props.elements.map((elem) => { //Busco los nodos tipo 'output'

@@ -11,9 +11,6 @@ import {
   CForm,
 } from '@coreui/react'
 import streamSaver from 'streamsaver'
-
-
-
 import CIcon from '@coreui/icons-react'
 
 import {okForm, cancelForm, updateForm} from '../redux/actions/Form'
@@ -32,6 +29,7 @@ const ChartTFForm = lazy(()=>import('../components/forms/ChartTFForm.js'))
 const PeaksForm = lazy(()=>import('../components/forms/PeaksForm.js'))
 const EpochsForm = lazy(()=>import('../components/forms/EpochsForm.js'))
 const SetReferenceForm = lazy(()=>import('../components/forms/SetReferenceForm.js'))
+const BadChannelsForm = lazy(()=>import('../components/forms/BadChannelsForm.js'))
 
 class Form extends Component{ 
   constructor(props){
@@ -42,10 +40,15 @@ class Form extends Component{
     }
 
     this.onClickOkForm=this.onClickOkForm.bind(this);
+    this.onClickCancelForm=this.onClickCancelForm.bind(this);
     this.handleFieldChange=this.handleFieldChange.bind(this);
     this.handleMountForm=this.handleMountForm.bind(this);
     this.onClickDownloadForm=this.onClickDownloadForm.bind(this);
 
+  }
+  onClickCancelForm(){
+    //this.setState({values:{}})
+    this.props.okForm()
   }
   onClickDownloadForm(formData){
     if(formData.nodeId!=undefined || formData.nodeId!=null){
@@ -114,19 +117,24 @@ class Form extends Component{
     });
   };
   handleMountForm = () =>{ //Busco los parametros del nodo
-    const elem=this.props.elements.find(element => element.id==this.props.nodeId); // Devuelve el valor del primer elemento que cumple
+    //This function allows to change the values when different forms are mount
+    /*const elem=this.props.elements.find(element => element.id==this.props.nodeId); // Devuelve el valor del primer elemento que cumple
     let params={};
     if(elem!=undefined){
-      if(elem.params!=null) params=elem.params; 
+      if(elem.params!=null) params=JSON.parse(JSON.stringify(elem.params)); 
     }
-    this.setState({ values: {...params}});
+    this.setState({ values: params});*/
+    console.log("hola")
     
   }
   componentDidUpdate(prevProps){
-		if(prevProps.formType!==this.props.formType){
-      this.setState({
-        values:{}
-      })
+		if(prevProps.nodeId!==this.props.nodeId && this.props.nodeId!=='0'){
+      const elem=this.props.elements.find(element => element.id==this.props.nodeId); // Devuelve el valor del primer elemento que cumple
+      let params={};
+      if(elem!=undefined){
+        if(elem.params!=null) params=JSON.parse(JSON.stringify(elem.params)); 
+      }
+      this.setState({ values: params});
     }
   }
 
@@ -137,6 +145,7 @@ class Form extends Component{
     if(this.props.diagramView==false){
       runSingleProcess({'elementType': element.elementType, 'params':formData})
     }
+    //this.setState({values:{}})
     this.props.okForm()
   }
 
@@ -179,7 +188,7 @@ class Form extends Component{
                     type="reset" 
                     size="sm" 
                     color="danger" 
-                    onClick={() => this.props.cancelForm()}
+                    onClick={() => this.onClickCancelForm()}
                   >
                     <CIcon name="cil-ban" /> {form.formProps.cancelButton.text}
                     </CButton>
@@ -244,6 +253,7 @@ const formSelection = (formType) => {
     ENABLE_SET_REFERENCE_FORM: {title:'Cambiar Referencia',content:SetReferenceForm, formProps:formNodesProps},
     ENABLE_EXPORT_DATA_FORM: {title:'Exportar Datos',content:ExportDataForm, formProps:formDownloadProps},
     ENABLE_EXPORT_IMAGE_FORM: {title:'Exportar Imagen',content:ExportImageForm, formProps:formDownloadProps},
+    ENABLE_BAD_CHANNELS_FORM: {title:'Ignorar canales',content:BadChannelsForm, formProps:formNodesProps},
   };
 
   if(forms[formType]==undefined) return null;

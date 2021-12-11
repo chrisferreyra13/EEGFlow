@@ -92,7 +92,7 @@ class EpochsForm extends Component{
             <CLabel htmlFor="event_id">IDs de eventos:</CLabel>
               <CFormGroup row>
                 <CCol md="12">
-                    <CInput id="event_id" placeholder={"1,2,32"} required value={this.getValue('event_id')} onChange={(event) => this.handleChange(event,'event_id')}/>
+                    <CInput id="event_id" placeholder={"1,2,32"} value={this.getValue('event_id')} onChange={(event) => this.handleChange(event,'event_id')}/>
                 </CCol>
               </CFormGroup>
           </CCol>

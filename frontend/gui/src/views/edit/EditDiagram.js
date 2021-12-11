@@ -41,10 +41,11 @@ class EditDiagram extends Component{
     //First, check if fileId is exists and if is set.
     if(this.props.fileId!=null && this.props.fileId!=''){
       const timeSeries=this.props.elements.find(elem => elem.elementType=='TIME_SERIES')
-      if(timeSeries.params.id==null || timeSeries.params.id=='')
+      if(timeSeries.params.id==null || timeSeries.params.id==''){
         this.props.setNodeFileId(this.props.fileId)
         const nodePlot=this.props.elements.find(elem => elem.elementType=='PLOT_TIME_SERIES')
         this.props.updateOutputColor(nodePlot.id,true)
+      }
     }
 
     //Ver si lo dejamos en el futuro, para hacer pruebas es util

@@ -48,10 +48,11 @@ def set_instance_reference(instance, type_of_set_ref='monopolar', **kwargs):
 
 
 # Instance must be epochs or evoked
-def time_frequency(instance, picks=None, type_of_tf='morlet', return_itc=True, **kwargs):
+def time_frequency(instance, picks=None, type_of_tf='morlet', return_itc=False, **kwargs):
     average = kwargs["average"]
+
     if type_of_tf == 'morlet':
-        tfr = mne.time_frequency.tfr_morlet(
+        data = mne.time_frequency.tfr_morlet(
             instance,
             picks=picks,
             freqs=kwargs["freqs"],
@@ -63,7 +64,7 @@ def time_frequency(instance, picks=None, type_of_tf='morlet', return_itc=True, *
             average=average,
         )
     elif type_of_tf == 'multitaper':
-        tfr = mne.time_frequency.tfr_multitaper(
+        data = mne.time_frequency.tfr_multitaper(
             instance,
             picks=picks,
             freqs=kwargs["freqs"],
@@ -77,7 +78,7 @@ def time_frequency(instance, picks=None, type_of_tf='morlet', return_itc=True, *
         )
 
     elif type_of_tf == 'stockwell':
-        tfr = mne.time_frequency.tfr_stockwell(
+        data = mne.time_frequency.tfr_stockwell(
             instance,
             picks=picks,
             fmin=kwargs["fmin"],
@@ -90,11 +91,7 @@ def time_frequency(instance, picks=None, type_of_tf='morlet', return_itc=True, *
             average=average,
         )
 
-
-    # if return_itc:
-    #     return tfr, itc
-    # else:
-    return tfr
+    return data
 
 
 # Instance can be epochs or raw

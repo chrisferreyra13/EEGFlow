@@ -209,7 +209,7 @@ class ChartPSDForm extends Component{
             {/*<CInput id="channels" placeholder="Ch1,Ch2,Ch3" required value={value('channels')} onChange={(event) => this.handleChange(event,'channels')}/>*/}
           </CCol>
         </CFormGroup>
-        {this.state.outputType=='raw' ?
+        {this.state.outputType=='raw' || this.state.outputType==null?
           <CFormGroup row>
             <CCol md="12">
               <CLabel htmlFor="timeWindow">Ventana de tiempo:</CLabel>

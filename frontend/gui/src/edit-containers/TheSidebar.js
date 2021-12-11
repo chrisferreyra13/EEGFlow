@@ -91,6 +91,7 @@ const TheSidebar = ({show, addNode, enableForm, diagramView, linkDiagram}) => {
             <CDropdownItem onClick={() => onClick('ENABLE_EVENT_FORM','EVENTS')} onDragStart={(event) => onDragStart(event, 'EVENTS')} draggable>Eventos</CDropdownItem>
             <CDropdownItem onClick={() => onClick('ENABLE_EPOCH_FORM','EPOCHS')} onDragStart={(event) => onDragStart(event, 'EPOCHS')} draggable>Epocas</CDropdownItem>
             <CDropdownItem onClick={() => onClick('ENABLE_SET_REFERENCE_FORM','SET_REFERENCE')} onDragStart={(event) => onDragStart(event, 'SET_REFERENCE')} draggable>Referencia</CDropdownItem>
+            <CDropdownItem onClick={() => onClick('ENABLE_BAD_CHANNELS_FORM','BAD_CHANNELS')} onDragStart={(event) => onDragStart(event, 'BAD_CHANNELS')} draggable>Ignorar canales</CDropdownItem>
             {/*<CDropdownItem onClick={() => onClick(null,'TIME_WINDOW')} onDragStart={(event) => onDragStart(event, 'TIME_WINDOW')} draggable>Ventana Temporal</CDropdownItem>*/}
             {/*<CDropdownItem onClick={() => onClick(null,'REMOVE')} onDragStart={(event) => onDragStart(event, 'REMOVE')} draggable>Eliminar</CDropdownItem>*/}
           </CDropdownMenu>

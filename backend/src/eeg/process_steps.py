@@ -6,6 +6,24 @@ from eegflow.settings.base import MEDIA_TEMP, MEDIA_STORED, MEDIA_PROC_TEMP_OUTP
 
 LOAD_RESTORE_PARAM_NAME = 'id'
 
+def bad_channels(**kwargs):
+    input=kwargs["input"]
+    params=kwargs["params"]
+
+    #get requested channels to mark as 'bads'
+    channels=get_request_channels(params)
+    if type(channels)==Response:
+        return channels  
+    
+    ch_names=input.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
+    if set(channels).issubset(set(ch_names)):
+        input.info['bads'].extend(channels)  # add a list of channels
+    else:
+        return Response('An invalid list of channels has been provided.',
+                    status=status.HTTP_400_BAD_REQUEST)
+
+    return input
+
 def set_reference(**kwargs):
     input=kwargs["input"]
     params=kwargs["params"]
@@ -195,14 +213,15 @@ def epochs(**kwargs):
     except TypeError:
         return Response('Invalid file extension',
                     status=status.HTTP_406_NOT_ACCEPTABLE)
-
-    event_id=[id for id in event_id if id in events[:,2]]
-    if len(event_id)==0:
-        event_id=None #uso esto para que no explote
-        print("[INFO]: event ids don't match with true event ids")
-        #usar esto dps
-        #return Response('An invalid list of event ids has been provided.',
-        #            status=status.HTTP_400_BAD_REQUEST
+    
+    if event_id is not None:
+        event_id=[id for id in event_id if id in events[:,2]]
+        if len(event_id)==0:
+            event_id=None #uso esto para que no explote
+            print("[INFO]: event ids don't match with true event ids")
+            #usar esto dps
+            #return Response('An invalid list of event ids has been provided.',
+            #            status=status.HTTP_400_BAD_REQUEST
 
     
     # build epochs instance for time-frequency plot
@@ -566,4 +585,5 @@ steps={
     'EVENTS': events,
     'EPOCHS':epochs,
     "SET_REFERENCE":set_reference,
+    "BAD_CHANNELS":bad_channels
 }

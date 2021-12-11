@@ -73,6 +73,7 @@ class ChartTFForm extends Component{
         size:'m',
         type:'morlet', //multitaper, stockwell
         epochs:null,
+        return_itc:null,
       },
       channelsOptions:channelsOptions.map(ch => {
         return {value:ch,label:ch}
@@ -96,17 +97,34 @@ class ChartTFForm extends Component{
     this.checkButtonsByBool=this.checkButtonsByBool.bind(this);
     this.getValue=this.getValue.bind(this);
     this.handleCheckbox=this.handleCheckbox.bind(this);
+    this.getOption=this.getOption.bind(this);
 
   }
   handleCheckbox(e,checkboxId){
     const checked = e.target.checked;
     
-    if (checkboxId=='average'){ // for generic use, convert this 'if' in switch case
+    if(checkboxId=='average'){ // for generic use, convert this 'if' in switch case
       this.setState({
         enableEpochs:!checked //the use don't need to select epoch for average option
        })
+      if(checked){
+        document.getElementById('return_itc').disabled=false
+      }else{
+        document.getElementById('return_itc').disabled=true
+        document.getElementById('return_itc').checked=false
+      }
+      
     }
+    
     this.props.onChange(checkboxId, checked==true ? 'true' : 'false');
+  }
+  getOption(id){
+    const value=this.getValue(id);
+    if(value==null){
+      return null
+    }else{
+      return {value:value,label:value}
+    }
   }
 
   checkButtons(inputId,buttonsIds){
@@ -120,10 +138,19 @@ class ChartTFForm extends Component{
   checkButtonsByBool(inputIds){
     inputIds.forEach(id =>{
       if(document.getElementById(id)!=null){
-        if(this.getValue(id)=='true') // el id tiene que ser igual al valor del button
+        if(this.getValue(id)=='true'){ // el id tiene que ser igual al valor del button
+          if(id=='average'){
+            document.getElementById('return_itc').disabled=false
+          }
+
           document.getElementById(id).checked=true
-        else
+        }
+        else{
+          if(id=='average'){
+            document.getElementById('return_itc').disabled=true
+          }
           document.getElementById(id).checked=false
+        }
       }
     })
   }
@@ -154,11 +181,12 @@ class ChartTFForm extends Component{
   handleChangeInputRadio(event,buttonValue,id) {
     this.props.onChange(id, buttonValue);
   }
+ 
   componentDidMount(){
     this.props.onMountForm();
     this.checkButtons('type',['morlet','multitaper','stockwell'])
     this.checkButtons('size',['m','l'])
-    this.checkButtonsByBool(['average','dB','use_fft','zero_mean'])
+    this.checkButtonsByBool(['average','dB','use_fft','zero_mean','return_itc'])
   }
   getValue(inputId){
     if(Object.keys(this.props.values).length === 0 && this.props.values.constructor === Object){
@@ -173,7 +201,7 @@ class ChartTFForm extends Component{
   }
 
   render(){
-        
+ 
     return (
       <div>
         {
@@ -213,12 +241,11 @@ class ChartTFForm extends Component{
         </CFormGroup>
         <CFormGroup row>
           <CCol md="12">
-            <CLabel htmlFor="channels">Canales</CLabel>
+            <CLabel htmlFor="channels">Canal</CLabel>
             <Select 
-            options={this.state.channelsOptions} 
-            isMulti 
-            value={this.getValue("channels")==null ? null : this.getValue("channels").map(ch => {return {value:ch, label:ch}})} 
-            onChange={(options) => this.handleMultiSelect(options,'channels')}
+            options={this.state.channelsOptions}  
+            value={this.getOption('channels')} 
+            onChange={(options) => this.handleSelect(options,'channels')}
             />
             {/*<CInput id="channels" placeholder="Ch1,Ch2,Ch3" required value={value('channels')} onChange={(event) => this.handleChange(event,'channels')}/>*/}
           </CCol>
@@ -244,6 +271,17 @@ class ChartTFForm extends Component{
                   step="0.01"
                   value={this.getValue("vmax")==null ? '' : this.getValue("vmax")}
                   onChange={(event) => this.handleChange(event,'vmax')}/>
+                </CCol>
+                <CCol md="2">
+                  <CFormGroup variant="custom-checkbox" inline>
+                    <CInputCheckbox
+                    custom id="dB" 
+                    name="inline-checkbox2" 
+                    value="true"
+                    onClick={(e) => this.handleCheckbox(e,'dB')}
+                    />
+                    <CLabel variant="custom-checkbox" htmlFor="dB">dB</CLabel>
+                  </CFormGroup>
                 </CCol>
               </CFormGroup>
           </CCol>
@@ -278,13 +316,13 @@ class ChartTFForm extends Component{
           </CCol>
           <CCol md="6">
             <CFormGroup variant="custom-checkbox" inline>
-              <CInputCheckbox
-              custom id="dB" 
-              name="inline-checkbox2" 
-              value="true"
-              onClick={(e) => this.handleCheckbox(e,'dB')}
+              <CInputCheckbox 
+              custom id="return_itc" 
+              name="inline-checkbox1" 
+              value={"true"}
+              onClick={(e) => this.handleCheckbox(e,'return_itc')}
               />
-              <CLabel variant="custom-checkbox" htmlFor="dB">dB</CLabel>
+              <CLabel variant="custom-checkbox" htmlFor="return_itc">ITC</CLabel>
             </CFormGroup>
           </CCol>
         </CFormGroup>
