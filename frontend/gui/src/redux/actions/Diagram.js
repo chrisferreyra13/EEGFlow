@@ -446,6 +446,7 @@ export const fetchSignal = (id, channels, plotParams, nodeId, dataType, plotProc
             endpoint=endpoint+ 'time_frequency/?'
             requestParams={
                 id:id,
+                type: plotParams["type"]==undefined ? 'morlet': plotParams["type"],
                 channels: channels==undefined ? '': channels,
                 epochs: plotParams.epochs==null ? '': plotParams.epochs,
                 vrange:[plotParams.vmin,plotParams.vmax],
@@ -454,19 +455,22 @@ export const fetchSignal = (id, channels, plotParams, nodeId, dataType, plotProc
                 average:plotParams["average"] == undefined ? '': plotParams["average"],
                 return_itc:plotParams["return_itc"] == undefined ? '': plotParams["return_itc"],
                 dB:plotParams["dB"] == undefined ? '': plotParams["dB"],
+                
             }
-            switch(plotParams["type"]){
+            switch(requestParams["type"]){
                 case 'morlet':
                     requestParams["freqs"]=[plotParams.minFreq,plotParams.maxFreq,plotParams.stepFreq]
                     requestParams["n_cycles"]=plotParams["n_cycles"] == undefined ? '': plotParams["n_cycles"]
                     requestParams["use_fft"]=plotParams["use_fft"] == undefined ? '': plotParams["use_fft"]
                     requestParams["zero_mean"]=plotParams["zero_mean"] == undefined ? '': plotParams["zero_mean"]
+                    requestParams["log"]=plotParams["log"] == undefined ? '': plotParams["log"]
                     break
                 case 'multitaper':
                     requestParams["freqs"]=[plotParams.minFreq,plotParams.maxFreq,plotParams.stepFreq]
                     requestParams["n_cycles"]=plotParams["n_cycles"] == undefined ? '': plotParams["n_cycles"]
                     requestParams["use_fft"]=plotParams["use_fft"] == undefined ? '': plotParams["use_fft"]
                     requestParams["time_bandwidth"]=plotParams["time_bandwidth"] == undefined ? '': plotParams["time_bandwidth"]
+                    requestParams["log"]=plotParams["log"] == undefined ? '': plotParams["log"]
                     break
                 case 'stockwell':
                     requestParams["fmin"]=plotParams["fmin"] == undefined ? '': plotParams["fmin"]

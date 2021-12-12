@@ -3,6 +3,7 @@
 
 from datetime import time
 import os
+from math import log10
 from django.http.response import HttpResponseBadRequest
 
 from django.shortcuts import render
@@ -387,10 +388,10 @@ class GetTimeFrequency(APIView):
         if channels==None or channels=='prev': # Si es None, agarro todos
             channels_idxs=mne.pick_types(instance.info,eeg=True) #Retorna los indices internos del instance
             
-            if channels=='prev': # select just two channels for preview purposes
-                if len(channels_idxs)>=2:
-                    channels_idxs=channels_idxs[:2]
-                else: channels_idxs=channels_idxs[0]
+            if channels=='prev': # select just one channel for preview purposes
+                if len(channels_idxs)>=2: #TODO: En t-f solo usar un canal
+                    channels_idxs=[channels_idxs[0]]
+                else: channels_idxs=[channels_idxs[0]]
 
             eeg_info=mne.pick_info(instance.info, sel=channels_idxs)
             returned_channels=eeg_info["ch_names"]
@@ -535,6 +536,20 @@ class GetTimeFrequency(APIView):
                     return Response('An invalid dB value has been provided.',
                         status=status.HTTP_400_BAD_REQUEST)
 
+        # get if frequencies log spaced
+        if 'log' not in request.query_params:
+            log=False
+        else:
+            log=request.query_params["log"]
+            if (not log) or (log == ''): 
+                log=False
+            else:
+                if log in ["true","false"]:
+                    log=True if log=='true' else False
+                else:
+                    return Response('An invalid log value has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+
         # get freqs of tf
         if 'freqs' not in request.query_params:
             # * start, end, step
@@ -554,7 +569,11 @@ class GetTimeFrequency(APIView):
                     return Response('An invalid frequency range has been provided.',
                         status=status.HTTP_400_BAD_REQUEST)
 
-        freqs=np.arange(freqs[0],freqs[1],freqs[2])
+        num=int(abs(freqs[1]-freqs[0])/freqs[2])
+        if log:
+            freqs=np.logspace(log10(freqs[0]),log10(freqs[1]),num, dtype=float)
+        else:
+            freqs=np.linspace(freqs[0],freqs[1],num,dtype=float)
 
         #TODO: ver como hacer para poner un n_cycles por defecto sin q explote
         if 'n_cycles' not in request.query_params:

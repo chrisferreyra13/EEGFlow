@@ -49,7 +49,7 @@ class ChartTimeFrequency extends Component {
 
 			}
 		}
-
+		console.log(nodePlot.params)
 		this.preprocessData=this.preprocessData.bind(this);
 
 		let style={} //Seteando las dimensiones del grafico en base a los parametros

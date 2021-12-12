@@ -126,7 +126,7 @@ class ChartTF extends Component {
           heatmapDataType: "intensity",
         })
         // Use palletted fill style, intensity values define the color for each data point based on the LUT
-        
+        .setPixelInterpolationMode('disable')
         .setFillStyle(
           new PalettedFill({
             lut: new LUT({
