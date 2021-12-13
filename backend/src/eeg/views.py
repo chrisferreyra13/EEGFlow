@@ -479,15 +479,30 @@ class GetTimeFrequency(APIView):
             if (not vrange) or (vrange == []) or (vrange == '') or (vrange == ','):
                 vmin, vmax=None,None
             else:
-                try:
-                    vmin, vmax=[float(f) for f in vrange.split(',')]
-                except:
-                    return Response('An invalid heatmap value range has been provided.',
-                        status=status.HTTP_400_BAD_REQUEST)
-                
-                if vmin>vmax:
-                    return Response('An invalid heatmap value range has been provided.',
-                        status=status.HTTP_400_BAD_REQUEST)
+                vrange=vrange.split(',')
+                vmin=vrange[0]
+                vmax=vrange[1]
+                if vmin=='':
+                    vmin=None
+                else:
+                    try:
+                        vmin=float(vmin)
+                    except:
+                        return Response('An invalid heatmap value range has been provided.',
+                            status=status.HTTP_400_BAD_REQUEST)
+
+                if vmax=='':
+                    vmax=None
+                else:
+                    try:
+                        vmax=float(vmax)
+                    except:
+                        return Response('An invalid heatmap value range has been provided.',
+                            status=status.HTTP_400_BAD_REQUEST)
+                if None not in [vmin,vmax]:
+                    if vmin>vmax:
+                        return Response('An invalid heatmap value range has been provided.',
+                            status=status.HTTP_400_BAD_REQUEST)
 
         # get baseline correction
         if 'baseline' not in request.query_params:
@@ -649,6 +664,11 @@ class GetTimeFrequency(APIView):
         tfr = mne.time_frequency.tfr._preproc_tfr_instance(
             tfr, None, tmin, tmax, fmin, fmax, vmin, vmax, dB, mode,
             baseline, exclude=None, copy=True)
+        
+        # The above fuction doesn't multiply by 10 for these baseline corrections 
+        # I think this is wrong.
+        if mode in ['logratio','zlogratio'] and baseline is not None: 
+            tfr.data=10*tfr.data #corrected
 
         tmin, tmax = tfr.times[[0, -1]]
         if vmax is None:

@@ -84,7 +84,12 @@ class EpochsForm extends Component{
         <CFormGroup row>
           <CCol md="12">
             <CLabel htmlFor="freq-inf">Canales</CLabel>
-            <Select options={this.state.options} isMulti value={this.getValue("channels")==null ? null : this.getValue("channels").map(ch => {return {value:ch, label:ch}})} onChange={(options) => this.handleMultiSelect(options,'channels')}/>
+            <Select 
+            options={this.state.options} 
+            isMulti 
+            value={this.getValue("channels")==null ? null : this.getValue("channels").map(ch => {return {value:ch, label:ch}})} 
+            onChange={(options) => this.handleMultiSelect(options,'channels')}
+            />
           </CCol>
         </CFormGroup>
         <CFormGroup row>
@@ -105,7 +110,7 @@ class EpochsForm extends Component{
                   <CInput 
                   id="tmin" 
                   placeholder={"tiempo mínimo (seg)"} 
-                  type="number" step="0.01" max="0"
+                  type="number" step="0.001" max="0"
                   required
                   value={this.getValue('tmin')==null ? '': this.getValue('tmin')} 
                   onChange={(event) => this.handleChange(event,'tmin')}
@@ -115,7 +120,7 @@ class EpochsForm extends Component{
                   <CInput 
                   id="tmax" 
                   placeholder={"tiempo máximo (seg)"} 
-                  type="number" min="0" step="0.01"
+                  type="number" min="0" step="0.001"
                   required
                   value={this.getValue('tmax')==null ? '': this.getValue('tmax')} 
                   onChange={(event) => this.handleChange(event,'tmax')}

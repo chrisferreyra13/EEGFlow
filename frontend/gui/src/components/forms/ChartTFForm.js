@@ -167,8 +167,7 @@ class ChartTFForm extends Component{
     if(id=='mode'){
       if(option.value=='logratio' || option.value=='zlogratio'){
         if(document.getElementById('dB').checked==false){
-          this.props.onChange('dB', 'true');
-          document.getElementById('dB').checked=true
+          this.props.onChange('dB', 'false');
           document.getElementById('dB').disabled=true
         }
       }
@@ -292,7 +291,7 @@ class ChartTFForm extends Component{
         </CFormGroup>
         <CFormGroup row>
           <CCol md="6">
-              <CLabel htmlFor="baseline">Corrección de linea de base:</CLabel>
+              <CLabel htmlFor="baseline">Corrección de linea de base (seg):</CLabel>
           </CCol>
           <CCol md="4">
               <CInput id="baseline" placeholder={"ejemplos: 0,0.1 o ,"} value={this.getValue('baseline')} onChange={(event) => this.handleChange(event,'baseline')}/>

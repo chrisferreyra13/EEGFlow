@@ -64,9 +64,6 @@ class ChartTF extends Component {
         unit=this.props.dB==true ? 'dB' : '\u03BCV²/Hz';
       }
       
-      // Define function that maps Uint8 [0, 255] to Decibels.
-      //const intensityDataToDb = (intensity) =>
-      //minDecibels + (intensity / 255) * (maxDecibels - minDecibels);
       // Start position of the heatmap
       const start = {
         x: minTime,
@@ -92,14 +89,19 @@ class ChartTF extends Component {
       const scientificNotString = (x, f) => {
         return Number.parseFloat(x).toExponential(f);
       }
-      let lutRangeString=lutRange.map(v => {
+      const ajustValueExpression=(v,f) => {
         if(v==0){
           return '0'
         }
         else{
           if(Math.abs(v)<1000){
             if(Math.abs(v)<10){
-              return v.toFixed(2).toString();
+              if(Math.abs(v)<0.0001){
+                return scientificNotString(v,f)
+                 //is a power value
+              }else{
+                return v.toFixed(2).toString();
+              }
             }else{
               if(Math.abs(maxValue-minValue)<10){return v.toFixed(1).toString();}
               else{return Math.round(v).toString();}
@@ -107,11 +109,46 @@ class ChartTF extends Component {
             }
           }
           else{
-            return scientificNotString(v,1)
+            return scientificNotString(v,f)
           }
         }
-        
+      }
+      let lutRangeString=lutRange.map(v => {
+        return ajustValueExpression(v,1)
       })
+      //lut for power plot
+      let colorSteps=[
+        {value: lutRange[0],color: ColorHSV(221, 1, 0.82),label: `${lutRangeString[0]}`,},
+        {value: lutRange[1],color: ColorHSV(200, 0.70, 0.89),label: `${lutRangeString[1]}`,},
+        {value: lutRange[2],color: ColorHSV(176, 0.43, 0.94),label: `${lutRangeString[2]}`,},
+        {value: lutRange[3],color: ColorHSV(0, 0, 1),label: `${lutRangeString[3]}`,},
+        {value: lutRange[4],color: ColorHSV(20, 0.40, 0.99),label: `${lutRangeString[4]}`,},
+        {value: lutRange[5],color: ColorHSV(357, 0.80, 0.84),label: `${lutRangeString[5]}`,},
+        {value: lutRange[6],color: ColorHSV(354, 0.89, 0.72),label: `${lutRangeString[6]}`,},
+      ]
+      if(isITC){
+        /*colorSteps=[
+          {value: lutRange[0],color: ColorHSV(0, 0, 1),label: `${lutRangeString[0]}`,},
+          {value: lutRange[1],color: ColorHSV(18, 0.314, 1),label: `${lutRangeString[1]}`,},
+          {value: lutRange[2],color: ColorHSV(14, 0.545, 1),label: `${lutRangeString[2]}`,},
+          {value: lutRange[3],color: ColorHSV(0, 1, 0.996),label: `${lutRangeString[3]}`,},
+          {value: lutRange[4],color: ColorHSV(0, 1, 0.843),label: `${lutRangeString[4]}`,},
+          {value: lutRange[5],color: ColorHSV(0, 1, 0.655),label: `${lutRangeString[5]}`,},
+          {value: lutRange[6],color: ColorHSV(0, 1, 0.435),label: `${lutRangeString[6]}`,},
+        ]*/
+        colorSteps=[ //
+          {value: lutRange[0],color: ColorHSV(0, 0, 1),label: `${lutRangeString[0]}`,},
+          {value: lutRange[1],color: ColorHSV(20, 0.129, 1),label: `${lutRangeString[1]}`,},
+          {value: lutRange[2],color: ColorHSV(16, 0.454, 0.976),label: `${lutRangeString[2]}`,},
+          {value: lutRange[3],color: ColorHSV(12, 0.732, 0.98),label: `${lutRangeString[3]}`,},
+          {value: lutRange[4],color: ColorHSV(12, 0.832, 0.98),label: `${lutRangeString[4]}`,},
+          {value: lutRange[5],color: ColorHSV(357, 0.80, 0.84),label: `${lutRangeString[5]}`,},
+          {value: lutRange[6],color: ColorHSV(354, 0.89, 0.72),label: `${lutRangeString[6]}`,},
+        ]
+
+      }
+
+
       const series = chart
         .addHeatmapGridSeries({
           // Data columns, defines horizontal resolution
@@ -128,46 +165,10 @@ class ChartTF extends Component {
         // Use palletted fill style, intensity values define the color for each data point based on the LUT
         .setPixelInterpolationMode('disable')
         .setFillStyle(
-          new PalettedFill({
-            lut: new LUT({
-              steps: [
-                {
-                  value: lutRange[0],
-                  color: ColorHSV(221, 1, 0.82),
-                  label: `${lutRangeString[0]}`,
-                },
-                {
-                  value: lutRange[1],
-                  color: ColorHSV(200, 0.70, 0.89),
-                  label: `${lutRangeString[1]}`,
-                },
-                {
-                  value: lutRange[2],
-                  color: ColorHSV(176, 0.43, 0.94),
-                  label: `${lutRangeString[2]}`,
-                },
-                {
-                  value: lutRange[3],
-                  color: ColorHSV(0, 0, 1),
-                  label: `${lutRangeString[3]}`,
-                },
-                {
-                  value: lutRange[4],
-                  color: ColorHSV(20, 0.40, 0.99),
-                  label: `${lutRangeString[4]}`,
-                },
-                {
-                  value: lutRange[5],
-                  color: ColorHSV(357, 0.80, 0.84),
-                  label: `${lutRangeString[5]}`,
-                },
-                {
-                  value: lutRange[6],
-                  color: ColorHSV(354, 0.89, 0.72),
-                  label: `${lutRangeString[6]}`,
-                },
-              ],
-              Units: unit,
+          new PalettedFill(
+            {lut: new LUT({
+              steps: colorSteps,
+              units: unit,
               interpolate: true,
             }),
           })
@@ -178,7 +179,7 @@ class ChartTF extends Component {
             .addRow(series.getName())
             .addRow("X:", "", series.axisX.formatValue(dataPoint.x))
             .addRow("Y:", "", series.axisY.formatValue(dataPoint.y))
-            .addRow("", scientificNotString(dataPoint.intensity,2) + " "+unit)
+            .addRow("", ajustValueExpression(dataPoint.intensity,2) + " "+unit)
         );
     
       // Set default X axis settings

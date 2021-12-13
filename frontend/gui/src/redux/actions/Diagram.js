@@ -449,7 +449,10 @@ export const fetchSignal = (id, channels, plotParams, nodeId, dataType, plotProc
                 type: plotParams["type"]==undefined ? 'morlet': plotParams["type"],
                 channels: channels==undefined ? '': channels,
                 epochs: plotParams.epochs==null ? '': plotParams.epochs,
-                vrange:[plotParams.vmin,plotParams.vmax],
+                vrange:[
+                    plotParams["vmin"] == undefined ? '': plotParams["vmin"],
+                    plotParams["vmax"] == undefined ? '': plotParams["vmax"],
+                ],
                 baseline:plotParams["baseline"] == undefined ? '': plotParams["baseline"],
                 mode:plotParams["mode"] == undefined ? '': plotParams["mode"],
                 average:plotParams["average"] == undefined ? '': plotParams["average"],
