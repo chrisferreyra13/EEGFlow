@@ -46,6 +46,16 @@ export function updateAfterDeleteElements(newElements, numOfNodesRemoved){
     }
 }
 
+
+export const UPDATE_OUTPUT_NODE_COLOR='UPDATE_OUTPUT_NODE_COLOR'
+export function updateOutputColor(outputNodeId,processed){
+    return {
+        type:UPDATE_OUTPUT_NODE_COLOR,
+        outputNodeId:outputNodeId,
+        processed:processed
+    }
+}
+
 export const SET_NODE_FILE_ID='SET_NODE_FILE_ID'
 export function setNodeFileId(fileId){
     return {
@@ -395,19 +405,6 @@ function errorFetchingSignal(payload){
     }
 }
 
-/*function selectSignalType(type){
-    switch(type){
-        case 'TIME_SERIES':
-            return 'time_series/?'
-        case 'PSD':
-            return 'psd/?'
-        case 'TIME_FREQUENCY':
-            return 'time_frequency/?'
-        default:
-            return 'time_series/?'
-    }
-}*/
-
 export const fetchSignal = (id, channels, plotParams, nodeId, dataType, plotProcessId) => async (dispatch) => {
     let endpoint=API_ROOT;
     let requestParams;
@@ -449,26 +446,34 @@ export const fetchSignal = (id, channels, plotParams, nodeId, dataType, plotProc
             endpoint=endpoint+ 'time_frequency/?'
             requestParams={
                 id:id,
+                type: plotParams["type"]==undefined ? 'morlet': plotParams["type"],
                 channels: channels==undefined ? '': channels,
                 epochs: plotParams.epochs==null ? '': plotParams.epochs,
-                vrange:[plotParams.vmin,plotParams.vmax],
+                vrange:[
+                    plotParams["vmin"] == undefined ? '': plotParams["vmin"],
+                    plotParams["vmax"] == undefined ? '': plotParams["vmax"],
+                ],
                 baseline:plotParams["baseline"] == undefined ? '': plotParams["baseline"],
                 mode:plotParams["mode"] == undefined ? '': plotParams["mode"],
                 average:plotParams["average"] == undefined ? '': plotParams["average"],
+                return_itc:plotParams["return_itc"] == undefined ? '': plotParams["return_itc"],
                 dB:plotParams["dB"] == undefined ? '': plotParams["dB"],
+                
             }
-            switch(plotParams["type"]){
+            switch(requestParams["type"]){
                 case 'morlet':
                     requestParams["freqs"]=[plotParams.minFreq,plotParams.maxFreq,plotParams.stepFreq]
                     requestParams["n_cycles"]=plotParams["n_cycles"] == undefined ? '': plotParams["n_cycles"]
                     requestParams["use_fft"]=plotParams["use_fft"] == undefined ? '': plotParams["use_fft"]
                     requestParams["zero_mean"]=plotParams["zero_mean"] == undefined ? '': plotParams["zero_mean"]
+                    requestParams["log"]=plotParams["log"] == undefined ? '': plotParams["log"]
                     break
                 case 'multitaper':
                     requestParams["freqs"]=[plotParams.minFreq,plotParams.maxFreq,plotParams.stepFreq]
                     requestParams["n_cycles"]=plotParams["n_cycles"] == undefined ? '': plotParams["n_cycles"]
                     requestParams["use_fft"]=plotParams["use_fft"] == undefined ? '': plotParams["use_fft"]
                     requestParams["time_bandwidth"]=plotParams["time_bandwidth"] == undefined ? '': plotParams["time_bandwidth"]
+                    requestParams["log"]=plotParams["log"] == undefined ? '': plotParams["log"]
                     break
                 case 'stockwell':
                     requestParams["fmin"]=plotParams["fmin"] == undefined ? '': plotParams["fmin"]

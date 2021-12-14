@@ -77,12 +77,17 @@ class ChartTemporal extends Component {
 		let limit;
 		let minIndex=0;
 		let maxIndex=0;
+
+		let message='';
+
 		const dataType='TIME_SERIES';
 		if(nodePlot.inputData.inputNodeId!=null){
 			const nodeInput=this.props.elements.find((elem) => elem.id==nodePlot.inputData.inputNodeId)
 
 			if(nodeInput.params.channels==undefined){channels=params.channels}
-			else{channels=nodeInput.params.channels}
+			else{
+				channels=nodeInput.params.channels
+			}
 
 			let signalData=nodeInput.signalsData.find(s => {
 				if(s.processId==nodePlot.processParams.processId && s.dataType==dataType)return true
@@ -102,7 +107,7 @@ class ChartTemporal extends Component {
 				}
 				else{
 					if(Object.keys(this.props.prevParams).includes(nodePlot.id)){
-						if(JSON.stringify(this.props.prevParams[nodePlot.id])!==JSON.stringify(nodePlot.params)){
+						if(JSON.stringify(this.props.prevParams[nodePlot.id])!==JSON.stringify(params)){
 							this.props.deleteItemInputsReady(signalData.id)
 							oldSignalId=signalData.id
 							fetchSignal=true
@@ -112,6 +117,11 @@ class ChartTemporal extends Component {
 				}
 			}
 			if(fetchSignal){
+				message=<div>
+						<h4>Cargando...</h4>
+						<CIcon size= "xl" name="cil-cloud-download"/>
+						</div>
+				
 				this.props.fetchSignal(nodeInput.params.id,channels,params,nodeInput.id,dataType,nodePlot.processParams.processId)
 				this.props.updatePlotParams(nodePlot.id,{...params})
 			}
@@ -122,7 +132,7 @@ class ChartTemporal extends Component {
 
 			
 			let prepareData=false
-			if(signalData!=undefined){
+			if(signalData!=undefined && !fetchSignal){
 				if(this.props.inputsReady.includes(signalData.id)){
 					if(params.channels=='prev'){
 						// if 'prev' (when the user didn't set channels) use signalData as default
@@ -162,6 +172,11 @@ class ChartTemporal extends Component {
 				}
 			}
 			
+		}else{
+			message=<div>
+						<h4>No procesado.</h4>
+						<CIcon size= "xl" name="cil-x-circle"/>
+					</div>
 		}
 		this.state={
 			dataReady:dataReady,
@@ -178,6 +193,7 @@ class ChartTemporal extends Component {
 			minIndex:minIndex,
 			maxIndex:maxIndex,
 			outputType:outputType,
+			message:message
 
 		}
 
@@ -185,8 +201,9 @@ class ChartTemporal extends Component {
 
 	preprocessData(signalData, plotChannels,plotParams,updating){
 		let dataX=[]
-		if(signalData.utils.times!=undefined)
-			dataX=signalData.times
+		if(signalData.utils!=undefined)
+			if(signalData.utils.times!=undefined)
+				dataX=signalData.utils.times
 
 		let limit = signalData.data[0].length;
 		let minIndex=0;
@@ -340,6 +357,7 @@ class ChartTemporal extends Component {
 							<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
 								{this.state.params.channels.length==1 ?
 								<ChartChannelTime
+								nodeId={this.props.nodeId}
 								methodResult={this.state.methodResult}
 								data={this.state.data[0]}
 								chartStyle={{height: '100%', width:'100%', alignItems:'center'}}
@@ -347,6 +365,7 @@ class ChartTemporal extends Component {
 								epoch={this.state.params.epochs}
 								/> :
 								<ChartChannelsTime
+								nodeId={this.props.nodeId}
 								methodResult={this.state.methodResult}
 								data={this.state.data}
 								chartStyle={{height: '100%', width:'100%', alignItems:'center'}}
@@ -357,8 +376,7 @@ class ChartTemporal extends Component {
 							</div>
 							:
 							<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
-								<h4>Cargando...</h4>
-								<CIcon size= "xl" name="cil-cloud-download"/>
+								{this.state.message}
 							</div>
 						}
 					</CCardBody>

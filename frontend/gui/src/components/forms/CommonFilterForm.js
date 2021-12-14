@@ -135,7 +135,7 @@ class CommonFilterForm extends Component{
             <div>
                 <CFormGroup row>
                     <CCol md="7">
-                        <CLabel htmlFor="l_trans_bandwidth">Ancho de banda de transición inf. (Hz):</CLabel>
+                        <CLabel htmlFor="l_trans_bandwidth">Banda de transición inf. (Hz):</CLabel>
                     </CCol>
                     <CCol md="4">
                         <CInput id="l_trans_bandwidth" placeholder={"default: 'auto'"} type="number" min="0" step="0.01" value={this.getValue('l_trans_bandwidth')} onChange={(event) => this.handleChange(event,'l_trans_bandwidth')}/>
@@ -143,7 +143,7 @@ class CommonFilterForm extends Component{
                 </CFormGroup>
                 <CFormGroup row>
                     <CCol md="7">
-                        <CLabel htmlFor="h_trans_bandwidth">Ancho de banda de transición sup. (Hz):</CLabel>
+                        <CLabel htmlFor="h_trans_bandwidth">Banda de transición sup. (Hz):</CLabel>
                     </CCol>
                     <CCol md="4">
                         <CInput id="h_trans_bandwidth" placeholder={"default: 'auto'"} type="number" min="0" step="0.01" value={this.getValue('h_trans_bandwidth')} onChange={(event) => this.handleChange(event,'h_trans_bandwidth')}/>

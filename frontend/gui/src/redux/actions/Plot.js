@@ -6,3 +6,13 @@ export function updatePlotParams(id,params){
         params:params
     }
 }
+
+export const UPDATE_SAVE_PLOT='UPDATE_SAVE_PLOT'
+export function updateSavePlot(nodeId,filename,format){
+    return {
+        type: UPDATE_SAVE_PLOT,
+        nodeId:nodeId,
+        filename:filename,
+        format:format
+    }
+}

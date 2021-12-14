@@ -1,4 +1,5 @@
 import React, {Component} from 'react'
+import {connect} from 'react-redux'
 import {
     lightningChart,
     emptyFill,
@@ -12,7 +13,7 @@ import {
     ColorHSV,
     UIElementBuilders
 } from "@arction/lcjs"
-
+import {updateSavePlot} from '../../redux/actions/Plot'
 // TODO: Poner los estilos en un css
 
 // Use theme if provided
@@ -26,16 +27,25 @@ class ChartChannels extends Component {
         let theme = Themes.light
         // Define channels.
         const channels = this.props.channels
-        let intervalMin=this.props.data[0][0].y
-        let intervalMax=this.props.data[0][0].y
-        this.props.data[0].forEach((p) => {
-            if(p.y<intervalMin){
-                intervalMin=p.y
+        let intervalMin=0
+        let intervalMax=0
+        let idx=0;
+        do{
+            intervalMin=this.props.data[idx][0].y
+            intervalMax=this.props.data[idx][0].y
+            this.props.data[idx].forEach((p) => {
+                if(p.y<intervalMin){
+                    intervalMin=p.y
+                }
+                if(p.y>intervalMax){
+                    intervalMax=p.y
+                }
+            })
+            idx+=1;
+            if(idx>=this.props.data.length){
+                break
             }
-            if(p.y>intervalMax){
-                intervalMax=p.y
-            }
-        })
+        }while(intervalMax==0 && intervalMin==0)
         
         const channelHeight = Math.abs(intervalMax-intervalMin)
         const channelGap = 0.2
@@ -106,6 +116,24 @@ class ChartChannels extends Component {
                 })                         
         })
 
+        // Style AutoCursor.
+        this.chart.setAutoCursor((autoCursor) => autoCursor
+            .setGridStrokeYStyle(emptyLine)
+            .disposeTickMarkerY()
+        )
+        const resultTableFormatter=(tableContentBuilder, activeSeries, x, y) => {
+            //let activeSeriesFormatted=LineSeries(activeSeries)
+            const seriesIndex = this.series.indexOf(activeSeries)
+            return tableContentBuilder
+                .addRow(activeSeries.getName())
+                .addRow('X', '', activeSeries.axisX.formatValue(x))
+                // Translate Y coordinate back to [0, 1].
+                .addRow('Y', '', activeSeries.axisY.formatValue(y - (seriesIndex + 0.5) * channelHeight + seriesIndex * channelGap))
+        }
+
+        this.series.forEach((series) => series.setCursorResultTableFormatter(resultTableFormatter))
+
+
         switch(this.props.methodResult.type){
             case "MAX_PEAK":
                 if(this.props.methodResult.data.length!=0){
@@ -161,11 +189,17 @@ class ChartChannels extends Component {
 
         }
         
-        // Style AutoCursor.
-        this.chart.setAutoCursor((autoCursor) => autoCursor
-            .setGridStrokeYStyle(emptyLine)
-            .disposeTickMarkerY()
-        )
+    }
+    componentDidUpdate(prevProps){
+		if(prevProps.savePlot.save!==this.props.savePlot.save){
+            if(this.props.savePlot.save && this.props.savePlot.id==this.props.nodeId){
+                this.chart.saveToFile(
+                    this.props.savePlot.filename,
+                    'image/'+this.props.savePlot.format
+                    )
+                this.props.updateSavePlot(this.props.savePlot.id,this.props.savePlot.filename,this.props.savePlot.format)
+            }
+        }
     }
     componentDidMount() {
         // Chart can only be created when the component has mounted the DOM as 
@@ -183,6 +217,16 @@ class ChartChannels extends Component {
     }
     
 }
-
-export default ChartChannels;
+const mapStateToProps = (state) => {
+	return{
+	  savePlot:state.plotParams.savePlot
+	};
+}
+  
+const mapDispatchToProps = (dispatch) => {
+	return {
+        updateSavePlot:(nodeId,filename,format) => dispatch(updateSavePlot(nodeId,filename,format)),
+    }
+};
+export default connect(mapStateToProps, mapDispatchToProps)(ChartChannels)
 

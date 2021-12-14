@@ -3,6 +3,7 @@
 
 from datetime import time
 import os
+from math import log10
 from django.http.response import HttpResponseBadRequest
 
 from django.shortcuts import render
@@ -27,7 +28,7 @@ from filemanager.models import StoredUpload, TemporaryUpload, TemporaryOutput
 from filemanager.utils import _get_file_id, _get_user
 from filemanager.filemanager_settings import PROCESS_TMP
 
-from cconsciente.settings.base import MEDIA_TEMP, MEDIA_STORED, MEDIA_PROC_TEMP_OUTPUT_PATH
+from eegflow.settings.base import MEDIA_TEMP, MEDIA_STORED, MEDIA_PROC_TEMP_OUTPUT_PATH
 
 from .utils import *
 
@@ -272,7 +273,7 @@ class GetTimeSeries(APIView):
             returned_channels=channels
             ch_names=instance.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
             if set(channels).issubset(set(ch_names)):
-                channels_idxs=mne.pick_channels(ch_names, include=channels) #Retorna los indices internos del instance
+                channels_idxs=mne.pick_channels(ch_names, include=channels,ordered=True) #Retorna los indices internos del instance
             else:
                 return Response('An invalid list of channels has been provided.',
                             status=status.HTTP_400_BAD_REQUEST)
@@ -309,6 +310,8 @@ class GetTimeSeries(APIView):
         if len(np.shape(data))==2 and epochs is None: # raw object
             time_series=data 
         else:
+            if epochs is None:
+                epochs=1 # default 
             n_epochs,n_channels,n_times=np.shape(data) #get the shape of the object
             time_series=[]
             times=instance.times
@@ -324,7 +327,9 @@ class GetTimeSeries(APIView):
 
         response=Response({
             'signal':time_series,
-            'times':times,
+            'utils':{
+                'times':times,
+            },
             'sampling_freq':instance.info['sfreq'],
             'ch_names': returned_channels,
             })
@@ -383,10 +388,10 @@ class GetTimeFrequency(APIView):
         if channels==None or channels=='prev': # Si es None, agarro todos
             channels_idxs=mne.pick_types(instance.info,eeg=True) #Retorna los indices internos del instance
             
-            if channels=='prev': # select just two channels for preview purposes
-                if len(channels_idxs)>=2:
-                    channels_idxs=channels_idxs[:2]
-                else: channels_idxs=channels_idxs[0]
+            if channels=='prev': # select just one channel for preview purposes
+                if len(channels_idxs)>=2: #TODO: En t-f solo usar un canal
+                    channels_idxs=[channels_idxs[0]]
+                else: channels_idxs=[channels_idxs[0]]
 
             eeg_info=mne.pick_info(instance.info, sel=channels_idxs)
             returned_channels=eeg_info["ch_names"]
@@ -395,7 +400,7 @@ class GetTimeFrequency(APIView):
             returned_channels=channels
             ch_names=instance.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
             if set(channels).issubset(set(ch_names)):
-                channels_idxs=mne.pick_channels(ch_names, include=channels) #Retorna los indices internos del instance
+                channels_idxs=mne.pick_channels(ch_names, include=channels,ordered=True) #Retorna los indices internos del instance
             else:
                 return Response('An invalid list of channels has been provided.',
                             status=status.HTTP_400_BAD_REQUEST)
@@ -437,6 +442,21 @@ class GetTimeFrequency(APIView):
                     return Response('An invalid type of time-frequency method has been provided.',
                         status=status.HTTP_400_BAD_REQUEST)
 
+        
+        # return itc if return_itc is true
+        if 'return_itc' not in request.query_params:
+            return_itc=False
+        else:
+            return_itc=request.query_params["return_itc"]
+            if (not return_itc) or (return_itc == ''):
+                return_itc=False
+            else:
+                if return_itc in ["true","false"]:
+                    return_itc=True if return_itc=='true' else False
+                else:
+                    return Response('An invalid return_itc value has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+
         # get if average result for morlet o multitaper (stockwell always average result)
         if 'average' not in request.query_params:
             average=False
@@ -446,7 +466,7 @@ class GetTimeFrequency(APIView):
                 average=False
             else:
                 if average in ["true","false"]:
-                    average=True if 'true' else False
+                    average=True if average=='true' else False
                 else:
                     return Response('An invalid average value has been provided.',
                         status=status.HTTP_400_BAD_REQUEST)
@@ -456,18 +476,33 @@ class GetTimeFrequency(APIView):
             vmin, vmax = None,None  # Define our color limits.
         else:
             vrange=request.query_params['vrange']
-            if (not vrange) or (vrange == []) or (vrange == ''):
+            if (not vrange) or (vrange == []) or (vrange == '') or (vrange == ','):
                 vmin, vmax=None,None
             else:
-                try:
-                    vmin, vmax=[float(f) for f in vrange.split(',')]
-                except:
-                    return Response('An invalid heatmap value range has been provided.',
-                        status=status.HTTP_400_BAD_REQUEST)
-                
-                if vmin>vmax:
-                    return Response('An invalid heatmap value range has been provided.',
-                        status=status.HTTP_400_BAD_REQUEST)
+                vrange=vrange.split(',')
+                vmin=vrange[0]
+                vmax=vrange[1]
+                if vmin=='':
+                    vmin=None
+                else:
+                    try:
+                        vmin=float(vmin)
+                    except:
+                        return Response('An invalid heatmap value range has been provided.',
+                            status=status.HTTP_400_BAD_REQUEST)
+
+                if vmax=='':
+                    vmax=None
+                else:
+                    try:
+                        vmax=float(vmax)
+                    except:
+                        return Response('An invalid heatmap value range has been provided.',
+                            status=status.HTTP_400_BAD_REQUEST)
+                if None not in [vmin,vmax]:
+                    if vmin>vmax:
+                        return Response('An invalid heatmap value range has been provided.',
+                            status=status.HTTP_400_BAD_REQUEST)
 
         # get baseline correction
         if 'baseline' not in request.query_params:
@@ -477,15 +512,18 @@ class GetTimeFrequency(APIView):
             if (not baseline) or (baseline == []) or (baseline == ''):
                 baseline = None
             else:
-                try:
-                    baseline=tuple([float(f) for f in baseline.split(',')])
-                except:
-                    return Response('An invalid baseline correction range has been provided.',
-                        status=status.HTTP_400_BAD_REQUEST)
+                if baseline == ',':
+                    baseline=(None, None) # Apply baseline correction to full time range
+                else:
+                    try:
+                        baseline=tuple([float(f) for f in baseline.split(',')])
+                    except:
+                        return Response('An invalid baseline correction range has been provided.',
+                            status=status.HTTP_400_BAD_REQUEST)
                 
-                if vmin>vmax:
-                    return Response('An invalid baseline correction range has been provided.',
-                        status=status.HTTP_400_BAD_REQUEST)
+                    if baseline[0]>baseline[1]:
+                        return Response('An invalid baseline correction range has been provided.',
+                            status=status.HTTP_400_BAD_REQUEST)
         
         # get baseline correction mode: ‘mean’ | ‘ratio’ | ‘logratio’ | ‘percent’ | ‘zscore’ | ‘zlogratio’
         if 'mode' not in request.query_params:
@@ -508,9 +546,23 @@ class GetTimeFrequency(APIView):
                 dB=False
             else:
                 if dB in ["true","false"]:
-                    dB=True if 'true' else False
+                    dB=True if dB=='true' else False
                 else:
                     return Response('An invalid dB value has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+
+        # get if frequencies log spaced
+        if 'log' not in request.query_params:
+            log=False
+        else:
+            log=request.query_params["log"]
+            if (not log) or (log == ''): 
+                log=False
+            else:
+                if log in ["true","false"]:
+                    log=True if log=='true' else False
+                else:
+                    return Response('An invalid log value has been provided.',
                         status=status.HTTP_400_BAD_REQUEST)
 
         # get freqs of tf
@@ -532,7 +584,11 @@ class GetTimeFrequency(APIView):
                     return Response('An invalid frequency range has been provided.',
                         status=status.HTTP_400_BAD_REQUEST)
 
-        freqs=np.arange(freqs[0],freqs[1],freqs[2])
+        num=int(abs(freqs[1]-freqs[0])/freqs[2])
+        if log:
+            freqs=np.logspace(log10(freqs[0]),log10(freqs[1]),num, dtype=float)
+        else:
+            freqs=np.linspace(freqs[0],freqs[1],num,dtype=float)
 
         #TODO: ver como hacer para poner un n_cycles por defecto sin q explote
         if 'n_cycles' not in request.query_params:
@@ -581,7 +637,9 @@ class GetTimeFrequency(APIView):
             params=check_params(request.query_params,params_names=fields,params_values=defaults)
             if type(params)==Response: return params
 
-        return_itc=False
+        if not average: #just in case
+            return_itc=False
+
         data=time_frequency(
                     instance=instance,
                     picks=channels_idxs,
@@ -593,15 +651,24 @@ class GetTimeFrequency(APIView):
 
         if return_itc:
             tfr,itc=data
+            itc_data=itc.data
+            #print(itc)
         else:
             tfr=data
+            itc_data=[]
+        
         
 
         tmin,tmax=(None,None) # lo usamos por defecto por ahora -> todo el rango para viz
         fmin,fmax=(None,None) 
         tfr = mne.time_frequency.tfr._preproc_tfr_instance(
-            tfr, channels_idxs, tmin, tmax, fmin, fmax, vmin, vmax, dB, mode,
+            tfr, None, tmin, tmax, fmin, fmax, vmin, vmax, dB, mode,
             baseline, exclude=None, copy=True)
+        
+        # The above fuction doesn't multiply by 10 for these baseline corrections 
+        # I think this is wrong.
+        if mode in ['logratio','zlogratio'] and baseline is not None: 
+            tfr.data=10*tfr.data #corrected
 
         tmin, tmax = tfr.times[[0, -1]]
         if vmax is None:
@@ -622,7 +689,10 @@ class GetTimeFrequency(APIView):
                 power=tfr.data[epoch_idx]
 
         response=Response({
-            'signal':power,
+            'signal':{
+                'power':power,
+                'itc':itc_data
+            },
             'utils':{
                 'times':tfr.times,
                 'freqs':tfr.freqs,
@@ -701,7 +771,7 @@ class GetPSD(APIView):
             returned_channels=channels
             ch_names=instance.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
             if set(channels).issubset(set(ch_names)):
-                channels_idxs=mne.pick_channels(ch_names, include=channels) #Retorna los indices internos de raw
+                channels_idxs=mne.pick_channels(ch_names, include=channels,ordered=True) #Retorna los indices internos de raw
             else:
                 return Response('An invalid list of channels has been provided.',
                             status=status.HTTP_400_BAD_REQUEST)
@@ -849,7 +919,9 @@ class GetPSD(APIView):
         
         response=Response({
             'signal':psds,
-            'freqs':freqs,
+            'utils':{
+                'freqs':freqs,
+            },
             'sampling_freq':instance.info['sfreq'],
             'ch_names': returned_channels,
             })

@@ -49,7 +49,7 @@ class ChartPSDForm extends Component{
         if(elem.elementType=='EPOCHS')
           epochsExists=true
     })
-    let outputType=nodePlot.inputData.outputType==null? 'raw' : nodePlot.inputData.outputType
+    let outputType=nodePlot.inputData.outputType
     let eventSamples=null;
     let eventIds=null;
     let samplingFreq=null;
@@ -97,11 +97,27 @@ class ChartPSDForm extends Component{
     this.handleChangeInputRadio = this.handleChangeInputRadio.bind(this);
     this.handleMultiSelect=this.handleMultiSelect.bind(this);
     this.handleSelect=this.handleSelect.bind(this);
-    this.checkRadioButton=this.checkRadioButton.bind(this);
+    this.checkButtonsById=this.checkButtonsById.bind(this);
+    this.checkButtonsByBool=this.checkButtonsByBool.bind(this);
     this.getValue=this.getValue.bind(this);
+    this.handleCheckbox=this.handleCheckbox.bind(this);
 
   }
-  checkRadioButton(inputId,radioButtonIds){
+  handleCheckbox(e,checkboxId){
+    const checked = e.target.checked;
+    this.props.onChange(checkboxId, checked==true ? 'true' : 'false');
+  }
+  checkButtonsByBool(inputIds){
+    inputIds.forEach(id =>{
+      if(this.getValue(id)!=null){
+        if(this.getValue(id)=='true') // el id tiene que ser igual al valor del button
+          document.getElementById(id).checked=true
+        else
+          document.getElementById(id).checked=false
+      }
+    })
+  }
+  checkButtonsById(inputId,radioButtonIds){
     radioButtonIds.forEach(id => {
       if(this.getValue(inputId)==id) // el id tiene que ser igual al valor del button
         document.getElementById(id).checked=true
@@ -126,8 +142,9 @@ class ChartPSDForm extends Component{
   }
   componentDidMount(){
     this.props.onMountForm();
-    this.checkRadioButton('type',['welch','multitaper'])
-    this.checkRadioButton('size',['m','l'])
+    this.checkButtonsById('type',['welch','multitaper'])
+    this.checkButtonsById('size',['m','l'])
+    this.checkButtonsByBool(['adaptive','bias'])
   }
   getValue(inputId){
     if(Object.keys(this.props.values).length === 0 && this.props.values.constructor === Object){
@@ -146,7 +163,7 @@ class ChartPSDForm extends Component{
     return (
       <div>
         {
-          this.state.epochsExists==true && this.state.outputType=='raw' ?
+          this.state.epochsExists==true && this.state.outputType==null ?
           <CFormGroup row style={{margin:'0', width:'380px'}}>
             <CCol md="12">
               <CCard color="danger" className="text-white text-center">
@@ -192,7 +209,7 @@ class ChartPSDForm extends Component{
             {/*<CInput id="channels" placeholder="Ch1,Ch2,Ch3" required value={value('channels')} onChange={(event) => this.handleChange(event,'channels')}/>*/}
           </CCol>
         </CFormGroup>
-        {this.state.outputType=='raw' ?
+        {this.state.outputType=='raw' || this.state.outputType==null?
           <CFormGroup row>
             <CCol md="12">
               <CLabel htmlFor="timeWindow">Ventana de tiempo:</CLabel>
@@ -291,13 +308,23 @@ class ChartPSDForm extends Component{
                 <CFormGroup row>
                   <CCol md="6">
                     <CFormGroup variant="custom-checkbox" inline>
-                      <CInputCheckbox custom id="adaptive" name="inline-checkbox1" value="true"/>
+                      <CInputCheckbox 
+                      custom id="adaptive" 
+                      name="inline-checkbox1" 
+                      value="true"
+                      onClick={(e) => this.handleCheckbox(e,'adaptive')}
+                      />
                       <CLabel variant="custom-checkbox" htmlFor="adaptive">Pesos adaptativos</CLabel>
                     </CFormGroup>
                   </CCol>
                   <CCol md="6">
                     <CFormGroup variant="custom-checkbox" inline>
-                      <CInputCheckbox custom id="bias" name="inline-checkbox2" value="true"/>
+                      <CInputCheckbox 
+                      custom id="bias" 
+                      name="inline-checkbox2" 
+                      value="true"
+                      onClick={(e) => this.handleCheckbox(e,'bias')}
+                      />
                       <CLabel variant="custom-checkbox" htmlFor="bias">Bias bajo</CLabel>
                     </CFormGroup>
                   </CCol>

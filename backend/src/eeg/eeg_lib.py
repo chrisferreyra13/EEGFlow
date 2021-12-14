@@ -3,7 +3,7 @@ import mne
 import os
 import numpy as np
 from django.conf import settings
-from cconsciente.settings.base import MEDIA_TEMP, MEDIA_STORED, MEDIA_PROC_TEMP_OUTPUT_PATH
+from eegflow.settings.base import MEDIA_TEMP, MEDIA_STORED, MEDIA_PROC_TEMP_OUTPUT_PATH
 
 
 def convert_to_db(x, data_type='power'):
@@ -17,12 +17,42 @@ def convert_to_db(x, data_type='power'):
 
     
 
+def set_instance_reference(instance, type_of_set_ref='monopolar', **kwargs): 
+
+    if type_of_set_ref=='monopolar':
+        instance_eeg = instance.copy().pick_types(eeg=True)
+        instance_eeg.load_data()
+        channel=kwargs["channel"] # channel name or 'average'
+        instance_referenced=instance_eeg.set_eeg_reference(
+            ref_channels=channel,
+            projection=False
+        )
+
+    elif type_of_set_ref=='bipolar':
+        anode=kwargs["anode"]
+        cathode=kwargs["cathode"]
+        ch_name=kwargs["ch_name"]
+        drop_refs=kwargs["drop_refs"]
+        instance_referenced = instance.copy().pick_types(eeg=True)
+        instance_referenced.load_data()
+        mne.set_bipolar_reference(
+            instance_referenced,
+            anode=anode,
+            cathode=cathode,
+            ch_name=ch_name,
+            copy=False,
+            drop_refs=drop_refs
+        )
+
+    return instance_referenced
+
 
 # Instance must be epochs or evoked
-def time_frequency(instance, picks=None, type_of_tf='morlet', return_itc=True, **kwargs):
+def time_frequency(instance, picks=None, type_of_tf='morlet', return_itc=False, **kwargs):
     average = kwargs["average"]
+
     if type_of_tf == 'morlet':
-        tfr = mne.time_frequency.tfr_morlet(
+        data = mne.time_frequency.tfr_morlet(
             instance,
             picks=picks,
             freqs=kwargs["freqs"],
@@ -34,7 +64,7 @@ def time_frequency(instance, picks=None, type_of_tf='morlet', return_itc=True, *
             average=average,
         )
     elif type_of_tf == 'multitaper':
-        tfr = mne.time_frequency.tfr_multitaper(
+        data = mne.time_frequency.tfr_multitaper(
             instance,
             picks=picks,
             freqs=kwargs["freqs"],
@@ -48,7 +78,7 @@ def time_frequency(instance, picks=None, type_of_tf='morlet', return_itc=True, *
         )
 
     elif type_of_tf == 'stockwell':
-        tfr = mne.time_frequency.tfr_stockwell(
+        data = mne.time_frequency.tfr_stockwell(
             instance,
             picks=picks,
             fmin=kwargs["fmin"],
@@ -61,11 +91,7 @@ def time_frequency(instance, picks=None, type_of_tf='morlet', return_itc=True, *
             average=average,
         )
 
-
-    if return_itc:
-        return tfr, itc
-    else:
-        return tfr
+    return data
 
 
 # Instance can be epochs or raw
@@ -174,7 +200,7 @@ def notch_filter(instance, notch_freqs=[50.0], channels=None, filter_method='fir
         channels_idxs = mne.pick_types(instance.info, eeg=True)
     else:
         channels_idxs = mne.pick_channels(
-            instance_eeg.info['ch_names'], include=channels)
+            instance_eeg.info['ch_names'], include=channels,ordered=True)
 
     if filter_method == 'spectrum_fit':
         instance_eeg.apply_function(
@@ -235,7 +261,7 @@ def custom_filter(instance, low_freq=None, high_freq=None, channels=None, filter
         channels_idxs = mne.pick_types(instance.info, eeg=True)
     else:
         channels_idxs = mne.pick_channels(
-            instance_eeg.info['ch_names'], include=channels)
+            instance_eeg.info['ch_names'], include=channels,ordered=True)
 
     if filter_method == 'fir':
         instance_filtered = instance_eeg.filter(
@@ -269,7 +295,7 @@ def peak_finder(instance, channels=None, thresh=None):
         channels_idxs = mne.pick_types(instance.info, eeg=True)
     else:
         channels_idxs = mne.pick_channels(
-            instance_eeg.info['ch_names'], include=channels)
+            instance_eeg.info['ch_names'], include=channels,ordered=True)
 
     time_series = instance_eeg.get_data(picks=channels_idxs)
     peaks = []

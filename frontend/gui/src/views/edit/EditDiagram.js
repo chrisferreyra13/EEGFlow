@@ -17,7 +17,17 @@ import {
 import CIcon from '@coreui/icons-react'
 
 import './dnd.css';
-import { updateAfterDeleteElements, updateNodePropierties, addNode, addNewEdge, changeEdge, runProcess, cancelProcess} from '../../redux/actions/Diagram'
+import { 
+  updateAfterDeleteElements, 
+  updateNodePropierties, 
+  addNode, 
+  addNewEdge, 
+  changeEdge, 
+  runProcess, 
+  cancelProcess,
+  setNodeFileId,
+  updateOutputColor,
+} from '../../redux/actions/Diagram'
 import { diagramView, linkDiagram } from '../../redux/actions/EditSession';
 import { enableForm } from '../../redux/actions/Form'
 import {getFileInfo} from '../../redux/actions/File'
@@ -27,6 +37,16 @@ class EditDiagram extends Component{
   constructor(props){
     super(props)
     this.props.diagramView(true);
+
+    //First, check if fileId is exists and if is set.
+    if(this.props.fileId!=null && this.props.fileId!=''){
+      const timeSeries=this.props.elements.find(elem => elem.elementType=='TIME_SERIES')
+      if(timeSeries.params.id==null || timeSeries.params.id==''){
+        this.props.setNodeFileId(this.props.fileId)
+        const nodePlot=this.props.elements.find(elem => elem.elementType=='PLOT_TIME_SERIES')
+        this.props.updateOutputColor(nodePlot.id,true)
+      }
+    }
 
     //Ver si lo dejamos en el futuro, para hacer pruebas es util
     if(this.props.fileInfo.channels.length==0){
@@ -235,6 +255,8 @@ const mapDispatchToProps = (dispatch) => {
     cancelProcess: () => dispatch(cancelProcess()),
     linkDiagram: () => dispatch(linkDiagram()),
     getFileInfo: (fileId) => dispatch(getFileInfo(fileId)),
+    setNodeFileId: (fileId) => dispatch(setNodeFileId(fileId)),
+    updateOutputColor: (nodeId,processed) => dispatch(updateOutputColor(nodeId,processed)),
   };
 };
 

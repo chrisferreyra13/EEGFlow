@@ -1,8 +1,129 @@
+from django.core.files import base
+from mne import event
 from .eeg_lib import *
 from .utils import *
-from cconsciente.settings.base import MEDIA_TEMP, MEDIA_STORED, MEDIA_PROC_TEMP_OUTPUT_PATH
+from eegflow.settings.base import MEDIA_TEMP, MEDIA_STORED, MEDIA_PROC_TEMP_OUTPUT_PATH
 
 LOAD_RESTORE_PARAM_NAME = 'id'
+
+def bad_channels(**kwargs):
+    input=kwargs["input"]
+    params=kwargs["params"]
+
+    #get requested channels to mark as 'bads'
+    channels=get_request_channels(params)
+    if type(channels)==Response:
+        return channels  
+    
+    ch_names=input.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
+    if set(channels).issubset(set(ch_names)):
+        input.info['bads'].extend(channels)  # add a list of channels
+    else:
+        return Response('An invalid list of channels has been provided.',
+                    status=status.HTTP_400_BAD_REQUEST)
+
+    return input
+
+def set_reference(**kwargs):
+    input=kwargs["input"]
+    params=kwargs["params"]
+
+    #get type of tf
+    if 'type' not in params:
+        type_of_set_ref='monopolar'
+    else:
+        type_of_set_ref=params['type']
+        if (not type_of_set_ref) or (type_of_set_ref == ''):    # Por defecto uso monopolar
+            type_of_set_ref='monopolar'
+        else:
+            if type_of_set_ref not in ["monopolar","bipolar"]:
+                return Response('An invalid type of setting reference method has been provided.',
+                    status=status.HTTP_400_BAD_REQUEST)
+    
+    ch_names=input.info['ch_names']
+    if 'ref_channel' not in params:
+        ref_channel=None
+    else:
+        ref_channel=params['ref_channel']
+        if (not ref_channel) or (ref_channel == ''):    # Si no envian nada, lo aplico en todos los canales
+            ref_channel=None
+        else:
+            if set(ref_channel).issubset(set(ch_names)):
+                return Response('An invalid reference channel has been provided.',
+                    status=status.HTTP_400_BAD_REQUEST)
+
+    if 'anode' not in params:
+        anode=None
+    else:
+        anode=params['anode']
+        if (not anode) or (anode == ''):    # Si no envian nada, lo aplico en todos los canales
+            anode=None
+        else:
+            if set(anode).issubset(set(ch_names)):
+                return Response('An invalid anode has been provided.',
+                    status=status.HTTP_400_BAD_REQUEST)
+    
+    if 'cathode' not in params:
+        cathode=None
+    else:
+        cathode=params['cathode']
+        if (not cathode) or (cathode == ''):    # Si no envian nada, lo aplico en todos los canales
+            cathode=None
+        else:
+            if set(cathode).issubset(set(ch_names)):
+                return Response('An invalid cathode has been provided.',
+                    status=status.HTTP_400_BAD_REQUEST)  
+        
+    # get if average result for morlet o multitaper (stockwell always average result)
+    if 'average' not in params:
+        average=False
+    else:
+        average=params["average"]
+        if (not average) or (average == ''):    # Si no envian nada, lo aplico en todos los canales
+            average=False
+        else:
+            if average in ["true","false"]:
+                average=True if average=='true' else False
+            else:
+                return Response('An invalid average value has been provided.',
+                    status=status.HTTP_400_BAD_REQUEST)
+
+
+    if type_of_set_ref=='monopolar':
+        if ref_channel is None and average is False:
+            # return Response('No reference channel hasn´t been provided.',
+            #         status=status.HTTP_400_BAD_REQUEST)
+            average=True    # Default 
+
+
+        if average:
+            ref_channel='average'
+            ref_params={"channel":ref_channel}
+        else:
+            ref_params={"channel":[ref_channel]}
+
+    else:
+        if anode is None or cathode is None:
+            return Response('No reference channel hasn´t been provided.',
+                    status=status.HTTP_400_BAD_REQUEST)
+
+        fields=["ch_name","drop_refs"]
+        defaults=[None,False]
+        ref_params=check_params(params,params_names=fields,params_values=defaults)
+        if type(ref_params)==Response: return ref_params
+        
+        ref_params["anode"]=anode
+        ref_params["cathode"]=cathode
+
+    output=set_instance_reference(
+        instance=input,
+        type_of_set_ref=type_of_set_ref,
+        **ref_params
+        )
+    
+
+    return output
+
 
 def epochs(**kwargs):
     input=kwargs["input"]
@@ -34,6 +155,43 @@ def epochs(**kwargs):
                 return Response('An invalid max time has been provided.',
                     status=status.HTTP_400_BAD_REQUEST)
 
+
+    # get baseline correction
+    if 'baseline' not in params:
+        baseline = None
+    else:
+        baseline=params['baseline']
+        if (not baseline) or (baseline == []) or (baseline == ''):
+            baseline = None
+        else:
+            if baseline == ',':
+                baseline=(None, None) # Apply baseline correction to full time range
+            else:
+                try:
+                    baseline=tuple([float(f) for f in baseline.split(',')])
+                except:
+                    return Response('An invalid baseline correction range has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+            
+                if baseline[0]>baseline[1]:
+                    return Response('An invalid baseline correction range has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    # get event ids
+    if 'event_id' not in params:
+        event_id = None  # default: use all events
+    else:
+        event_id=params['event_id']
+        if (not event_id) or (event_id == []) or (event_id == '') or (event_id == ','):
+            event_id=None
+        else:
+            try:
+                event_id=[int(f) for f in event_id.split(',')]
+            except:
+                return Response('An invalid list of event ids has been provided.',
+                    status=status.HTTP_400_BAD_REQUEST)
+            
+
     #get requested channels
     channels=get_request_channels(params)
     if type(channels)==Response:
@@ -41,11 +199,11 @@ def epochs(**kwargs):
     
     if channels==None: # Si es None, agarro todos
         channels_idxs=mne.pick_types(input.info,eeg=True) #Retorna los indices internos de raw
-        eeg_info=mne.pick_info(input.info, sel=channels_idxs)
+        #eeg_info=mne.pick_info(input.info, sel=channels_idxs)
     else:
         ch_names=input.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
         if set(channels).issubset(set(ch_names)):
-            channels_idxs=mne.pick_channels(ch_names, include=channels) #Retorna los indices internos de raw
+            channels_idxs=mne.pick_channels(ch_names, include=channels,ordered=True) #Retorna los indices internos de raw
         else:
             return Response('An invalid list of channels has been provided.',
                         status=status.HTTP_400_BAD_REQUEST)
@@ -55,14 +213,25 @@ def epochs(**kwargs):
     except TypeError:
         return Response('Invalid file extension',
                     status=status.HTTP_406_NOT_ACCEPTABLE)
+    
+    if event_id is not None:
+        event_id=[id for id in event_id if id in events[:,2]]
+        if len(event_id)==0:
+            event_id=None #uso esto para que no explote
+            print("[INFO]: event ids don't match with true event ids")
+            #usar esto dps
+            #return Response('An invalid list of event ids has been provided.',
+            #            status=status.HTTP_400_BAD_REQUEST
 
     
-    instance=input.copy().pick_types(eeg=True)
     # build epochs instance for time-frequency plot
     epochs = mne.Epochs(
-        instance, 
-        events, 
+        raw=input, 
+        events=events,
+        event_id=event_id, 
         tmin=tmin, tmax=tmax,
+        picks=channels_idxs,
+        baseline=baseline
         )
 
     return {"instance":epochs,"events":events}
@@ -415,4 +584,6 @@ steps={
     'MAX_PEAK':peak_step,
     'EVENTS': events,
     'EPOCHS':epochs,
+    "SET_REFERENCE":set_reference,
+    "BAD_CHANNELS":bad_channels
 }

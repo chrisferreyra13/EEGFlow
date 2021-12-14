@@ -32,7 +32,7 @@ class ChartTemporalForm extends Component{
         if(elem.elementType=='EPOCHS')
           epochsExists=true
     })
-    let outputType=nodePlot.inputData.outputType==null? 'raw' : nodePlot.inputData.outputType
+    let outputType=nodePlot.inputData.outputType;
     let eventSamples=null;
     let eventIds=null;
     let samplingFreq=null;
@@ -52,7 +52,7 @@ class ChartTemporalForm extends Component{
         epochs:null,
         minTimeWindow:null,
         maxTimeWindow:null,
-        size:'s'
+        size:'m'
       },
       options:options.map(ch => {
         return {value:ch,label:ch}
@@ -123,25 +123,24 @@ class ChartTemporalForm extends Component{
     return (
       <div>
         {
-          this.state.outputType=='raw' ? // por defecto raw pero si despues era epochs se actualiza
+          this.state.epochsExists && this.state.outputType==null ?
+          <CFormGroup row style={{margin:'0', width:'380px'}}>
+            <CCol md="12">
+              <CCard color="danger" className="text-white text-center">
+                <CCardBody>
+                  <header>Advertencia!</header>
+                  <p>
+                    Bloque epocas detectado en el diagrama: 
+                    Tiene que ejecutar el proceso primero.
+                  </p>
+                </CCardBody>
+              </CCard>
+            </CCol>
+          </CFormGroup>: null
+        }
+        {
+          this.state.outputType=='raw' || this.state.outputType==null? // por defecto raw pero si despues era epochs se actualiza
           <div>
-            {
-              this.state.epochsExists ?
-              <CFormGroup row style={{margin:'0', width:'380px'}}>
-                <CCol md="12">
-                  <CCard color="danger" className="text-white text-center">
-                    <CCardBody>
-                      <header>Advertencia!</header>
-                      <p>
-                        Bloque epocas detectado en el diagrama: 
-                        Tiene que ejecutar el proceso primero.
-                      </p>
-                    </CCardBody>
-                  </CCard>
-                </CCol>
-              </CFormGroup>: null
-            }
-            
             <CFormGroup row>
               <CCol md="12">
                 <CLabel htmlFor="freq-inf">Canales</CLabel>

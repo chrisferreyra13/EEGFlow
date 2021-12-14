@@ -155,18 +155,41 @@ export default [
     signalsData:signalsDataTemplate,
     processParams:processParamsTemplate,
   },
-  //TIME_WINDOW
+  //BAD_CHANNELS
   {
     id: null,
     type: 'default',
-    elementType: 'TIME_WINDOW',
+    elementType: 'BAD_CHANNELS',
+    formType:'ENABLE_BAD_CHANNELS_FORM',
     targetPosition: 'left',
     sourcePosition: 'right',
     data: {
-      label: 'Ventana Temporal'
+      label: 'Ignorar canales'
     },
     position: { x: 550, y: 80 },
-    params:null,
+    params:{
+      channels:null,
+    },
+    signalsData:signalsDataTemplate,
+    processParams:processParamsTemplate,
+  },
+  //SET_REFERENCE
+  {
+    id: null,
+    type: 'default',
+    elementType: 'SET_REFERENCE',
+    formType:'ENABLE_SET_REFERENCE_FORM',
+    targetPosition: 'left',
+    sourcePosition: 'right',
+    data: {
+      label: 'Cambiar Referencia'
+    },
+    position: { x: 550, y: 80 },
+    params:{
+      type:null,
+    },
+    signalsData:signalsDataTemplate,
+    processParams:processParamsTemplate,
   },
   //REMOVE
   {

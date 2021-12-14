@@ -109,10 +109,19 @@ class CustomFilterForm extends Component{
             <CLabel htmlFor="frequencyWindow">Ancho de banda:</CLabel>
               <CFormGroup row>
                 <CCol md="6">
-                    <CInput id="minFreqWindow" placeholder={"f. corte inf. (Hz)"} type="number" min="0" step="0.01" required value={this.getValue('l_freq')} onChange={(event) => this.handleChange(event,'l_freq')}/>
+                    <CInput 
+                    id="minFreqWindow" 
+                    placeholder={this.getValue('type')=='fir'? "f. de borde inf. (Hz)" : "f. corte inf. (Hz)"} 
+                    type="number" min="0" step="0.01" value={this.getValue('l_freq')} 
+                    onChange={(event) => this.handleChange(event,'l_freq')}
+                    />
                 </CCol>
                 <CCol md="6">
-                  <CInput id="maxFreqWindow" placeholder={"f. corte sup (Hz)"} type="number" min="0" step="0.01" required value={this.getValue('h_freq')} onChange={(event) => this.handleChange(event,'h_freq')}/>
+                  <CInput 
+                  id="maxFreqWindow" 
+                  placeholder={this.getValue('type')=='fir'? "f. de borde sup. (Hz)" : "f. corte sup. (Hz)"} 
+                  type="number" min="0" step="0.01" value={this.getValue('h_freq')} 
+                  onChange={(event) => this.handleChange(event,'h_freq')}/>
                 </CCol>
               </CFormGroup>
           </CCol>
@@ -137,7 +146,7 @@ class CustomFilterForm extends Component{
             <div>
                 <CFormGroup row>
                     <CCol md="7">
-                        <CLabel htmlFor="l_trans_bandwidth">Ancho de banda de transición inf. (Hz):</CLabel>
+                        <CLabel htmlFor="l_trans_bandwidth">Banda de transición inf. (Hz):</CLabel>
                     </CCol>
                     <CCol md="4">
                         <CInput id="l_trans_bandwidth" placeholder={"default: 'auto'"} type="number" min="0" step="0.01" value={this.getValue('l_trans_bandwidth')} onChange={(event) => this.handleChange(event,'l_trans_bandwidth')}/>
@@ -145,7 +154,7 @@ class CustomFilterForm extends Component{
                 </CFormGroup>
                 <CFormGroup row>
                     <CCol md="7">
-                        <CLabel htmlFor="h_trans_bandwidth">Ancho de banda de transición sup. (Hz):</CLabel>
+                        <CLabel htmlFor="h_trans_bandwidth">Banda de transición sup. (Hz):</CLabel>
                     </CCol>
                     <CCol md="4">
                         <CInput id="h_trans_bandwidth" placeholder={"default: 'auto'"} type="number" min="0" step="0.01" value={this.getValue('h_trans_bandwidth')} onChange={(event) => this.handleChange(event,'h_trans_bandwidth')}/>

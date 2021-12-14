@@ -1,12 +1,12 @@
 import React, { Component } from 'react'
 import {
 	CCardBody,
+	CCol,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {fetchSignal,deleteItemInputsReady} from '../../../redux/actions/Diagram'
 import {connect} from 'react-redux'
-import ChartTFR from '../ChartTFR'
-import {PrepareDataForPlot} from '../../../tools/Utils'
+import ChartTF from '../ChartTF'
 
 import {updatePlotParams} from '../../../redux/actions/Plot' 
 
@@ -22,35 +22,38 @@ class ChartTimeFrequency extends Component {
 					...nodePlot.params,
 					channels:'prev',
 					epochs:null,
-					minXWindow:nodePlot.params.minTimeWindow,
-					maxXWindow:nodePlot.params.maxTimeWindow,
 					size:nodePlot.params.size==null ? 'l' : nodePlot.params.size,
+					dB:nodePlot.params.dB==null ? 'false' : nodePlot.params.dB,
+					average:nodePlot.params.average==null ? 'false' : nodePlot.params.average,
+					itc:nodePlot.params.return_itc==null ? 'false' : nodePlot.params.return_itc,
+
 				}
 			}else{
 				params={ //Default params
 					...nodePlot.params,
 					channels:'prev',
 					epochs:'1',
-					minXWindow:nodePlot.params.minTimeWindow,
-					maxXWindow:nodePlot.params.maxTimeWindow,
-					size:nodePlot.params.size==null ? 'l' : nodePlot.params.size
+					size:nodePlot.params.size==null ? 'l' : nodePlot.params.size,
+					dB:nodePlot.params.dB==null ? 'false' : nodePlot.params.dB,
+					average:nodePlot.params.average==null ? 'false' : nodePlot.params.average,
+					itc:nodePlot.params.return_itc==null ? 'false' : nodePlot.params.return_itc,
 				}
 			}
 		}else{
 			params={
 				...nodePlot.params,
-				channels:nodePlot.params.channels,
-				epochs:nodePlot.params.epochs,
-				minXWindow:parseFloat(nodePlot.params.minFreqWindow),
-				maxXWindow:parseFloat(nodePlot.params.maxFreqWindow),
-				size:nodePlot.params.size==null ? 'm' : nodePlot.params.size
+				size:nodePlot.params.size==null ? 'm' : nodePlot.params.size,
+				dB:nodePlot.params.dB==null ? 'false' : nodePlot.params.dB,
+				average:nodePlot.params.average==null ? 'false' : nodePlot.params.average,
+				itc:nodePlot.params.return_itc==null ? 'false' : nodePlot.params.return_itc,
 
 			}
 		}
-
+		console.log(nodePlot.params)
 		this.preprocessData=this.preprocessData.bind(this);
 
 		let style={} //Seteando las dimensiones del grafico en base a los parametros
+		
 		switch(params.size){
 			case 'l':style={height:'75vh',}; break;
 			case 'm':style={height:'60vh',}; break;
@@ -67,6 +70,8 @@ class ChartTimeFrequency extends Component {
 		let limit;
 		let minIndex=0;
 		let maxIndex=0;
+
+		let message='';	
 		const dataType='TIME_FREQUENCY';
 		if(nodePlot.inputData.fetchInput){
 			const nodeInput=this.props.elements.find((elem) => elem.id==nodePlot.inputData.inputNodeId)
@@ -88,7 +93,7 @@ class ChartTimeFrequency extends Component {
 				}
 				else{
 					if(Object.keys(this.props.prevParams).includes(nodePlot.id)){
-						if(JSON.stringify(this.props.prevParams[nodePlot.id])!==JSON.stringify(nodePlot.params)){
+						if(JSON.stringify(this.props.prevParams[nodePlot.id])!==JSON.stringify(params)){
 							this.props.deleteItemInputsReady(signalData.id)
 							oldSignalId=signalData.id
 							fetchSignal=true;
@@ -97,6 +102,10 @@ class ChartTimeFrequency extends Component {
 				}
 			}
 			if(fetchSignal){
+				message=<div>
+						<h4>Cargando...</h4>
+						<CIcon size= "xl" name="cil-cloud-download"/>
+						</div>
 				this.props.fetchSignal(nodeInput.params.id,channels,params,nodeInput.id,dataType,nodePlot.processParams.processId)
 				this.props.updatePlotParams(nodePlot.id,{...params})
 			}
@@ -124,6 +133,11 @@ class ChartTimeFrequency extends Component {
 					
 				}
 			}
+		}else{
+			message=<div>
+						<h4>No procesado.</h4>
+						<CIcon size= "xl" name="cil-x-circle"/>
+					</div>
 		}
 
 		this.state={
@@ -138,21 +152,25 @@ class ChartTimeFrequency extends Component {
 			minIndex:minIndex,
 			maxIndex:maxIndex,
 			outputType:outputType,
+			message:message
 
 		}
 
     }
 
 	preprocessData(signalData,plotChannels,plotParams,updating){
-
 		let data={
-			power:signalData.data,
+			power:signalData.data.power,
 			times:signalData.utils.times,
 			freqs:signalData.utils.freqs,
 			vMin:signalData.utils.vmin,
 			vMax:signalData.utils.vmax,
 			sFreq:signalData.sFreq
 		}
+		if(plotParams.itc=="true"){
+			data["itc"]=signalData.data.itc
+		}
+		
 		
 		if(updating)
 			this.setState({
@@ -208,25 +226,27 @@ class ChartTimeFrequency extends Component {
 		
 		return (
 			<>
-				
-				<CCardBody >
+				<CCol xl={this.props.plotSize}>
+					<CCardBody >
 						{ this.state.dataReady ?
 							<div style={this.state.style}>
-								<ChartTFR
-								data={this.state.params.channels.length==1 ?this.state.data[0]: this.state.data}
+								<ChartTF
+								nodeId={this.props.nodeId}
+								data={this.state.data}
 								chartStyle={{height: '100%', width:'100%'}}
 								channels={this.state.params.channels}
 								epoch={this.state.params.epochs}
+								dB={this.state.params.dB=='false' ? false : true}
+								average={this.state.params.average=='false' ? false : true}
 								/> 
 							</div>
 							:
 							<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
-								<h4>Cargando...</h4>
-								<CIcon size= "xl" name="cil-cloud-download"/>
+								{this.state.message}
 							</div>
 						}
 					</CCardBody>
-				
+				</CCol>
 			</>
 		)
     }
