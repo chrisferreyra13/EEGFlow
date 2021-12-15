@@ -15,4 +15,4 @@
 
 ### Plots
 ![alt text](https://github.com/chrisferreyra13/EEGFlow/blob/master/frontend/gui/public/images/time-freq1.png "Time-frequency plot")
-![alt text](https://github.com/chrisferreyra13/EEGFlow/blob/master/frontend/gui/public/images/time-events.png "Time series with events plot")
+![alt text](https://github.com/chrisferreyra13/EEGFlow/blob/master/frontend/gui/public/images/time-events1.png "Time series with events plot")
