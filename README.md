@@ -6,7 +6,7 @@
 * Epochs and events management.
 
 ## Code and Resources Used 
-**Backend Packages:** Python 3.8, Django 3.0.7, Django REST framework 3.12.2, MNE 0.24.1.
+**Backend Packages:** Python 3.8, Django 3.0.7, Django REST framework 3.12.2, MNE 0.24.1.    
 **Frontend Packages:** Redux.js 4.0.5, Arction.js 3.2, React Flow 8.8.0. 
 
 ## Example
