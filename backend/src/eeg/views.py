@@ -657,14 +657,24 @@ class GetTimeFrequency(APIView):
             tfr=data
             itc_data=[]
         
-        
+        #this line corrects the error below in mne
+        if mode in ['logratio','zlogratio'] and baseline is not None and dB is True:
+            dB=False
 
         tmin,tmax=(None,None) # lo usamos por defecto por ahora -> todo el rango para viz
-        fmin,fmax=(None,None) 
+        fmin,fmax=(None,None)
+
+        # own_dB_method=False
+        # if dB:
+        #     dB=False
+        #     own_dB_method=True
+
         tfr = mne.time_frequency.tfr._preproc_tfr_instance(
             tfr, None, tmin, tmax, fmin, fmax, vmin, vmax, dB, mode,
             baseline, exclude=None, copy=True)
         
+        # if own_dB_method:
+        #     tfr.data=10*np.log10(np.maximum(tfr.data, np.finfo(float).tiny))
         # The above fuction doesn't multiply by 10 for these baseline corrections 
         # I think this is wrong.
         if mode in ['logratio','zlogratio'] and baseline is not None: 

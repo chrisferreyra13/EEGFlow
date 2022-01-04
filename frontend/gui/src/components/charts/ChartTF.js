@@ -12,6 +12,9 @@ import {
     translatePoint,
     AxisTickStrategies,
     synchronizeAxisIntervals,
+    UIElementBuilders,
+    SolidLine,
+    SolidFill,
     Themes,
 } from "@arction/lcjs"
 import {updateSavePlot} from '../../redux/actions/Plot'
@@ -188,7 +191,13 @@ class ChartTF extends Component {
         .setTickStrategy(AxisTickStrategies.Empty)
         .setTitleMargin(0)
         .setScrollStrategy(undefined)
-        .setMouseInteractions(false);
+        .setMouseInteractions(false)
+        .addCustomTick(UIElementBuilders.AxisTick)
+        .setValue(0)
+        .setGridStrokeStyle(new SolidLine({
+            thickness: 3,
+            fillStyle: new SolidFill({color: ColorHSV(333,1,1 )})
+        }));
       // Set default chart settings
       chart
         .setPadding({ left: 0, top: 8, right: 8, bottom: 1 })

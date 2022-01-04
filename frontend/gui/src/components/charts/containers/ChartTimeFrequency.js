@@ -23,7 +23,7 @@ class ChartTimeFrequency extends Component {
 					channels:'prev',
 					epochs:null,
 					size:nodePlot.params.size==null ? 'l' : nodePlot.params.size,
-					dB:nodePlot.params.dB==null ? 'false' : nodePlot.params.dB,
+					dB:nodePlot.params.dB==null ? 'true' : nodePlot.params.dB,
 					average:nodePlot.params.average==null ? 'false' : nodePlot.params.average,
 					itc:nodePlot.params.return_itc==null ? 'false' : nodePlot.params.return_itc,
 
@@ -34,7 +34,7 @@ class ChartTimeFrequency extends Component {
 					channels:'prev',
 					epochs:'1',
 					size:nodePlot.params.size==null ? 'l' : nodePlot.params.size,
-					dB:nodePlot.params.dB==null ? 'false' : nodePlot.params.dB,
+					dB:nodePlot.params.dB==null ? 'true' : nodePlot.params.dB,
 					average:nodePlot.params.average==null ? 'false' : nodePlot.params.average,
 					itc:nodePlot.params.return_itc==null ? 'false' : nodePlot.params.return_itc,
 				}
@@ -43,13 +43,13 @@ class ChartTimeFrequency extends Component {
 			params={
 				...nodePlot.params,
 				size:nodePlot.params.size==null ? 'm' : nodePlot.params.size,
-				dB:nodePlot.params.dB==null ? 'false' : nodePlot.params.dB,
+				dB:nodePlot.params.dB==null ? 'true' : nodePlot.params.dB,
 				average:nodePlot.params.average==null ? 'false' : nodePlot.params.average,
 				itc:nodePlot.params.return_itc==null ? 'false' : nodePlot.params.return_itc,
 
 			}
 		}
-		console.log(nodePlot.params)
+		
 		this.preprocessData=this.preprocessData.bind(this);
 
 		let style={} //Seteando las dimensiones del grafico en base a los parametros

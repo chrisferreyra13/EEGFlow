@@ -101,6 +101,7 @@ export default [
     params:{
       channels:null,
       epochs:null,
+      dB:null,
       minXWindow:null,
       maxXWindow:null,
       size:null,

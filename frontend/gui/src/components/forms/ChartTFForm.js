@@ -25,9 +25,9 @@ class ChartTFForm extends Component{
         {value:'mean',label:'Media'},
         {value:'ratio',label:'Ratio'},
         {value:'logratio',label:'Logratio'},
-        {value:'percent',label:'Percent'},
-        {value:'zscore',label:'Zscore'},
-        {value:'zlogratio',label:'Zlogratio'},
+        {value:'percent',label:'Porcentaje'},
+        {value:'zscore',label:'z-score'},
+        {value:'zlogratio',label:'z-Logratio'},
     ]
 
     let nodePlot= null;//this.props.elements.find((elem) => elem.id==this.props.nodeId)
@@ -75,6 +75,7 @@ class ChartTFForm extends Component{
         epochs:null,
         return_itc:null,
         log:null,
+        dB:'true'
       },
       channelsOptions:channelsOptions.map(ch => {
         return {value:ch,label:ch}
@@ -166,10 +167,9 @@ class ChartTFForm extends Component{
   handleSelect(option,id){
     if(id=='mode'){
       if(option.value=='logratio' || option.value=='zlogratio'){
-        if(document.getElementById('dB').checked==false){
-          this.props.onChange('dB', 'false');
-          document.getElementById('dB').disabled=true
-        }
+        //this.props.onChange('dB', 'true');
+        document.getElementById('dB').disabled=true
+        document.getElementById('dB').checked=true
       }
       else{
         document.getElementById('dB').disabled=false
@@ -189,7 +189,7 @@ class ChartTFForm extends Component{
     this.props.onMountForm();
     this.checkButtons('type',['morlet','multitaper','stockwell'])
     this.checkButtons('size',['m','l'])
-    this.checkButtonsByBool(['average','dB','use_fft','zero_mean','return_itc','log'])
+    this.checkButtonsByBool(['average','dB','use_fft','zero_mean','return_itc'])
   }
   getValue(inputId){
     if(Object.keys(this.props.values).length === 0 && this.props.values.constructor === Object){
@@ -368,7 +368,7 @@ class ChartTFForm extends Component{
                 <CCol md="3">
                   <CInput id="stepFreq" placeholder={"paso (Hz)"} type="number" min="0" step="0.01" required value={this.getValue('stepFreq')} onChange={(event) => this.handleChange(event,'stepFreq')}/>
                 </CCol>
-                <CCol md="4">
+                {/*<CCol md="4">
                   <CFormGroup variant="custom-checkbox" inline>
                     <CInputCheckbox 
                     custom id="log" 
@@ -378,7 +378,7 @@ class ChartTFForm extends Component{
                     />
                     <CLabel variant="custom-checkbox" htmlFor="log">Espaciado Log</CLabel>
                   </CFormGroup>
-                </CCol>
+                </CCol>*/}
               </CFormGroup>
               <CFormGroup row>
                 <CCol md="4">
