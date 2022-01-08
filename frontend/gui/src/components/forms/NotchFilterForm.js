@@ -196,7 +196,7 @@ class NotchFilterForm extends Component{
                 </CFormGroup>
                 <CFormGroup row>
                     <CCol md="7">
-                        <CLabel htmlFor="normalization">Fase:</CLabel>
+                        <CLabel htmlFor="phase">Fase:</CLabel>
                     </CCol>
                     <CCol md="4">
                         <Select options={this.state.phaseOptions} onChange={(options) => this.handleSelect(options,'phase')}/>

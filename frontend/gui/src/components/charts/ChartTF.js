@@ -64,7 +64,7 @@ class ChartTF extends Component {
       
       let unit='';
       if(!isITC){
-        unit=this.props.dB==true ? 'dB' : '\u03BCV²/Hz';
+        unit=this.props.unit
       }
       
       // Start position of the heatmap
@@ -287,12 +287,15 @@ class ChartTF extends Component {
         // Add the created chart and series to collection
         charts.push(ch);
       }
-
-      charts[charts.length - 1].series.axisX
+      charts.forEach(ch => {
+        ch.series.axisX
         .setTickStrategy(AxisTickStrategies.Numeric)
         .setScrollStrategy(AxisScrollStrategies.fitting)
         .setTitle('Tiempo (seg)')
         .setMouseInteractions(true);
+      })
+
+      
       // Add LegendBox.
       const legend = this.dashboard
         .addLegendBox()

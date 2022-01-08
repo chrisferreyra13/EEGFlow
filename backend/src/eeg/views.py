@@ -865,8 +865,12 @@ class GetPSD(APIView):
         
 
         if type_of_psd=='welch':
+            # The length of FFT used, must be >= n_per_seg (default: 256). 
+            # The segments will be zero-padded if n_fft > n_per_seg. 
+            # If n_per_seg is None, n_fft must be <= number of time points in the data.
+            n_fft_app_default=2048
             fields=["n_fft","n_overlap","n_per_seg","window","average"]
-            defaults=[0,None,'boxcar','mean']
+            defaults=[0,None,'hamming','mean'] # el default de n_fft se setea abajo calculando la diff.
             if time_window[0] is None or time_window[1] is None:
                 xmin=0
                 xmax=0
@@ -879,12 +883,19 @@ class GetPSD(APIView):
                     xmin=instance.first_samp
                     xmax=instance.last_samp
                     diff=int(xmax-xmin)
-
-                defaults.insert(0,diff)
+                    
             else:
-                defaults.insert(0,int(instance.info["sfreq"]*(time_window[1]-time_window[0])))
+                diff=int(instance.info["sfreq"]*(time_window[1]-time_window[0]))
+
+            if diff<n_fft_app_default:
+                defaults.insert(0,diff)
+            else: defaults.insert(0,n_fft_app_default) #default value for app
 
             welch_params=check_params(request.query_params,params_names=fields,params_values=defaults)
+            if welch_params["n_per_seg"]==None and welch_params["n_fft"]>diff:
+                return Response('An invalid n_fft value has been provided.',
+                                status=status.HTTP_400_BAD_REQUEST)
+
             if type(welch_params)==Response: return welch_params
 
             data,freqs=psd(
@@ -894,7 +905,7 @@ class GetPSD(APIView):
                 type_of_psd=type_of_psd,
                 n_fft=welch_params["n_fft"],
                 n_overlap=welch_params["n_overlap"],
-                n_per_seg=None,#welch_params["n_per_seg"],
+                n_per_seg=welch_params["n_per_seg"],
                 window=welch_params["window"],
                 average=welch_params["average"],
             ) 

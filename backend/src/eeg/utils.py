@@ -137,14 +137,18 @@ def check_params(query_params,params_names=None,params_values=None):
     for param_name in params_names:
         if param_name in query_params:
             p=query_params[param_name]
-            
+ 
             if p!='' and p!='undefined' and p!=None:
-                if type(params[param_name])==int or params[param_name]==None or type(params[param_name])==float:
+                if type(params[param_name])==int or type(params[param_name])==float or params[param_name]==None:
                     try:
                         if type(params[param_name])==int:
                             p=int(p)
-                        else:
+                        elif type(params[param_name])==float:
                             p=float(p)
+                        elif len(p.split('.'))==2:
+                            p=float(p)
+                        elif len(p.split('.'))==1:
+                            p=int(p)
 
                         params[param_name]=p
                     except:
@@ -162,9 +166,6 @@ def check_params(query_params,params_names=None,params_values=None):
 
                 elif type(params[param_name])==str and p!='none':
                     params[param_name]=p
-
-                elif params[param_name]==None:
-                    params[param_name]=None
     
     return params
 

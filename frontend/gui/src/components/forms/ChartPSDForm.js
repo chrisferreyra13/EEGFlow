@@ -30,7 +30,7 @@ class ChartPSDForm extends Component{
         {value:'bartlett',label:'bartlett'},
     ]
     const averageOptions=[ //agregar si es necesario
-        {value:'none',label:'Ninguno'},
+        //{value:'none',label:'Ninguno'},
         {value:'mean',label:'Media'},
         {value:'median',label:'Mediana'},
     ]
@@ -260,7 +260,7 @@ class ChartPSDForm extends Component{
                         <CLabel htmlFor="n_fft">Largo de la FFT usada:</CLabel>
                     </CCol>
                     <CCol md="4">
-                        <CInput id="n_fft" placeholder={"256"} type="number" min="0" step="1" value={this.getValue('n_fft')} onChange={(event) => this.handleChange(event,'n_fft')}/>
+                        <CInput id="n_fft" placeholder={"2048"} type="number" min="0" step="1" value={this.getValue('n_fft')} onChange={(event) => this.handleChange(event,'n_fft')}/>
                     </CCol>
                 </CFormGroup>
                 <CFormGroup row>

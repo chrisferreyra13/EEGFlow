@@ -424,10 +424,10 @@ export const fetchSignal = (id, channels, plotParams, nodeId, dataType, plotProc
                 time_window:[plotParams.minTimeWindow,plotParams.maxTimeWindow],
                 freq_window:[plotParams.minFreqWindow,plotParams.maxFreqWindow],
                 channels: channels==undefined ? '': channels,
-                type: plotParams["type"]==undefined ? '': plotParams["type"],
+                type: plotParams["type"]==undefined ? 'welch': plotParams["type"],
                 epochs: plotParams.epochs==null ? '': plotParams.epochs,
             }
-            if(plotParams["type"]=='welch'){
+            if(requestParams["type"]=="welch"){
                 requestParams["n_fft"]=plotParams["n_fft"] == undefined ? '': plotParams["n_fft"]
                 requestParams["n_per_seg"]=plotParams["n_per_seg"] == undefined ? '': plotParams["n_per_seg"]
                 requestParams["n_overlap"]=plotParams["n_overlap"]== undefined ? '': plotParams["n_overlap"]

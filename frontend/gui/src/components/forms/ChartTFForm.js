@@ -253,52 +253,53 @@ class ChartTFForm extends Component{
             {/*<CInput id="channels" placeholder="Ch1,Ch2,Ch3" required value={value('channels')} onChange={(event) => this.handleChange(event,'channels')}/>*/}
           </CCol>
         </CFormGroup>
-        <CFormGroup row>
-          <CCol md="12">
-            <CLabel htmlFor="vrange">Rango de valores de escala:</CLabel>
-              <CFormGroup row>
-                <CCol md="3">
-                    <CInput
-                    id="vmin"
-                    placeholder={"valor min."}
-                    type="number"
-                    step="0.01"
-                    value={this.getValue("vmin")==null ? '' : this.getValue("vmin")}
-                    onChange={(event) => this.handleChange(event,'vmin')}/>
-                </CCol>
-                <CCol md="3">
-                  <CInput
-                  id="vmax"
-                  placeholder={"valor max."}
-                  type="number"
-                  step="0.01"
-                  value={this.getValue("vmax")==null ? '' : this.getValue("vmax")}
-                  onChange={(event) => this.handleChange(event,'vmax')}/>
-                </CCol>
-                <CCol md="2">
-                  <CFormGroup variant="custom-checkbox" inline>
-                    <CInputCheckbox
-                    custom id="dB" 
-                    name="inline-checkbox2" 
-                    value="true"
-                    onClick={(e) => this.handleCheckbox(e,'dB')}
-                    />
-                    <CLabel variant="custom-checkbox" htmlFor="dB">dB</CLabel>
-                  </CFormGroup>
-                </CCol>
+          <CFormGroup row>
+            <CCol md="7">
+              <CLabel htmlFor="vrange">Rango de valores de escala:</CLabel>
+            </CCol>
+            <CCol md="2">
+              <CFormGroup variant="custom-checkbox" inline>
+                <CInputCheckbox
+                custom id="dB" 
+                name="inline-checkbox2" 
+                value="true"
+                onClick={(e) => this.handleCheckbox(e,'dB')}
+                />
+                <CLabel variant="custom-checkbox" htmlFor="dB">dB</CLabel>
               </CFormGroup>
-          </CCol>
-        </CFormGroup>
+            </CCol>
+          </CFormGroup>
+          <CFormGroup row>
+            <CCol md="4">
+                <CInput
+                id="vmin"
+                placeholder={"valor min."}
+                type="number"
+                step="0.01"
+                value={this.getValue("vmin")==null ? '' : this.getValue("vmin")}
+                onChange={(event) => this.handleChange(event,'vmin')}/>
+            </CCol>
+            <CCol md="4">
+              <CInput
+              id="vmax"
+              placeholder={"valor max."}
+              type="number"
+              step="0.01"
+              value={this.getValue("vmax")==null ? '' : this.getValue("vmax")}
+              onChange={(event) => this.handleChange(event,'vmax')}/>
+            </CCol>
+          
+          </CFormGroup>
         <CFormGroup row>
-          <CCol md="6">
+          <CCol md="7">
               <CLabel htmlFor="baseline">Corrección de linea de base (seg):</CLabel>
           </CCol>
-          <CCol md="4">
+          <CCol md="5">
               <CInput id="baseline" placeholder={"ejemplos: 0,0.1 o ,"} value={this.getValue('baseline')} onChange={(event) => this.handleChange(event,'baseline')}/>
           </CCol>
         </CFormGroup>
         <CFormGroup row>
-            <CCol md="6">
+            <CCol md="7">
                 <CLabel htmlFor="mode">Modo de corrección:</CLabel>
             </CCol>
             <CCol md="4">
@@ -355,17 +356,17 @@ class ChartTFForm extends Component{
                 <CCol md="12">
                   <CLabel htmlFor="freqs">Rango de frecuencias (freqs):</CLabel>
                   <CFormGroup row>
-                    <CCol md="4">
+                    <CCol md="5">
                         <CInput id="minFreq" placeholder={"frec. mínima (Hz)"} type="number" min="0" step="0.01" required value={this.getValue('minFreq')} onChange={(event) => this.handleChange(event,'minFreq')}/>
                     </CCol>
-                    <CCol md="4">
+                    <CCol md="5">
                       <CInput id="maxFreq" placeholder={"frec. máxima (Hz)"} type="number" min="0" step="0.01" required value={this.getValue('maxFreq')} onChange={(event) => this.handleChange(event,'maxFreq')}/>
                     </CCol>
                   </CFormGroup>
                 </CCol>
               </CFormGroup>
               <CFormGroup row>
-                <CCol md="3">
+                <CCol md="4">
                   <CInput id="stepFreq" placeholder={"paso (Hz)"} type="number" min="0" step="0.01" required value={this.getValue('stepFreq')} onChange={(event) => this.handleChange(event,'stepFreq')}/>
                 </CCol>
                 {/*<CCol md="4">

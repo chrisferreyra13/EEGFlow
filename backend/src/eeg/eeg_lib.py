@@ -125,11 +125,11 @@ def psd(instance, freq_window, time_window=(None, None), picks=None, type_of_psd
         )
 
     # [psds]=amp**2/Hz
-
+    scaling=1e6
     psds_db = []
     # psd_db=[]
     for psd in psds:
-        psds_db.append(map(convert_to_db, psd))
+        psds_db.append(map(convert_to_db, psd*scaling*scaling))
 
     return psds_db, freqs
 

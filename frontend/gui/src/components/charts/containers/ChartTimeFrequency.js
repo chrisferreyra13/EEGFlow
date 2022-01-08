@@ -51,6 +51,7 @@ class ChartTimeFrequency extends Component {
 		}
 		
 		this.preprocessData=this.preprocessData.bind(this);
+		this.getUnitFromMode=this.getUnitFromMode.bind(this);
 
 		let style={} //Seteando las dimensiones del grafico en base a los parametros
 		
@@ -157,6 +158,18 @@ class ChartTimeFrequency extends Component {
 		}
 
     }
+	getUnitFromMode(mode){
+		if(mode=='logratio' || mode=='zlogratio'){
+			return 'dB'
+		}else{
+			if(mode=='ratio' || mode=='percent'){
+				return '%'
+			}else{
+				return '\u03BCV²/Hz'
+			}
+		}
+		
+	}
 
 	preprocessData(signalData,plotChannels,plotParams,updating){
 		let data={
@@ -237,6 +250,7 @@ class ChartTimeFrequency extends Component {
 								channels={this.state.params.channels}
 								epoch={this.state.params.epochs}
 								dB={this.state.params.dB=='false' ? false : true}
+								unit={this.getUnitFromMode(this.state.params.mode)}
 								average={this.state.params.average=='false' ? false : true}
 								/> 
 							</div>
