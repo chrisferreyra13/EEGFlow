@@ -78,8 +78,9 @@ class ChartSpectrum extends Component {
 		if(nodePlot.inputData.fetchInput){
 			const nodeInput=this.props.elements.find((elem) => elem.id==nodePlot.inputData.inputNodeId)
 
-			if(nodeInput.params.channels==undefined){channels=params.channels;}
-			else{channels=nodeInput.params.channels;}
+			channels=params.channels;
+			/*if(nodeInput.params.channels==undefined){channels=params.channels;}
+			else{channels=nodeInput.params.channels;}*/
 
 			let signalData=nodeInput.signalsData.find(s => {
 				if(s.processId==nodePlot.processParams.processId && s.dataType==dataType)return true;
@@ -124,6 +125,11 @@ class ChartSpectrum extends Component {
 						if(signalData.chNames.some(ch => params.channels.includes(ch))){
 							prepareData=true
 							params.channels=signalData.chNames.filter(ch => params.channels.includes(ch))
+						}else{
+							message=<div>
+										<h4>No hay canales.</h4>
+										<CIcon size= "xl" name="cil-x-circle"/>
+									</div>
 						}
 							
 					}

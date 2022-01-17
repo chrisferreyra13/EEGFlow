@@ -305,11 +305,11 @@ class GetTimeSeries(APIView):
         
 
         data=instance.get_data(picks=channels_idxs) # Take the requested channels
-
+        
         times=None
         if len(np.shape(data))==2 and epochs is None: # raw object
-            time_series=data 
-        else:
+            time_series=data
+        else: #epochs object
             if epochs is None:
                 epochs=1 # default 
             n_epochs,n_channels,n_times=np.shape(data) #get the shape of the object

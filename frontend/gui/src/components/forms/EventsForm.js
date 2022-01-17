@@ -5,6 +5,7 @@ import {
   CCol,
   CForm,
   CFormGroup,
+  CAlert,
   CLabel,
   CButton,
   CPagination,
@@ -38,11 +39,24 @@ class EventsForm extends Component{
     let dataReady=false;
     let firstSample=null;
     let lastSample=null;
+    let eventsPresented=true;
 
     if(signalData==undefined){ 
       this.props.fetchMethodResult(this.props.fileId,[],{},this.props.nodeId,dataType)
+      eventsPresented=false
     }
     else{
+      if(nodeEvents.params["new_events"]!=null && nodeEvents.params.id!=undefined){
+        eventsPresented=checkNewEvents(
+          nodeEvents.params["new_events"], signalData.data["event_samples"],
+          signalData.data["event_ids"],signalData.data["sampling_freq"]
+          )
+        if(!eventsPresented){
+          this.props.fetchMethodResult(nodeEvents.params.id,[],{},this.props.nodeId,dataType)
+        }
+      }
+    }
+    if(eventsPresented){
       signalData.data["event_ids"].forEach(id => {
         if(eventTypesOptions.includes(id)==false){
           eventTypesOptions.push(id)
@@ -59,6 +73,7 @@ class EventsForm extends Component{
         return {value:id.toString(),label:id.toString()}
       })
     }
+      
     
     this.state={
       default:{
@@ -79,6 +94,7 @@ class EventsForm extends Component{
       newEventIds:[],
       newEventTimes:[],
       newEventOptions:[],
+      showError:this.props.methodFetchingError
       
     }
 
@@ -164,6 +180,11 @@ class EventsForm extends Component{
           })
         })
       }
+    }
+    if(prevProps.methodFetchingError!==this.props.methodFetchingError){
+      this.setState({
+        showError:this.props.methodFetchingError
+      })
     }
   }
   getValue(inputId){
@@ -306,16 +327,26 @@ class EventsForm extends Component{
             }
           </div>:
           <div>
-            <CRow>
-              <CCol xs="12" md="12">
-                <h4>Cargando...</h4>
-              </CCol>
-            </CRow>
-            <CRow>
-              <CCol xs="12" md="12">
-                <CIcon size= "xl" name="cil-cloud-download" />
-              </CCol>
-            </CRow>
+            {this.state.showError ? 
+            <div>
+              <CAlert color="danger" style={{marginBottom:'0px',padding:'0.4rem 1.25rem'}}>
+                  Error al buscar los eventos!
+              </CAlert>
+            </div>:
+            <div>
+              <CRow>
+                <CCol xs="12" md="12">
+                  <h4>Cargando...</h4>
+                </CCol>
+              </CRow>
+              <CRow>
+                <CCol xs="12" md="12">
+                  <CIcon size= "xl" name="cil-cloud-download" />
+                </CCol>
+              </CRow>
+            </div>
+            }
+            
         </div>
         }
       </div>
@@ -327,7 +358,8 @@ const mapStateToProps = (state) => {
   return{
     fileId: state.file.fileId,
     elements: state.diagram.elements,
-    inputsReady: state.diagram.inputsReady
+    inputsReady: state.diagram.inputsReady,
+    methodFetchingError:state.diagram.errors.methodFetchingError
   };
 }
 const mapDispatchToProps = (dispatch) => {
@@ -337,3 +369,16 @@ const mapDispatchToProps = (dispatch) => {
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(EventsForm)
+
+
+function checkNewEvents(newEvents,eventSamples,eventIds,sf){
+  let newEventSample=0;
+  return newEvents.every(ev => {
+    newEventSample=parseInt(parseFloat(ev.split(',')[1])*sf)
+    if(eventIds.includes(parseInt(ev.split(',')[0]))
+      && eventSamples.includes(newEventSample))
+      return true;
+    else
+      return false
+  })
+}

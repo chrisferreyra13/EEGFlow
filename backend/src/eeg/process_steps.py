@@ -210,7 +210,7 @@ def epochs(**kwargs):
 
     try:
         events=get_events(input)
-    except TypeError:
+    except Exception as ex:
         return Response('Invalid file extension',
                     status=status.HTTP_406_NOT_ACCEPTABLE)
     
@@ -282,7 +282,7 @@ def events(**kwargs):
                 new_events=new_events
                 )
 
-        except TypeError:
+        except Exception as ex:
             return Response('Invalid events for add events method.',
                         status=status.HTTP_406_NOT_ACCEPTABLE)
     else:
@@ -315,7 +315,7 @@ def peak_step(**kwargs):
             thresh=peak_params["thresh"]
             )
 
-    except TypeError:
+    except Exception as ex:
         return Response('Invalid data for peak finder method',
                     status=status.HTTP_406_NOT_ACCEPTABLE)
 
@@ -343,7 +343,7 @@ def time_series_step(**kwargs):
     try:
         filepath=os.path.join(tu.upload_id,tu.upload_name)
         instance=get_raw(MEDIA_TEMP,filepath)
-    except TypeError:
+    except Exception as ex:
         return Response('Invalid file extension',
                     status=status.HTTP_406_NOT_ACCEPTABLE)
 
@@ -468,7 +468,7 @@ def filter_step(**kwargs):
                     p_value=sf_params["p_value"],
                     )
 
-            except TypeError:
+            except Exception as ex:
                 return Response('Invalid data for Spectrum fit filter method',
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 
@@ -493,7 +493,7 @@ def filter_step(**kwargs):
                     fir_design=fir_params["fir_design"],
                     )
 
-            except TypeError:
+            except Exception as ex:
                 return Response('Invalid data for FIR filter',
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 
@@ -512,7 +512,7 @@ def filter_step(**kwargs):
                     notch_widths=iir_params["notch_widths"], 
                     )
 
-            except TypeError:
+            except Exception as ex:
                 return Response('Invalid data for IIR filter',
                             status=status.HTTP_406_NOT_ACCEPTABLE)
     
@@ -544,7 +544,7 @@ def filter_step(**kwargs):
                     fir_design=fir_params["fir_design"],
                     )
 
-            except TypeError:
+            except Exception as ex:
                 return Response('Invalid data for FIR filter',
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 
@@ -563,7 +563,7 @@ def filter_step(**kwargs):
                     iir_params=iir_params["iir_params"]
                     )
 
-            except TypeError:
+            except Exception as ex:
                 return Response('Invalid data for IIR filter',
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 

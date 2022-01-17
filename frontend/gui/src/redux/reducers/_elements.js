@@ -28,6 +28,10 @@ export default [
     params:paramsTemplate,
     signalsData:signalsDataTemplate,
     isFetching:false,
+    prevDiagram:{
+      connections:[],
+      connectionsChanged:false
+    }
   },
   //PLOTS//
   //TIME_SERIES

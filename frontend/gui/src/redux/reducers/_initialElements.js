@@ -25,6 +25,7 @@ export default [
             data: { label: 'Señal en tiempo' },
             position: { x: 150, y: 50 },
             draggable: false,
+            selectable:false,
             params: {
                 id: null,
             },
@@ -32,6 +33,7 @@ export default [
             processParams: {
                 processed: false,
             },
+            
         },
         {
             id: '2',

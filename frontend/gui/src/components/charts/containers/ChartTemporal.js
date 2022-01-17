@@ -27,8 +27,8 @@ class ChartTemporal extends Component {
 				params={ //Default params
 					channels:'prev',
 					epochs:null,
-					minXWindow:nodePlot.params.minTimeWindow,
-					maxXWindow:nodePlot.params.maxTimeWindow,
+					minXWindow:nodePlot.params.minTimeWindow==null ? 'prev':nodePlot.params.minTimeWindow,
+					maxXWindow:nodePlot.params.maxTimeWindow==null ? 'prev':nodePlot.params.maxTimeWindow,
 					size:nodePlot.params.size==null ? 'l' : nodePlot.params.size
 				}
 			}else{
@@ -83,11 +83,11 @@ class ChartTemporal extends Component {
 		const dataType='TIME_SERIES';
 		if(nodePlot.inputData.inputNodeId!=null){
 			const nodeInput=this.props.elements.find((elem) => elem.id==nodePlot.inputData.inputNodeId)
-
-			if(nodeInput.params.channels==undefined){channels=params.channels}
+			channels=params.channels
+			/*if(nodeInput.params.channels==undefined){channels=params.channels}
 			else{
 				channels=nodeInput.params.channels
-			}
+			}*/
 
 			let signalData=nodeInput.signalsData.find(s => {
 				if(s.processId==nodePlot.processParams.processId && s.dataType==dataType)return true
@@ -143,6 +143,11 @@ class ChartTemporal extends Component {
 						if(signalData.chNames.some(ch => params.channels.includes(ch))){
 							prepareData=true
 							params.channels=signalData.chNames.filter(ch => params.channels.includes(ch))
+						}else{
+							message=<div>
+										<h4>No hay canales.</h4>
+										<CIcon size= "xl" name="cil-x-circle"/>
+									</div>
 						}
 							
 					}
@@ -153,13 +158,21 @@ class ChartTemporal extends Component {
 						limit = signalData.data[0].length;
 						minIndex=0;
 						maxIndex=limit;
-						if(params.minXWindow!=null){
-							minIndex=Math.round(params.minXWindow*signalData.sFreq)
-							if(minIndex>=limit) minIndex=0; //Se paso, tira error
+						if(params.minXWindow!=null && params.minXWindow!='prev'){
+							if(params.minXWindow=='prev'){
+								minIndex=0;
+							}else{
+								minIndex=Math.round(params.minXWindow*signalData.sFreq)
+								if(minIndex>=limit) minIndex=0; //Se paso, tira error
+							}
 						}
-						if(params.maxXWindow!=null){
-							maxIndex=Math.round(params.maxXWindow*signalData.sFreq)
-							if(maxIndex>limit) maxIndex=limit; //Se paso, tira error
+						if(params.maxXWindow!=null && params.maxXWindow!='prev'){
+							if(params.maxXWindow=='prev'){
+								maxIndex=parseInt(limit*0.1);
+							}else{
+								maxIndex=Math.round(params.maxXWindow*signalData.sFreq)
+								if(maxIndex>limit) maxIndex=limit; //Se paso, tira error
+							}
 						}
 					}
 				}
@@ -209,12 +222,21 @@ class ChartTemporal extends Component {
 		let minIndex=0;
 		let maxIndex=limit;
 		if(plotParams.minXWindow!=null){
-			minIndex=Math.round(plotParams.minXWindow*signalData.sFreq)
-			if(minIndex>=limit) minIndex=0; //Se paso, tira error
+			if(plotParams.minXWindow=='prev'){
+				minIndex=0;
+			}else{
+				minIndex=Math.round(plotParams.minXWindow*signalData.sFreq)
+				if(minIndex>=limit) minIndex=0; //Se paso, tira error
+			}	
 		}
 		if(plotParams.maxXWindow!=null){
-			maxIndex=Math.round(plotParams.maxXWindow*signalData.sFreq)
-			if(maxIndex>limit) maxIndex=limit; //Se paso, tira error
+			if(plotParams.maxXWindow=='prev'){
+				maxIndex=parseInt(limit*0.1);
+			}else{
+				maxIndex=Math.round(plotParams.maxXWindow*signalData.sFreq)
+				if(maxIndex>limit) maxIndex=limit; //Se paso, tira error
+			}
+			
     	}
 
 		let data=PrepareDataForPlot(
@@ -324,8 +346,12 @@ class ChartTemporal extends Component {
 								dataReady=true
 								let limit = signalData.data[0].length;
 								if(this.state.params.minXWindow!=null){
-									minIndex=Math.round(this.state.params.minXWindow*signalData.sFreq)
-									if(minIndex>=limit) minIndex=0; //Se paso, tira error
+									if(this.state.params.minXWindow=='prev'){
+										minIndex=0;
+									}else{
+										minIndex=Math.round(this.state.params.minXWindow*signalData.sFreq)
+										if(minIndex>=limit) minIndex=0; //Se paso, tira error
+									}
 								}
 							}
 						}

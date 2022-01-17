@@ -9,6 +9,7 @@ import {
   CInputRadio,
   CCard,
   CCardBody,
+  CAlert
 } from '@coreui/react'
 import { element, node } from 'prop-types';
 import {
@@ -124,19 +125,17 @@ class ChartTemporalForm extends Component{
       <div>
         {
           this.state.epochsExists && this.state.outputType==null ?
-          <CFormGroup row style={{margin:'0', width:'380px'}}>
-            <CCol md="12">
-              <CCard color="danger" className="text-white text-center">
-                <CCardBody>
-                  <header>Advertencia!</header>
-                  <p>
-                    Bloque epocas detectado en el diagrama: 
-                    Tiene que ejecutar el proceso primero.
-                  </p>
-                </CCardBody>
-              </CCard>
-            </CCol>
-          </CFormGroup>: null
+          <CAlert color="danger" style={{marginBottom:'0px',padding:'0.4rem 1.25rem'}}>
+              <center>
+                <header>Advertencia!</header>
+                <p>
+                  Bloque epocas detectado en el diagrama:
+                  <br/>
+                  Tiene que ejecutar el proceso primero.
+                </p>
+                </center>
+          </CAlert>
+          : null
         }
         {
           this.state.outputType=='raw' || this.state.outputType==null? // por defecto raw pero si despues era epochs se actualiza

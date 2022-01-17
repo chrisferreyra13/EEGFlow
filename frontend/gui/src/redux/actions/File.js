@@ -46,15 +46,17 @@ export const postFileInfo = (fileIdServer) => async (dispatch) =>{
     };
 
     //dispatch(requestFileInfo(fileId))
-    try {
-        fetch(url,initFetch)
-        .then(res => res.json())
-        .then(json => dispatch(receiveFileId(json)))
-    }
-    catch (error){
-      console.log("Error al hacer post de fileIdServer")
-        //dispatch(errorFetchingFileInfo(error))
-    }
+    fetch(url,initFetch)
+      .then(res => {
+        if(!res.ok){
+            return res.text().then(text => { throw new Error(text) })
+        }else {return res.json()}
+      })
+      .then(json => dispatch(receiveFileId(json)))
+      .catch(error => {
+          console.log("error")
+      })
+
 }
 
 export const getFileInfo = (fileId) => async (dispatch) =>{
@@ -70,13 +72,16 @@ export const getFileInfo = (fileId) => async (dispatch) =>{
   };
 
   dispatch(requestFileInfo())
-  try {
-    fetch(url,initFetch)
-    .then(res => res.json())
-    .then(json => dispatch(receiveFileInfo(json)))
-  }
-  catch (error){
+  fetch(url,initFetch)
+  .then(res => {
+    if(!res.ok){
+        return res.text().then(text => { throw new Error(text) })
+    }else {return res.json()}
+  })
+  .then(json => dispatch(receiveFileInfo(json)))
+  .catch(error => {
     dispatch(errorFetchingFileInfo(error))
-  }
+  })
+
 
 }
