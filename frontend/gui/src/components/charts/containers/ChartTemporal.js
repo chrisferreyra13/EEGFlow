@@ -3,7 +3,8 @@ import {
 	CCard,
 	CCardBody,
 	CCardGroup,
-	CCol
+	CCol,
+	CAlert,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {fetchSignal,deleteItemInputsReady,fetchMethodResult} from '../../../redux/actions/Diagram'
@@ -68,6 +69,7 @@ class ChartTemporal extends Component {
 		let channels;
 		let oldSignalId=null;
 
+		let methodResultType=null;
 		let methodResultExists=false;
 		let methodResultReady=false;
 		let methodResult=[];
@@ -128,6 +130,11 @@ class ChartTemporal extends Component {
 			if(fetchMethodResult){
 				this.props.fetchMethodResult(nodeInput.params.id,channels,params,nodeInput.id,nodeInput.elementType)
 				methodResultExists=true
+				if(nodeInput.elementType=='EVENTS')
+					methodResultType='eventos'
+				if(nodeInput.elementType=='MAX_PEAK')
+					methodResultType='picos'
+
 			}
 
 			
@@ -200,13 +207,16 @@ class ChartTemporal extends Component {
 			style:style,
 			data:data,
 			oldSignalId:oldSignalId,
+			methodResultType:methodResultType,
 			methodResultReady:methodResultReady,
 			methodResult:methodResult,
 			methodResultExists:methodResultExists,
 			minIndex:minIndex,
 			maxIndex:maxIndex,
 			outputType:outputType,
-			message:message
+			message:message,
+			signalFetchingError:this.props.signalFetchingError,
+			methodFetchingError:this.props.methodFetchingError
 
 		}
 
@@ -370,6 +380,12 @@ class ChartTemporal extends Component {
 				}
 			}
 		}
+		if(prevProps.methodFetchingError!==this.props.methodFetchingError){
+			this.setState({methodFetchingError:this.props.methodFetchingError})
+		}
+		if(prevProps.signalFetchingError!==this.props.signalFetchingError){
+			this.setState({signalFetchingError:this.props.signalFetchingError})
+		}
 		
 	  }
 
@@ -378,8 +394,18 @@ class ChartTemporal extends Component {
 		return (
 			<>
 				<CCol xl={this.props.plotSize}>
+					
 					<CCardBody style={{alignItems:'center'}}>
+						{this.state.methodFetchingError ?
+							<div style={{alignItems:'center', textAlign:'center', margin:'auto',position:'absolute',zIndex: '1'}}>
+								<CAlert color="danger" style={{marginBottom:'0px',padding:'0.4rem 1.25rem'}}>
+									Error al buscar los resultados del metodo:<br/>
+									El grafico no incluye los {this.state.methodResultType}
+								</CAlert>:
+							</div>:null
+						}
 						{ this.state.dataReady ?
+						
 							<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
 								{this.state.params.channels.length==1 ?
 								<ChartChannelTime
@@ -399,10 +425,20 @@ class ChartTemporal extends Component {
 								epoch={this.state.params.epochs}
 								/>
 								}
+								
 							</div>
 							:
-							<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
-								{this.state.message}
+							<div>
+								{this.state.signalFetchingError ? 
+									<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
+										<CAlert color="danger" style={{marginBottom:'0px',padding:'0.4rem 1.25rem'}}>
+											Error al buscar los resultados!
+										</CAlert>:
+									</div>:
+									<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
+										{this.state.message}
+									</div>
+								}
 							</div>
 						}
 					</CCardBody>
@@ -416,7 +452,9 @@ const mapStateToProps = (state) => {
 	return{
 	  elements:state.diagram.elements,
 	  inputsReady: state.diagram.inputsReady,
-	  prevParams:state.plotParams.plots
+	  prevParams:state.plotParams.plots,
+	  signalFetchingError:state.diagram.errors.signalFetchingError,
+	  methodFetchingError:state.diagram.errors.methodFetchingError,
 	};
 }
   

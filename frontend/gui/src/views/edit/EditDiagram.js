@@ -111,10 +111,21 @@ class EditDiagram extends Component{
     params.animated=true;
     params.arrowHeadType='arrowclosed'
     params.style={stroke:'blue'}
-    console.log(params)
-    const newElements=addEdge(params, this.state.elements)
-    this.props.addNewEdge(newElements)
-    this.setElements(newElements)
+    
+    let validConnection=true;
+    validConnection=this.state.elements.every(e =>{
+      if(e.elementType==undefined){//es una conexion
+        if(e.target==params.target){
+          return false //ya existe una conexion al nodo target. Conexion no valida
+        }else{return true}
+      }else{return true} 
+    })
+    if(validConnection){
+      const newElements=addEdge(params, this.state.elements)
+      this.props.addNewEdge(newElements)
+      this.setElements(newElements)
+    }
+    
   }
   onEdgeUpdate(oldEdge, newConnection){
       const newElements=updateEdge(oldEdge, newConnection, this.state.elements)

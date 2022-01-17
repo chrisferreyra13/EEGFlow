@@ -3,7 +3,8 @@ import {
 	CCard,
 	CCardBody,
 	CCardGroup,
-	CCol
+	CCol,
+	CAlert,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {fetchSignal,deleteItemInputsReady} from '../../../redux/actions/Diagram'
@@ -159,6 +160,7 @@ class ChartSpectrum extends Component {
 			oldSignalId:oldSignalId,
 			outputType:outputType,
 			message:message,
+			signalFetchingError:this.props.signalFetchingError,
 
 		}
     }
@@ -239,6 +241,9 @@ class ChartSpectrum extends Component {
 				}
 			}
 		}
+		if(prevProps.signalFetchingError!==this.props.signalFetchingError){
+			this.setState({signalFetchingError:this.props.signalFetchingError})
+		}
 		
 	  }
 
@@ -259,8 +264,17 @@ class ChartSpectrum extends Component {
 								/> 
 							</div>
 							:
-							<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
-								{this.state.message}
+							<div >
+								{this.state.signalFetchingError ? 
+									<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
+										<CAlert color="danger" style={{marginBottom:'0px',padding:'0.4rem 1.25rem'}}>
+											Error al buscar los resultados!
+										</CAlert>:
+									</div>:
+									<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
+										{this.state.message}
+									</div>
+								}
 							</div>
 						}
 					</CCardBody>
@@ -277,7 +291,8 @@ const mapStateToProps = (state) => {
 	return{
 	  elements:state.diagram.elements,
 	  inputsReady: state.diagram.inputsReady,
-	  prevParams:state.plotParams.plots
+	  prevParams:state.plotParams.plots,
+	  signalFetchingError:state.diagram.errors.signalFetchingError,
 	};
 }
   

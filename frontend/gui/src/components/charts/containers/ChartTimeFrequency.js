@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import {
 	CCardBody,
 	CCol,
+	CAlert
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {fetchSignal,deleteItemInputsReady} from '../../../redux/actions/Diagram'
@@ -153,7 +154,8 @@ class ChartTimeFrequency extends Component {
 			minIndex:minIndex,
 			maxIndex:maxIndex,
 			outputType:outputType,
-			message:message
+			message:message,
+			signalFetchingError:this.props.signalFetchingError,
 
 		}
 
@@ -232,6 +234,9 @@ class ChartTimeFrequency extends Component {
 				}
 			}
 		}
+		if(prevProps.signalFetchingError!==this.props.signalFetchingError){
+			this.setState({signalFetchingError:this.props.signalFetchingError})
+		}
 		
 	}
 
@@ -255,9 +260,19 @@ class ChartTimeFrequency extends Component {
 								/> 
 							</div>
 							:
-							<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
-								{this.state.message}
+							<div>
+								{this.state.signalFetchingError ? 
+									<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
+										<CAlert color="danger" style={{marginBottom:'0px',padding:'0.4rem 1.25rem'}}>
+											Error al buscar los resultados!
+										</CAlert>:
+									</div>:
+									<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
+										{this.state.message}
+									</div>
+								}
 							</div>
+							
 						}
 					</CCardBody>
 				</CCol>
@@ -270,7 +285,8 @@ const mapStateToProps = (state) => {
 	return{
 	  elements:state.diagram.elements,
 	  inputsReady: state.diagram.inputsReady,
-	  prevParams:state.plotParams.plots
+	  prevParams:state.plotParams.plots,
+	  signalFetchingError:state.diagram.errors.signalFetchingError,
 	};
 }
   

@@ -285,7 +285,12 @@ class EventsForm extends Component{
                         <CLabel htmlFor="event_id">Tipo de evento:</CLabel>
                           <CFormGroup row>
                             <CCol md="12">
-                                <CInput id="event_id" placeholder={"Ej: 4"} required value={this.state.newEventId} onChange={(event) => this.handleNewValue(event,'newEventId')}/>
+                                <CInput id="event_id" placeholder={"Ej: 4"} 
+                                type="number" 
+                                required 
+                                value={this.state.newEventId} 
+                                onChange={(event) => this.handleNewValue(event,'newEventId')}
+                                />
                             </CCol>
                           </CFormGroup>
                       </CCol>
@@ -295,7 +300,14 @@ class EventsForm extends Component{
                         <CLabel htmlFor="event_time">Latencia (seg):</CLabel>
                           <CFormGroup row>
                             <CCol md="12">
-                                <CInput id="event_time" placeholder={"Ej: 2.56"} nutype="number" min="0" step="0.01" required value={this.state.newEventTime} onChange={(event) => this.handleNewValue(event,'newEventTime')}/>
+                                <CInput id="event_time" placeholder={"Ej: 2.56"} 
+                                type="number"
+                                min={SamplesToTimes(this.state.firstSample,this.state.samplingFreq,3).toString()}
+                                max={SamplesToTimes(this.state.lastSample,this.state.samplingFreq,3).toString()} 
+                                step="0.001" 
+                                required value={this.state.newEventTime} 
+                                onChange={(event) => this.handleNewValue(event,'newEventTime')}
+                                />
                             </CCol>
                           </CFormGroup>
                       </CCol>

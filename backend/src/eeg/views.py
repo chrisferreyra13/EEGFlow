@@ -640,7 +640,8 @@ class GetTimeFrequency(APIView):
         if not average: #just in case
             return_itc=False
 
-        data=time_frequency(
+        try:
+            data=time_frequency(
                     instance=instance,
                     picks=channels_idxs,
                     type_of_tf=type_of_tf,
@@ -648,6 +649,9 @@ class GetTimeFrequency(APIView):
                     return_itc=return_itc,
                     **params
                     )
+        except Exception as ex:
+            return Response('Invalid parameters for time-frequency method.',
+                        status=status.HTTP_406_NOT_ACCEPTABLE)
 
         if return_itc:
             tfr,itc=data

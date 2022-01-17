@@ -564,15 +564,18 @@ export const fetchSignal = (id, channels, plotParams, nodeId, dataType, plotProc
       };
 
     dispatch(requestSignal(nodeId,dataType))
-    try {
-        //await fetcher(url,initFetch)
-        await fetch(url,initFetch)
-        .then(res => res.json())
-        .then(signalData => dispatch(receiveSignal({signalData, 'nodeId':nodeId, 'dataType':dataType, 'processId':plotProcessId})))
-    }
-    catch (error){
+    //await fetcher(url,initFetch)
+    await fetch(url,initFetch)
+    .then(res => {
+        if(!res.ok){
+            return res.text().then(text => { throw new Error(text) })
+        }else {return res.json()}
+        })
+    .then(signalData => dispatch(receiveSignal({signalData, 'nodeId':nodeId, 'dataType':dataType, 'processId':plotProcessId})))
+    .catch(error =>{
         dispatch(errorFetchingSignal({error, 'nodeId':nodeId}))
-    }
+    })
+
     
 }
 
@@ -645,15 +648,19 @@ export const fetchMethodResult = (id, channels, plotParams, nodeId, dataType) =>
       };
 
     dispatch(requestMethodResult(nodeId,dataType))
-    try {
-        //await fetcher(url,initFetch)
-        await fetch(url,initFetch)
-        .then(res => res.json())
-        .then(methodResult => dispatch(receiveMethodResult({methodResult, 'nodeId':nodeId, 'dataType':dataType})))
-    }
-    catch (error){
+
+    //await fetcher(url,initFetch)
+    await fetch(url,initFetch)
+    .then(res => {
+        if(!res.ok){
+            return res.text().then(text => { throw new Error(text) })
+        }else {return res.json()}
+        })
+    .then(methodResult => dispatch(receiveMethodResult({methodResult, 'nodeId':nodeId, 'dataType':dataType})))
+    .catch(error =>{
         dispatch(errorFetchingMethodResult({error, 'nodeId':nodeId}))
-    }
+    })
+
     
 }
 
