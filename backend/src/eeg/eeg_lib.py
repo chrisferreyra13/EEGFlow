@@ -21,8 +21,13 @@ def convert_to_db(x, data_type='power'):
 def set_instance_reference(instance, type_of_set_ref='monopolar', **kwargs): 
 
     if type_of_set_ref=='monopolar':
-        instance_eeg = instance.copy().pick_types(eeg=True)
-        instance_eeg.load_data()
+        if isinstance(instance,mne.BaseEpochs):
+            instance.load_data()
+            instance_eeg = instance.copy().pick_types(eeg=True)
+        else:
+            instance_eeg = instance.copy().pick_types(eeg=True)
+            instance_eeg.load_data()
+
         channel=kwargs["channel"] # channel name or 'average'
         try:
             instance_referenced=instance_eeg.set_eeg_reference(
@@ -37,8 +42,14 @@ def set_instance_reference(instance, type_of_set_ref='monopolar', **kwargs):
         cathode=kwargs["cathode"]
         ch_name=kwargs["ch_name"]
         drop_refs=kwargs["drop_refs"]
-        instance_referenced = instance.copy().pick_types(eeg=True)
-        instance_referenced.load_data()
+
+        if isinstance(instance,mne.BaseEpochs):
+            instance.load_data()
+            instance_referenced = instance.copy().pick_types(eeg=True)
+        else:
+            instance_referenced = instance.copy().pick_types(eeg=True)
+            instance_referenced.load_data()
+
         try:
             mne.set_bipolar_reference(
                 instance_referenced,
@@ -179,11 +190,13 @@ def add_events(instance, new_events):
         return instance
 
     
-    try:
+    if isinstance(instance,mne.BaseEpochs):
+        instance.load_data()
+        instance_eeg_stim = instance.copy().pick_types(eeg=True, stim=True)
+    else:
         instance_eeg_stim = instance.copy().pick_types(eeg=True, stim=True)
         instance_eeg_stim.load_data()
-    except Exception as ex:
-        raise ex
+
 
     if 'stim' in instance_eeg_stim.get_channel_types():
         instance_eeg_stim.add_events(new_events)  # , stim_channel='STI 014')
@@ -227,6 +240,7 @@ def notch_filter(instance, notch_freqs=[50.0], channels=None, filter_method='fir
     else:
         instance_eeg = instance.copy().pick_types(eeg=True)
         instance_eeg.load_data()
+
     try:
         if channels == None:  # Si es None, aplico el filtrado en todos los canales tipo EEG
             channels_idxs = mne.pick_types(instance.info, eeg=True)
@@ -291,8 +305,12 @@ def notch_filter(instance, notch_freqs=[50.0], channels=None, filter_method='fir
 
 def custom_filter(instance, low_freq=None, high_freq=None, channels=None, filter_method='fir', **kwargs):
 
-    instance_eeg = instance.copy().pick_types(eeg=True)
-    instance_eeg.load_data()
+    if isinstance(instance,mne.BaseEpochs):
+        instance.load_data()
+        instance_eeg = instance.copy().pick_types(eeg=True)
+    else:
+        instance_eeg = instance.copy().pick_types(eeg=True)
+        instance_eeg.load_data()
 
     try:
         if channels == None:  # Si es None, aplico el filtrado en todos los canales tipo EEG
@@ -332,10 +350,16 @@ def custom_filter(instance, low_freq=None, high_freq=None, channels=None, filter
 
 def peak_finder(instance, channels=None, thresh=None):
 
-    instance_eeg = instance.copy().pick_types(eeg=True)
+    if isinstance(instance,mne.BaseEpochs):
+        instance.load_data()
+        instance_eeg = instance.copy().pick_types(eeg=True)
+    else:
+        instance_eeg = instance.copy().pick_types(eeg=True)
+        instance_eeg.load_data()
+
     try:
         if channels == None:  # Si es None, aplico el filtrado en todos los canales tipo EEG
-            channels_idxs = mne.pick_types(instance.info, eeg=True)
+            channels_idxs = mne.pick_types(instance_eeg.info, eeg=True)
         else:
             channels_idxs = mne.pick_channels(
                 instance_eeg.info['ch_names'], include=channels,ordered=True)
@@ -344,12 +368,26 @@ def peak_finder(instance, channels=None, thresh=None):
 
     time_series = instance_eeg.get_data(picks=channels_idxs)
     peaks = []
-
-    for serie in time_series:
-        try:
-            locs, amplitudes = mne.preprocessing.peak_finder(serie, thresh=thresh)
-            peaks.append({"locations": locs, "amplitudes": amplitudes})
-        except Exception as ex:
-            raise ex
+    if isinstance(instance,mne.BaseEpochs):
+        peaks_per_epoch=[]
+        for epoch in time_series:
+            for channel in epoch:
+                try:
+                    locs, amplitudes = mne.preprocessing.peak_finder(channel, thresh=thresh)
+                    peaks.append({"locations": locs, "amplitudes": amplitudes})
+                except Exception as ex:
+                    raise ex
+            
+            peaks_per_epoch.append(peaks)
+            peaks=[]
+        
+        peaks=peaks_per_epoch
+    else:
+        for serie in time_series:
+            try:
+                locs, amplitudes = mne.preprocessing.peak_finder(serie, thresh=thresh)
+                peaks.append({"locations": locs, "amplitudes": amplitudes})
+            except Exception as ex:
+                raise ex
 
     return peaks

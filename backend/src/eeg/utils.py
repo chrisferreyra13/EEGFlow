@@ -119,10 +119,13 @@ def get_method_result_data(media_path,filepath=None):
     if filepath is None:
         raise TypeError
 
-    full_filepath=os.path.join(media_path,filepath)
-    method_result_file = open(full_filepath, "rb")
-    method_result_data = pickle.load(method_result_file)
-    method_result_file.close()
+    try:
+        full_filepath=os.path.join(media_path,filepath)
+        method_result_file = open(full_filepath, "rb")
+        method_result_data = pickle.load(method_result_file)
+        method_result_file.close()
+    except Exception as ex:
+        raise ex
 
     return method_result_data
 
@@ -260,9 +263,8 @@ def get_request_channels(params, param_key='channels'):
 
         elif type(channels)==list:
             if len(channels)==0:
-                return Response('An invalid list of channels has been provided.',
-                    status=status.HTTP_400_BAD_REQUEST)
-
+                channels=None
+                
     return channels
 
 def get_channels_from_instance(channels,instance):

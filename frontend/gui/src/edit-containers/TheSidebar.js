@@ -128,7 +128,7 @@ const TheSidebar = ({show, addNode, enableForm, diagramView, linkDiagram}) => {
             <CDropdownItem>Buscar</CDropdownItem>
             <CDropdownDivider/>
             {/*<CDropdownHeader>Frecuentes</CDropdownHeader>*/}
-            <CDropdownItem onClick={() => onClick(null,'ICA')} onDragStart={(event) => onDragStart(event, 'ICA')} draggable>ICA</CDropdownItem>
+            <CDropdownItem onClick={() => onClick(null,'ICA')} onDragStart={(event) => onDragStart(event, 'ICA')} draggable disable="true">ICA</CDropdownItem>
             <CDropdownItem onClick={() => onClick(null,'MAX_PEAK')} onDragStart={(event) => onDragStart(event, 'MAX_PEAK')} draggable>Pico maximo</CDropdownItem>
           </CDropdownMenu>
         </CDropdown>

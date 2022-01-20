@@ -138,7 +138,7 @@ class ChartTemporalForm extends Component{
           : null
         }
         {
-          this.state.outputType=='raw' || this.state.outputType==null? // por defecto raw pero si despues era epochs se actualiza
+          !this.state.epochsExists ?
           <div>
             <CFormGroup row>
               <CCol md="12">
@@ -171,41 +171,76 @@ class ChartTemporalForm extends Component{
             </CFormGroup>
           </div>:
           <div>
-            <CFormGroup row>
-              <CCol xs="12" md="12">
-                <CLabel>Cantidad de epocas:{this.state.numberOfEpochs}</CLabel>
-              </CCol>
-            </CFormGroup>
-            <CFormGroup row>
-              <CCol md="12">
-                <CLabel htmlFor="freq-inf">Canales</CLabel>
-                <Select 
-                options={this.state.options} 
-                isMulti 
-                value={this.getValue("channels")==null ? 
-                  null : 
-                  this.getValue("channels").map(ch => {return {value:ch, label:ch}})
-                }
-                onChange={(options) => this.handleMultiSelect(options,'channels')}
-                />
-              </CCol>
-            </CFormGroup>
-            <CFormGroup row>
-              <CCol md="12">
-                <CLabel htmlFor="freq-inf">Epocas</CLabel>
-                <Select 
-                options={this.state.epochOptions} 
-                value={
-                  this.getValue("epochs")==null ? 
-                  null : 
-                  epochsToOptions(this.getValue("epochs"),this.state.eventIds,this.state.eventSamples,this.state.samplingFreq)
-                } 
-                onChange={(option) => this.handleSelect(optionsToEpochs(option),'epochs')}
-                />
-              </CCol>
-            </CFormGroup>
-          </div>
-        }
+          {this.state.outputType=='raw' || this.state.outputType==null ? // por defecto raw pero si despues era epochs se actualiza
+            <div>
+              <CFormGroup row>
+                <CCol md="12">
+                  <CLabel htmlFor="freq-inf">Canales</CLabel>
+                  <Select options={this.state.options} isMulti value={this.getValue("channels")==null ? null : this.getValue("channels").map(ch => {return {value:ch, label:ch}})} onChange={(options) => this.handleMultiSelect(options,'channels')}/>
+                </CCol>
+              </CFormGroup>
+              <CFormGroup row>
+                <CCol md="12">
+                  <CLabel htmlFor="timeWindow">Ventana de tiempo:</CLabel>
+                    <CFormGroup row>
+                      <CCol md="6">
+                          <CInput 
+                          id="minTimeWindow" 
+                          placeholder={"tiempo mínimo (seg)"} 
+                          type="number" min="0" step="0.01" 
+                          value={this.getValue('minTimeWindow')==null ? '': this.getValue('minTimeWindow')} 
+                          onChange={(event) => this.handleChange(event,'minTimeWindow')}/>
+                      </CCol>
+                      <CCol md="6">
+                        <CInput 
+                        id="maxTimeWindow" 
+                        placeholder={"tiempo máximo (seg)"} 
+                        type="number" min="0" step="0.01" 
+                        value={this.getValue('maxTimeWindow')==null ? '': this.getValue('maxTimeWindow')} 
+                        onChange={(event) => this.handleChange(event,'maxTimeWindow')}/>
+                      </CCol>
+                    </CFormGroup>
+                </CCol>
+              </CFormGroup>
+            </div>:
+            <div>
+              <CFormGroup row>
+                <CCol xs="12" md="12">
+                  <CLabel>Cantidad de epocas:{this.state.numberOfEpochs}</CLabel>
+                </CCol>
+              </CFormGroup>
+              <CFormGroup row>
+                <CCol md="12">
+                  <CLabel htmlFor="freq-inf">Canales</CLabel>
+                  <Select 
+                  options={this.state.options} 
+                  isMulti 
+                  value={this.getValue("channels")==null ? 
+                    null : 
+                    this.getValue("channels").map(ch => {return {value:ch, label:ch}})
+                  }
+                  onChange={(options) => this.handleMultiSelect(options,'channels')}
+                  />
+                </CCol>
+              </CFormGroup>
+              <CFormGroup row>
+                <CCol md="12">
+                  <CLabel htmlFor="freq-inf">Epocas</CLabel>
+                  <Select 
+                  options={this.state.epochOptions} 
+                  value={
+                    this.getValue("epochs")==null ? 
+                    null : 
+                    epochsToOptions(this.getValue("epochs"),this.state.eventIds,this.state.eventSamples,this.state.samplingFreq)
+                  } 
+                  onChange={(option) => this.handleSelect(optionsToEpochs(option),'epochs')}
+                  />
+                </CCol>
+              </CFormGroup>
+            </div>
+          }
+        </div>
+      }
         <CFormGroup row>
                 <CCol md="12">
                     <CLabel htmlFor="size">Tamaño de gráfico</CLabel>

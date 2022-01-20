@@ -121,17 +121,7 @@ class ChartChannels extends Component {
             .setGridStrokeYStyle(emptyLine)
             .disposeTickMarkerY()
         )
-        const resultTableFormatter=(tableContentBuilder, activeSeries, x, y) => {
-            //let activeSeriesFormatted=LineSeries(activeSeries)
-            const seriesIndex = this.series.indexOf(activeSeries)
-            return tableContentBuilder
-                .addRow(activeSeries.getName())
-                .addRow('X', '', activeSeries.axisX.formatValue(x))
-                // Translate Y coordinate back to [0, 1].
-                .addRow('Y', '', activeSeries.axisY.formatValue(y - (seriesIndex + 0.5) * channelHeight + seriesIndex * channelGap))
-        }
-
-        this.series.forEach((series) => series.setCursorResultTableFormatter(resultTableFormatter))
+        
 
 
         switch(this.props.methodResult.type){
@@ -150,7 +140,7 @@ class ChartChannels extends Component {
                     //let pointsAdded = 0
                     let p;
                     this.pointSeries.forEach((series, i) => {
-                        this.props.methodResult[i]["locations"].forEach(idx =>{
+                        this.props.methodResult.data[i]["locations"].forEach(idx =>{
                             if(idx<this.props.data[i].length){
                                 series.add(this.props.data[i][idx])  
                             }
@@ -186,8 +176,18 @@ class ChartChannels extends Component {
             default:
                 break
 
-
         }
+        const resultTableFormatter=(tableContentBuilder, activeSeries, x, y) => {
+            //let activeSeriesFormatted=LineSeries(activeSeries)
+            const seriesIndex = this.series.indexOf(activeSeries)
+            return tableContentBuilder
+                .addRow(activeSeries.getName())
+                .addRow('X', '', activeSeries.axisX.formatValue(x))
+                // Translate Y coordinate back to [0, 1].
+                .addRow('Y', '', activeSeries.axisY.formatValue(y - (seriesIndex + 0.5) * channelHeight + seriesIndex * channelGap))
+        }
+
+        this.series.forEach((series) => series.setCursorResultTableFormatter(resultTableFormatter))
         
     }
     componentDidUpdate(prevProps){

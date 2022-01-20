@@ -1217,11 +1217,17 @@ class GetPeaks(APIView):
         #get requested channels
         channels=get_request_channels(request.query_params)
         if type(channels)==Response:
-            return channels
+            return channels 
+
+        if channels==None or channels=='prev': # Si es None, agarro todos
+            returned_channels=[]
+            
+        else:
+            returned_channels=channels
 
         response=Response({
             "data":method_result,
-            "ch_names":channels
+            "ch_names":returned_channels
             })
 
         

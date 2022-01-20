@@ -115,11 +115,14 @@ def set_reference(**kwargs):
         ref_params["anode"]=anode
         ref_params["cathode"]=cathode
 
-    output=set_instance_reference(
-        instance=input,
-        type_of_set_ref=type_of_set_ref,
-        **ref_params
-        )
+    try:
+        output=set_instance_reference(
+            instance=input,
+            type_of_set_ref=type_of_set_ref,
+            **ref_params
+            )
+    except Exception as ex:
+        return ex
     
 
     return output
@@ -223,16 +226,18 @@ def epochs(**kwargs):
             #return Response('An invalid list of event ids has been provided.',
             #            status=status.HTTP_400_BAD_REQUEST
 
-    
-    # build epochs instance for time-frequency plot
-    epochs = mne.Epochs(
-        raw=input, 
-        events=events,
-        event_id=event_id, 
-        tmin=tmin, tmax=tmax,
-        picks=channels_idxs,
-        baseline=baseline
-        )
+    try:
+        # build epochs instance for time-frequency plot
+        epochs = mne.Epochs(
+            raw=input, 
+            events=events,
+            event_id=event_id, 
+            tmin=tmin, tmax=tmax,
+            picks=channels_idxs,
+            baseline=baseline
+            )
+    except Exception as ex:
+        return ex
 
     return {"instance":epochs,"events":events}
 
@@ -319,7 +324,6 @@ def peak_step(**kwargs):
         return Response('Invalid data for peak finder method',
                     status=status.HTTP_406_NOT_ACCEPTABLE)
 
-    #TODO: agregar un save_peaks in file
 
     return {"instance":input,"method_result":peaks}
 

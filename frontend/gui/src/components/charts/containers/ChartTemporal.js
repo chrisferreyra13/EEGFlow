@@ -23,7 +23,7 @@ class ChartTemporal extends Component {
 		const nodePlot=this.props.elements.find((elem) => elem.id==this.props.nodeId) //Busco nodoPlot para setear los params
 		let params={}
 		const outputType=nodePlot.inputData.outputType==null? 'raw' : nodePlot.inputData.outputType
-		if(nodePlot.params.channels==null){ 
+		if(nodePlot.params.channels==null || nodePlot.params.channels.length==0){ 
 			if(outputType=='raw'){
 				params={ //Default params
 					channels:'prev',
@@ -35,7 +35,7 @@ class ChartTemporal extends Component {
 			}else{
 				params={ //Default params
 					channels:'prev',
-					epochs:'1',
+					epochs:nodePlot.params.epochs==null ? '1':nodePlot.params.epochs,
 					minXWindow:nodePlot.params.minTimeWindow,
 					maxXWindow:nodePlot.params.maxTimeWindow,
 					size:nodePlot.params.size==null ? 'l' : nodePlot.params.size
@@ -43,9 +43,10 @@ class ChartTemporal extends Component {
 			}
 			
 		}else{
+
 			params={
 				channels:nodePlot.params.channels,
-				epochs:nodePlot.params.epochs,
+				epochs:outputType=='raw'? null : nodePlot.params.epochs,
 				minXWindow:nodePlot.params.minTimeWindow,
 				maxXWindow:nodePlot.params.maxTimeWindow,
 				size:nodePlot.params.size==null ? 'm' : nodePlot.params.size
@@ -187,7 +188,10 @@ class ChartTemporal extends Component {
 			signalData=nodeInput.signalsData.find(d => d.dataType==nodeInput.elementType)
 			if(signalData!=undefined){
 				if(this.props.inputsReady.includes(signalData.id)){
-					methodResult=this.preprocessMethodResult(signalData,params.channels,params,minIndex,nodeInput.params,false)
+					methodResult=this.preprocessMethodResult(signalData,
+						params.channels,params,minIndex,
+						nodeInput.params,false,outputType
+						)
 					methodResultReady=true
 				}
 			}
@@ -274,25 +278,40 @@ class ChartTemporal extends Component {
 		else return data
 
 	}
-	preprocessMethodResult(signalData,plotChannels,plotParams,minIndex,nodeInputParams,updating){
+	preprocessMethodResult(signalData,plotChannels,plotParams,minIndex,nodeInputParams,updating,outputType){
 		let methodResult={data:null, type:null};
 		switch(signalData.dataType){
 			case "MAX_PEAK":
 				methodResult.data=[];
 				let newLocations=[];
-				signalData.chNames.forEach((chN,i) => {
-					if(plotChannels.includes(chN)){
-						newLocations=[];
-						signalData.data[i]["locations"].forEach(idx => {
-							if(idx>=minIndex)
-								newLocations.push(idx-minIndex)
-						})
-						methodResult.data.push({
-							channel:chN,
-							locations:newLocations,
-						})
-					}
-				})
+				let requestedChannels=signalData.chNames
+				if(requestedChannels.length==0 && plotChannels!='prev'){
+					requestedChannels=plotChannels //Los plot channels estan en orden cuando son prev
+				}
+				if(signalData.data.length!=0){
+					requestedChannels.forEach((chN,i) => {
+						if(plotChannels.includes(chN)){
+							newLocations=[];
+							if(outputType=='raw'){
+								signalData.data[i]["locations"].forEach(idx => {
+									if(idx>=minIndex)
+										newLocations.push(idx-minIndex)
+								})
+								
+							}else{
+								signalData.data[parseInt(plotParams.epochs)-1][i]["locations"].forEach(idx => {
+									if(idx>=minIndex)
+										newLocations.push(idx-minIndex)
+								})
+							}
+							methodResult.data.push({
+								channel:chN,
+								locations:newLocations,
+							})
+							
+						}
+					})
+				}
 				methodResult.type=signalData.dataType
 				break
 			case "EVENTS":
@@ -373,7 +392,10 @@ class ChartTemporal extends Component {
 						if(this.props.inputsReady.includes(signalData.id) && this.state.oldSignalId!=signalData.id){
 							//if(this.state.methodResultReady==false || this.state.dataReady==true){
 							if(dataReady==true){
-								this.preprocessMethodResult(signalData,plotChannels,this.state.params,minIndex,nodeInput.params,true)
+								this.preprocessMethodResult(signalData,plotChannels,
+									this.state.params,minIndex,nodeInput.params,
+									true,this.state.outputType
+									)
 							}
 						}
 					}
@@ -401,7 +423,7 @@ class ChartTemporal extends Component {
 								<CAlert color="danger" style={{marginBottom:'0px',padding:'0.4rem 1.25rem'}}>
 									Error al buscar los resultados del metodo:<br/>
 									El grafico no incluye los {this.state.methodResultType}
-								</CAlert>:
+								</CAlert>
 							</div>:null
 						}
 						{ this.state.dataReady ?
@@ -433,7 +455,7 @@ class ChartTemporal extends Component {
 									<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
 										<CAlert color="danger" style={{marginBottom:'0px',padding:'0.4rem 1.25rem'}}>
 											Error al buscar los resultados!
-										</CAlert>:
+										</CAlert>
 									</div>:
 									<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
 										{this.state.message}
