@@ -245,7 +245,12 @@ class ChartTemporal extends Component {
 		}
 		if(plotParams.maxXWindow!=null){
 			if(plotParams.maxXWindow=='prev'){
-				maxIndex=parseInt(limit*0.1);
+				if(limit>60000){
+					maxIndex=20000
+				}else{
+					maxIndex=limit;
+				}
+				
 			}else{
 				maxIndex=Math.round(plotParams.maxXWindow*signalData.sFreq)
 				if(maxIndex>limit) maxIndex=limit; //Se paso, tira error

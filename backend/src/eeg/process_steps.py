@@ -16,11 +16,15 @@ def bad_channels(**kwargs):
         return channels  
     
     ch_names=input.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
-    if set(channels).issubset(set(ch_names)):
-        input.info['bads'].extend(channels)  # add a list of channels
-    else:
+    try:
+        if set(channels).issubset(set(ch_names)):
+            input.info['bads'].extend(channels)  # add a list of channels
+        else:
+            return Response('An invalid list of channels has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+    except:
         return Response('An invalid list of channels has been provided.',
-                    status=status.HTTP_400_BAD_REQUEST)
+                        status=status.HTTP_400_BAD_REQUEST)
 
     return input
 

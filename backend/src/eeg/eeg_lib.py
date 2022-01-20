@@ -191,8 +191,7 @@ def add_events(instance, new_events):
 
     
     if isinstance(instance,mne.BaseEpochs):
-        instance.load_data()
-        instance_eeg_stim = instance.copy().pick_types(eeg=True, stim=True)
+        raise TypeError
     else:
         instance_eeg_stim = instance.copy().pick_types(eeg=True, stim=True)
         instance_eeg_stim.load_data()

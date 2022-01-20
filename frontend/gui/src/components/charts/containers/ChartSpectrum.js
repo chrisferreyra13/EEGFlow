@@ -115,7 +115,7 @@ class ChartSpectrum extends Component {
 			}
 
 			let prepareData=false
-			if(signalData!=undefined){
+			if(signalData!=undefined && !fetchSignal){
 				if(this.props.inputsReady.includes(signalData.id)){
 					if(params.channels=='prev'){
 						// if 'prev' (when the user didn't set channels) use signalData as default
@@ -299,7 +299,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
 	return {
 		fetchSignal: (id,channels,plotParams,nodeId,type,plotProcessId) => dispatch(fetchSignal(id,channels,plotParams,nodeId,type,plotProcessId)),
-		updatePlotParams: (params) => dispatch(updatePlotParams(params)),
+		updatePlotParams: (id,params) => dispatch(updatePlotParams(id,params)),
 		deleteItemInputsReady: (id) => dispatch(deleteItemInputsReady(id)),
 	};
 };

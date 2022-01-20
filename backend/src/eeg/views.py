@@ -389,9 +389,7 @@ class GetTimeFrequency(APIView):
             channels_idxs=mne.pick_types(instance.info,eeg=True) #Retorna los indices internos del instance
             
             if channels=='prev': # select just one channel for preview purposes
-                if len(channels_idxs)>=2: #TODO: En t-f solo usar un canal
-                    channels_idxs=[channels_idxs[0]]
-                else: channels_idxs=[channels_idxs[0]]
+                channels_idxs=[channels_idxs[0]]
 
             eeg_info=mne.pick_info(instance.info, sel=channels_idxs)
             returned_channels=eeg_info["ch_names"]
@@ -673,9 +671,13 @@ class GetTimeFrequency(APIView):
         #     dB=False
         #     own_dB_method=True
 
-        tfr = mne.time_frequency.tfr._preproc_tfr_instance(
-            tfr, None, tmin, tmax, fmin, fmax, vmin, vmax, dB, mode,
-            baseline, exclude=None, copy=True)
+        try:
+            tfr = mne.time_frequency.tfr._preproc_tfr_instance(
+                tfr, None, tmin, tmax, fmin, fmax, vmin, vmax, dB, mode,
+                baseline, exclude=None, copy=True)
+        except Exception as ex:
+            return Response('Invalid parameters for time-frequency method.',
+                        status=status.HTTP_406_NOT_ACCEPTABLE) 
         
         # if own_dB_method:
         #     tfr.data=10*np.log10(np.maximum(tfr.data, np.finfo(float).tiny))
@@ -895,41 +897,32 @@ class GetPSD(APIView):
                 defaults.insert(0,diff)
             else: defaults.insert(0,n_fft_app_default) #default value for app
 
-            welch_params=check_params(request.query_params,params_names=fields,params_values=defaults)
-            if welch_params["n_per_seg"]==None and welch_params["n_fft"]>diff:
+            params=check_params(request.query_params,params_names=fields,params_values=defaults)
+            if params["n_per_seg"]==None and params["n_fft"]>diff:
                 return Response('An invalid n_fft value has been provided.',
                                 status=status.HTTP_400_BAD_REQUEST)
 
-            if type(welch_params)==Response: return welch_params
-
-            data,freqs=psd(
-                instance=instance,
-                freq_window=freq_window,time_window=time_window,
-                picks=channels_idxs,
-                type_of_psd=type_of_psd,
-                n_fft=welch_params["n_fft"],
-                n_overlap=welch_params["n_overlap"],
-                n_per_seg=welch_params["n_per_seg"],
-                window=welch_params["window"],
-                average=welch_params["average"],
-            ) 
+            if type(params)==Response: return params
+             
         elif type_of_psd=='multitaper':
             fields=["bandwidth","adaptive","low_bias","normalization"]
             defaults=[4,False,False,'length']
-            multitaper_params=check_params(request.query_params,params_names=fields,params_values=defaults)
-            if type(multitaper_params)==Response: return multitaper_params
-
+            params=check_params(request.query_params,params_names=fields,params_values=defaults)
+            if type(params)==Response: return params
+ 
+        
+        try:
             data,freqs=psd(
                 instance=instance,
                 freq_window=freq_window,time_window=time_window,
                 picks=channels_idxs,
                 type_of_psd=type_of_psd,
-                bandwidth=multitaper_params["bandwidth"],
-                adaptive=multitaper_params["adaptive"],
-                low_bias=multitaper_params["low_bias"],
-                normalization=multitaper_params["normalization"],
+                **params
             )
-        
+        except Exception as ex:
+            return Response('Invalid parameters for psd method.',
+                    status=status.HTTP_406_NOT_ACCEPTABLE)
+
         if len(np.shape(data))==1 and epochs is None: # raw object
             psds=data 
         else:

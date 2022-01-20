@@ -113,7 +113,7 @@ class ChartTimeFrequency extends Component {
 			}
 
 			let prepareData=false
-			if(signalData!=undefined){
+			if(signalData!=undefined && !fetchSignal){
 				if(this.props.inputsReady.includes(signalData.id)){
 					if(params.channels=='prev'){
 						// if 'prev' (when the user didn't set channels) use signalData as default
