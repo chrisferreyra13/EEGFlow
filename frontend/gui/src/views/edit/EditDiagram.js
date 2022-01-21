@@ -95,7 +95,7 @@ class EditDiagram extends Component{
     
   }
   cancelButton(){
-    this.props.cancelProcess()
+    //this.props.cancelProcess()
   }
   setReactFlowInstance(_reactFlowInstance){
     this.setState({

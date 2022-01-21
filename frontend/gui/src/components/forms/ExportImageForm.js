@@ -29,7 +29,7 @@ class ExportImageForm extends Component{
 
     this.state={
       default:{
-        nodeId:null,
+        nodeId:'',
         fileName:'',
         format:'jpeg',
       },

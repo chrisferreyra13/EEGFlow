@@ -52,7 +52,7 @@ class Form extends Component{
     this.props.okForm()
   }
   onClickDownloadForm(formData){
-    if(formData.nodeId!=undefined || formData.nodeId!=null){
+    if(formData.nodeId!=undefined || formData.nodeId!=''){
       if(formData.format!=undefined){
         this.props.updateSavePlot(formData.nodeId,formData.fileName,formData.format)
 
@@ -73,7 +73,9 @@ class Form extends Component{
             }else{
               blob = new Blob(mapSignalDataToTxtFormat(signalData.data))
             }
-            
+            if(formData.fileName==''){
+              formData.fileName='data'
+            }
             const fileStream = streamSaver.createWriteStream(formData.fileName+'.txt', {
               size: blob.size // Makes the procentage visiable in the download
             })
@@ -87,7 +89,10 @@ class Form extends Component{
             // more optimized pipe version
             // (Safari may have pipeTo but it's useless without the WritableStream)
             if (window.WritableStream && readableStream.pipeTo) {
-              return readableStream.pipeTo(fileStream)
+              //return readableStream.pipeTo(fileStream)
+              //  .then(() => console.log('done writing'))
+              new Response('StreamSaver is awesome').body
+                .pipeTo(fileStream)
                 .then(() => console.log('done writing'))
             }else{
               // Write (pipe) manually
