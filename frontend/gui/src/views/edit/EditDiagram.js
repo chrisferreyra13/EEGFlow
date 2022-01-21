@@ -13,6 +13,7 @@ import {
   CButton,
   CCol,
   CRow,
+  CAlert
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 
@@ -57,7 +58,8 @@ class EditDiagram extends Component{
       contentHeight:Math.floor(window.innerHeight*0.75),
       elements: purge(this.props.elements),
       reactFlowInstance: null,
-      reactFlowWrapper: React.createRef(null) //useRef(null)
+      reactFlowWrapper: React.createRef(null), //useRef(null)
+      showError:this.props.showError
     }
     this.setReactFlowInstance=this.setReactFlowInstance.bind(this)
     this.setElements=this.setElements.bind(this)
@@ -93,7 +95,7 @@ class EditDiagram extends Component{
     
   }
   cancelButton(){
-    this.props.cancelProcess()
+    //this.props.cancelProcess()
   }
   setReactFlowInstance(_reactFlowInstance){
     this.setState({
@@ -109,9 +111,21 @@ class EditDiagram extends Component{
     params.animated=true;
     params.arrowHeadType='arrowclosed'
     params.style={stroke:'blue'}
-    const newElements=addEdge(params, this.state.elements)
-    this.props.addNewEdge(newElements)
-    this.setElements(newElements)
+    
+    let validConnection=true;
+    validConnection=this.state.elements.every(e =>{
+      if(e.elementType==undefined){//es una conexion
+        if(e.target==params.target){
+          return false //ya existe una conexion al nodo target. Conexion no valida
+        }else{return true}
+      }else{return true} 
+    })
+    if(validConnection){
+      const newElements=addEdge(params, this.state.elements)
+      this.props.addNewEdge(newElements)
+      this.setElements(newElements)
+    }
+    
   }
   onEdgeUpdate(oldEdge, newConnection){
       const newElements=updateEdge(oldEdge, newConnection, this.state.elements)
@@ -182,6 +196,11 @@ class EditDiagram extends Component{
     }
     if(prevProps.elements!==this.props.elements){
       this.setElements([...purge(this.props.elements)]);
+    }
+    if(prevProps.showError!==this.props.showError){
+      this.setState({
+        showError:this.props.showError
+      })
     }  
   }
 
@@ -211,11 +230,18 @@ class EditDiagram extends Component{
           </ReactFlowProvider>
         </CRow>
         <CRow>
-          <CCol xs="4" md="4">
-            {/*<CButton size="md" color="primary" onClick={this.props.linkDiagram}><CIcon name="cil-asterisk"/></CButton>*/}
-            <CButton size="md" color="info" onClick={this.runButton}><CIcon name="cil-chevron-right"/></CButton>{/*cil-chevron-right*/}
-            <CButton size="md" color="danger" onClick={this.cancelButton}><CIcon name="cil-x-circle"/></CButton>
-          </CCol>
+              <CCol md='2'>
+              <CButton size="md" color="info" onClick={this.runButton}><CIcon name="cil-chevron-right"/></CButton>
+              <CButton size="md" color="danger" onClick={this.cancelButton}><CIcon name="cil-x-circle"/></CButton>
+              </CCol>
+              {
+                this.state.showError==true ?
+                <CAlert color="danger" style={{marginBottom:'0px',padding:'0.4rem 1.25rem'}}>
+                  Error al procesar!
+                </CAlert>:
+                null
+              }
+
         </CRow>
       </div>
     );
@@ -238,7 +264,8 @@ const mapStateToProps = (state) => {
     fileInfo:state.file.fileInfo,
     fileId: state.file.fileId,
     elements:state.diagram.elements,
-    processes_status:state.diagram.processes_status
+    processes_status:state.diagram.processes_status,
+    showError:state.diagram.errors.processError
   };
 }
 

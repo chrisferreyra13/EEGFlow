@@ -305,11 +305,11 @@ class GetTimeSeries(APIView):
         
 
         data=instance.get_data(picks=channels_idxs) # Take the requested channels
-
+        
         times=None
         if len(np.shape(data))==2 and epochs is None: # raw object
-            time_series=data 
-        else:
+            time_series=data
+        else: #epochs object
             if epochs is None:
                 epochs=1 # default 
             n_epochs,n_channels,n_times=np.shape(data) #get the shape of the object
@@ -389,9 +389,7 @@ class GetTimeFrequency(APIView):
             channels_idxs=mne.pick_types(instance.info,eeg=True) #Retorna los indices internos del instance
             
             if channels=='prev': # select just one channel for preview purposes
-                if len(channels_idxs)>=2: #TODO: En t-f solo usar un canal
-                    channels_idxs=[channels_idxs[0]]
-                else: channels_idxs=[channels_idxs[0]]
+                channels_idxs=[channels_idxs[0]]
 
             eeg_info=mne.pick_info(instance.info, sel=channels_idxs)
             returned_channels=eeg_info["ch_names"]
@@ -640,7 +638,8 @@ class GetTimeFrequency(APIView):
         if not average: #just in case
             return_itc=False
 
-        data=time_frequency(
+        try:
+            data=time_frequency(
                     instance=instance,
                     picks=channels_idxs,
                     type_of_tf=type_of_tf,
@@ -648,6 +647,9 @@ class GetTimeFrequency(APIView):
                     return_itc=return_itc,
                     **params
                     )
+        except Exception as ex:
+            return Response('Invalid parameters for time-frequency method.',
+                        status=status.HTTP_406_NOT_ACCEPTABLE)
 
         if return_itc:
             tfr,itc=data
@@ -657,14 +659,28 @@ class GetTimeFrequency(APIView):
             tfr=data
             itc_data=[]
         
-        
+        #this line corrects the error below in mne
+        if mode in ['logratio','zlogratio'] and baseline is not None and dB is True:
+            dB=False
 
         tmin,tmax=(None,None) # lo usamos por defecto por ahora -> todo el rango para viz
-        fmin,fmax=(None,None) 
-        tfr = mne.time_frequency.tfr._preproc_tfr_instance(
-            tfr, None, tmin, tmax, fmin, fmax, vmin, vmax, dB, mode,
-            baseline, exclude=None, copy=True)
+        fmin,fmax=(None,None)
+
+        # own_dB_method=False
+        # if dB:
+        #     dB=False
+        #     own_dB_method=True
+
+        try:
+            tfr = mne.time_frequency.tfr._preproc_tfr_instance(
+                tfr, None, tmin, tmax, fmin, fmax, vmin, vmax, dB, mode,
+                baseline, exclude=None, copy=True)
+        except Exception as ex:
+            return Response('Invalid parameters for time-frequency method.',
+                        status=status.HTTP_406_NOT_ACCEPTABLE) 
         
+        # if own_dB_method:
+        #     tfr.data=10*np.log10(np.maximum(tfr.data, np.finfo(float).tiny))
         # The above fuction doesn't multiply by 10 for these baseline corrections 
         # I think this is wrong.
         if mode in ['logratio','zlogratio'] and baseline is not None: 
@@ -855,8 +871,12 @@ class GetPSD(APIView):
         
 
         if type_of_psd=='welch':
+            # The length of FFT used, must be >= n_per_seg (default: 256). 
+            # The segments will be zero-padded if n_fft > n_per_seg. 
+            # If n_per_seg is None, n_fft must be <= number of time points in the data.
+            n_fft_app_default=2048
             fields=["n_fft","n_overlap","n_per_seg","window","average"]
-            defaults=[0,None,'boxcar','mean']
+            defaults=[0,None,'hamming','mean'] # el default de n_fft se setea abajo calculando la diff.
             if time_window[0] is None or time_window[1] is None:
                 xmin=0
                 xmax=0
@@ -869,42 +889,40 @@ class GetPSD(APIView):
                     xmin=instance.first_samp
                     xmax=instance.last_samp
                     diff=int(xmax-xmin)
-
-                defaults.insert(0,diff)
+                    
             else:
-                defaults.insert(0,int(instance.info["sfreq"]*(time_window[1]-time_window[0])))
+                diff=int(instance.info["sfreq"]*(time_window[1]-time_window[0]))
 
-            welch_params=check_params(request.query_params,params_names=fields,params_values=defaults)
-            if type(welch_params)==Response: return welch_params
+            if diff<n_fft_app_default:
+                defaults.insert(0,diff)
+            else: defaults.insert(0,n_fft_app_default) #default value for app
 
-            data,freqs=psd(
-                instance=instance,
-                freq_window=freq_window,time_window=time_window,
-                picks=channels_idxs,
-                type_of_psd=type_of_psd,
-                n_fft=welch_params["n_fft"],
-                n_overlap=welch_params["n_overlap"],
-                n_per_seg=None,#welch_params["n_per_seg"],
-                window=welch_params["window"],
-                average=welch_params["average"],
-            ) 
+            params=check_params(request.query_params,params_names=fields,params_values=defaults)
+            if params["n_per_seg"]==None and params["n_fft"]>diff:
+                return Response('An invalid n_fft value has been provided.',
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            if type(params)==Response: return params
+             
         elif type_of_psd=='multitaper':
             fields=["bandwidth","adaptive","low_bias","normalization"]
             defaults=[4,False,False,'length']
-            multitaper_params=check_params(request.query_params,params_names=fields,params_values=defaults)
-            if type(multitaper_params)==Response: return multitaper_params
-
+            params=check_params(request.query_params,params_names=fields,params_values=defaults)
+            if type(params)==Response: return params
+ 
+        
+        try:
             data,freqs=psd(
                 instance=instance,
                 freq_window=freq_window,time_window=time_window,
                 picks=channels_idxs,
                 type_of_psd=type_of_psd,
-                bandwidth=multitaper_params["bandwidth"],
-                adaptive=multitaper_params["adaptive"],
-                low_bias=multitaper_params["low_bias"],
-                normalization=multitaper_params["normalization"],
+                **params
             )
-        
+        except Exception as ex:
+            return Response('Invalid parameters for psd method.',
+                    status=status.HTTP_406_NOT_ACCEPTABLE)
+
         if len(np.shape(data))==1 and epochs is None: # raw object
             psds=data 
         else:
@@ -1192,11 +1210,17 @@ class GetPeaks(APIView):
         #get requested channels
         channels=get_request_channels(request.query_params)
         if type(channels)==Response:
-            return channels
+            return channels 
+
+        if channels==None or channels=='prev': # Si es None, agarro todos
+            returned_channels=[]
+            
+        else:
+            returned_channels=channels
 
         response=Response({
             "data":method_result,
-            "ch_names":channels
+            "ch_names":returned_channels
             })
 
         

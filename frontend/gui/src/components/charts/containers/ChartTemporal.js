@@ -3,7 +3,8 @@ import {
 	CCard,
 	CCardBody,
 	CCardGroup,
-	CCol
+	CCol,
+	CAlert,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {fetchSignal,deleteItemInputsReady,fetchMethodResult} from '../../../redux/actions/Diagram'
@@ -22,19 +23,19 @@ class ChartTemporal extends Component {
 		const nodePlot=this.props.elements.find((elem) => elem.id==this.props.nodeId) //Busco nodoPlot para setear los params
 		let params={}
 		const outputType=nodePlot.inputData.outputType==null? 'raw' : nodePlot.inputData.outputType
-		if(nodePlot.params.channels==null){ 
+		if(nodePlot.params.channels==null || nodePlot.params.channels.length==0){ 
 			if(outputType=='raw'){
 				params={ //Default params
 					channels:'prev',
 					epochs:null,
-					minXWindow:nodePlot.params.minTimeWindow,
-					maxXWindow:nodePlot.params.maxTimeWindow,
+					minXWindow:nodePlot.params.minTimeWindow==null ? 'prev':nodePlot.params.minTimeWindow,
+					maxXWindow:nodePlot.params.maxTimeWindow==null ? 'prev':nodePlot.params.maxTimeWindow,
 					size:nodePlot.params.size==null ? 'l' : nodePlot.params.size
 				}
 			}else{
 				params={ //Default params
 					channels:'prev',
-					epochs:'1',
+					epochs:nodePlot.params.epochs==null ? '1':nodePlot.params.epochs,
 					minXWindow:nodePlot.params.minTimeWindow,
 					maxXWindow:nodePlot.params.maxTimeWindow,
 					size:nodePlot.params.size==null ? 'l' : nodePlot.params.size
@@ -42,9 +43,10 @@ class ChartTemporal extends Component {
 			}
 			
 		}else{
+
 			params={
 				channels:nodePlot.params.channels,
-				epochs:nodePlot.params.epochs,
+				epochs:outputType=='raw'? null : nodePlot.params.epochs,
 				minXWindow:nodePlot.params.minTimeWindow,
 				maxXWindow:nodePlot.params.maxTimeWindow,
 				size:nodePlot.params.size==null ? 'm' : nodePlot.params.size
@@ -68,6 +70,7 @@ class ChartTemporal extends Component {
 		let channels;
 		let oldSignalId=null;
 
+		let methodResultType=null;
 		let methodResultExists=false;
 		let methodResultReady=false;
 		let methodResult=[];
@@ -83,11 +86,11 @@ class ChartTemporal extends Component {
 		const dataType='TIME_SERIES';
 		if(nodePlot.inputData.inputNodeId!=null){
 			const nodeInput=this.props.elements.find((elem) => elem.id==nodePlot.inputData.inputNodeId)
-
-			if(nodeInput.params.channels==undefined){channels=params.channels}
+			channels=params.channels
+			/*if(nodeInput.params.channels==undefined){channels=params.channels}
 			else{
 				channels=nodeInput.params.channels
-			}
+			}*/
 
 			let signalData=nodeInput.signalsData.find(s => {
 				if(s.processId==nodePlot.processParams.processId && s.dataType==dataType)return true
@@ -128,6 +131,11 @@ class ChartTemporal extends Component {
 			if(fetchMethodResult){
 				this.props.fetchMethodResult(nodeInput.params.id,channels,params,nodeInput.id,nodeInput.elementType)
 				methodResultExists=true
+				if(nodeInput.elementType=='EVENTS')
+					methodResultType='eventos'
+				if(nodeInput.elementType=='MAX_PEAK')
+					methodResultType='picos'
+
 			}
 
 			
@@ -143,6 +151,11 @@ class ChartTemporal extends Component {
 						if(signalData.chNames.some(ch => params.channels.includes(ch))){
 							prepareData=true
 							params.channels=signalData.chNames.filter(ch => params.channels.includes(ch))
+						}else{
+							message=<div>
+										<h4>No hay canales.</h4>
+										<CIcon size= "xl" name="cil-x-circle"/>
+									</div>
 						}
 							
 					}
@@ -153,13 +166,21 @@ class ChartTemporal extends Component {
 						limit = signalData.data[0].length;
 						minIndex=0;
 						maxIndex=limit;
-						if(params.minXWindow!=null){
-							minIndex=Math.round(params.minXWindow*signalData.sFreq)
-							if(minIndex>=limit) minIndex=0; //Se paso, tira error
+						if(params.minXWindow!=null && params.minXWindow!='prev'){
+							if(params.minXWindow=='prev'){
+								minIndex=0;
+							}else{
+								minIndex=Math.round(params.minXWindow*signalData.sFreq)
+								if(minIndex>=limit) minIndex=0; //Se paso, tira error
+							}
 						}
-						if(params.maxXWindow!=null){
-							maxIndex=Math.round(params.maxXWindow*signalData.sFreq)
-							if(maxIndex>limit) maxIndex=limit; //Se paso, tira error
+						if(params.maxXWindow!=null && params.maxXWindow!='prev'){
+							if(params.maxXWindow=='prev'){
+								maxIndex=parseInt(limit*0.1);
+							}else{
+								maxIndex=Math.round(params.maxXWindow*signalData.sFreq)
+								if(maxIndex>limit) maxIndex=limit; //Se paso, tira error
+							}
 						}
 					}
 				}
@@ -167,7 +188,10 @@ class ChartTemporal extends Component {
 			signalData=nodeInput.signalsData.find(d => d.dataType==nodeInput.elementType)
 			if(signalData!=undefined){
 				if(this.props.inputsReady.includes(signalData.id)){
-					methodResult=this.preprocessMethodResult(signalData,params.channels,params,minIndex,nodeInput.params,false)
+					methodResult=this.preprocessMethodResult(signalData,
+						params.channels,params,minIndex,
+						nodeInput.params,false,outputType
+						)
 					methodResultReady=true
 				}
 			}
@@ -187,13 +211,16 @@ class ChartTemporal extends Component {
 			style:style,
 			data:data,
 			oldSignalId:oldSignalId,
+			methodResultType:methodResultType,
 			methodResultReady:methodResultReady,
 			methodResult:methodResult,
 			methodResultExists:methodResultExists,
 			minIndex:minIndex,
 			maxIndex:maxIndex,
 			outputType:outputType,
-			message:message
+			message:message,
+			signalFetchingError:this.props.signalFetchingError,
+			methodFetchingError:this.props.methodFetchingError
 
 		}
 
@@ -209,12 +236,26 @@ class ChartTemporal extends Component {
 		let minIndex=0;
 		let maxIndex=limit;
 		if(plotParams.minXWindow!=null){
-			minIndex=Math.round(plotParams.minXWindow*signalData.sFreq)
-			if(minIndex>=limit) minIndex=0; //Se paso, tira error
+			if(plotParams.minXWindow=='prev'){
+				minIndex=0;
+			}else{
+				minIndex=Math.round(plotParams.minXWindow*signalData.sFreq)
+				if(minIndex>=limit) minIndex=0; //Se paso, tira error
+			}	
 		}
 		if(plotParams.maxXWindow!=null){
-			maxIndex=Math.round(plotParams.maxXWindow*signalData.sFreq)
-			if(maxIndex>limit) maxIndex=limit; //Se paso, tira error
+			if(plotParams.maxXWindow=='prev'){
+				if(limit>60000){
+					maxIndex=20000
+				}else{
+					maxIndex=limit;
+				}
+				
+			}else{
+				maxIndex=Math.round(plotParams.maxXWindow*signalData.sFreq)
+				if(maxIndex>limit) maxIndex=limit; //Se paso, tira error
+			}
+			
     	}
 
 		let data=PrepareDataForPlot(
@@ -242,25 +283,40 @@ class ChartTemporal extends Component {
 		else return data
 
 	}
-	preprocessMethodResult(signalData,plotChannels,plotParams,minIndex,nodeInputParams,updating){
+	preprocessMethodResult(signalData,plotChannels,plotParams,minIndex,nodeInputParams,updating,outputType){
 		let methodResult={data:null, type:null};
 		switch(signalData.dataType){
 			case "MAX_PEAK":
 				methodResult.data=[];
 				let newLocations=[];
-				signalData.chNames.forEach((chN,i) => {
-					if(plotChannels.includes(chN)){
-						newLocations=[];
-						signalData.data[i]["locations"].forEach(idx => {
-							if(idx>=minIndex)
-								newLocations.push(idx-minIndex)
-						})
-						methodResult.data.push({
-							channel:chN,
-							locations:newLocations,
-						})
-					}
-				})
+				let requestedChannels=signalData.chNames
+				if(requestedChannels.length==0 && plotChannels!='prev'){
+					requestedChannels=plotChannels //Los plot channels estan en orden cuando son prev
+				}
+				if(signalData.data.length!=0){
+					requestedChannels.forEach((chN,i) => {
+						if(plotChannels.includes(chN)){
+							newLocations=[];
+							if(outputType=='raw'){
+								signalData.data[i]["locations"].forEach(idx => {
+									if(idx>=minIndex)
+										newLocations.push(idx-minIndex)
+								})
+								
+							}else{
+								signalData.data[parseInt(plotParams.epochs)-1][i]["locations"].forEach(idx => {
+									if(idx>=minIndex)
+										newLocations.push(idx-minIndex)
+								})
+							}
+							methodResult.data.push({
+								channel:chN,
+								locations:newLocations,
+							})
+							
+						}
+					})
+				}
 				methodResult.type=signalData.dataType
 				break
 			case "EVENTS":
@@ -324,8 +380,12 @@ class ChartTemporal extends Component {
 								dataReady=true
 								let limit = signalData.data[0].length;
 								if(this.state.params.minXWindow!=null){
-									minIndex=Math.round(this.state.params.minXWindow*signalData.sFreq)
-									if(minIndex>=limit) minIndex=0; //Se paso, tira error
+									if(this.state.params.minXWindow=='prev'){
+										minIndex=0;
+									}else{
+										minIndex=Math.round(this.state.params.minXWindow*signalData.sFreq)
+										if(minIndex>=limit) minIndex=0; //Se paso, tira error
+									}
 								}
 							}
 						}
@@ -337,12 +397,21 @@ class ChartTemporal extends Component {
 						if(this.props.inputsReady.includes(signalData.id) && this.state.oldSignalId!=signalData.id){
 							//if(this.state.methodResultReady==false || this.state.dataReady==true){
 							if(dataReady==true){
-								this.preprocessMethodResult(signalData,plotChannels,this.state.params,minIndex,nodeInput.params,true)
+								this.preprocessMethodResult(signalData,plotChannels,
+									this.state.params,minIndex,nodeInput.params,
+									true,this.state.outputType
+									)
 							}
 						}
 					}
 				}
 			}
+		}
+		if(prevProps.methodFetchingError!==this.props.methodFetchingError){
+			this.setState({methodFetchingError:this.props.methodFetchingError})
+		}
+		if(prevProps.signalFetchingError!==this.props.signalFetchingError){
+			this.setState({signalFetchingError:this.props.signalFetchingError})
 		}
 		
 	  }
@@ -352,8 +421,18 @@ class ChartTemporal extends Component {
 		return (
 			<>
 				<CCol xl={this.props.plotSize}>
+					
 					<CCardBody style={{alignItems:'center'}}>
+						{this.state.methodFetchingError ?
+							<div style={{alignItems:'center', textAlign:'center', margin:'auto',position:'absolute',zIndex: '1'}}>
+								<CAlert color="danger" style={{marginBottom:'0px',padding:'0.4rem 1.25rem'}}>
+									Error al buscar los resultados del metodo:<br/>
+									El grafico no incluye los {this.state.methodResultType}
+								</CAlert>
+							</div>:null
+						}
 						{ this.state.dataReady ?
+						
 							<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
 								{this.state.params.channels.length==1 ?
 								<ChartChannelTime
@@ -373,10 +452,20 @@ class ChartTemporal extends Component {
 								epoch={this.state.params.epochs}
 								/>
 								}
+								
 							</div>
 							:
-							<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
-								{this.state.message}
+							<div>
+								{this.state.signalFetchingError ? 
+									<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
+										<CAlert color="danger" style={{marginBottom:'0px',padding:'0.4rem 1.25rem'}}>
+											Error al buscar los resultados!
+										</CAlert>
+									</div>:
+									<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
+										{this.state.message}
+									</div>
+								}
 							</div>
 						}
 					</CCardBody>
@@ -390,7 +479,9 @@ const mapStateToProps = (state) => {
 	return{
 	  elements:state.diagram.elements,
 	  inputsReady: state.diagram.inputsReady,
-	  prevParams:state.plotParams.plots
+	  prevParams:state.plotParams.plots,
+	  signalFetchingError:state.diagram.errors.signalFetchingError,
+	  methodFetchingError:state.diagram.errors.methodFetchingError,
 	};
 }
   

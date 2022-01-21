@@ -18,12 +18,13 @@ import {
     UPDATE_OUTPUT_NODE_COLOR,
     PROCESS_IS_COMPLETED,
     DELETE_ITEM_INPUTS_READY,
+    RUN_PROCESS_INIT,
 } from '../actions/Diagram';
 import allowedElements from './_elements';
 import initialElements from './_initialElements';
 
 import {v4 as uuidv4} from 'uuid';
-import { element } from 'prop-types';
+
 
 const INITIAL_DIAGRAM=0;
 
@@ -34,7 +35,12 @@ const initialState={
     nodesCount: nodesCount,
     lastId: nodesCount,
     processes_status:{}, //[TOSTART, PROCESSING, SUCCESFULL, FAIL]
-    inputsReady:[]
+    inputsReady:[],
+    errors:{
+        processError:false,
+        signalFetchingError:false,
+        methodFetchingError:false
+    },
 }
 
 export const diagram= (state=initialState, {type, ...rest})=>{
@@ -199,12 +205,21 @@ export const diagram= (state=initialState, {type, ...rest})=>{
             return Object.assign({},state, {
                 elements: elements,
             })
+        
+        case RUN_PROCESS_INIT:
+            return Object.assign({},state,{
+                errors:{
+                    ...state.errors,
+                    processError:false
+                }
+            })
 
         case PROCESS_TO_START:
             let i=0
             processes_status={}
             processes_status=JSON.parse(JSON.stringify(state.processes_status))
             processes_status[rest['processId']]='TOSTART'
+   
             
             return Object.assign({},state,{
                 processes_status: processes_status, //PROCESSING
@@ -234,8 +249,9 @@ export const diagram= (state=initialState, {type, ...rest})=>{
             })
             return Object.assign({},state,{
                 processes_status: processes_status, //PROCESSING
-                elements:elements
+                elements:elements,
             })
+            
         
         case FETCH_RUN_PROCESS_RECEIVE:
             elements={}
@@ -311,6 +327,10 @@ export const diagram= (state=initialState, {type, ...rest})=>{
             processes_status[rest.process['process_id']]=rest.process["process_status"]
             return Object.assign({},state,{
                 process_status: processes_status, //FAIL
+                errors:{
+                    ...state.errors,
+                    processError:true
+                }
             })
         
         case FETCH_SIGNAL_REQUEST:
@@ -353,7 +373,11 @@ export const diagram= (state=initialState, {type, ...rest})=>{
 
             return Object.assign({},state,{
                 elements: elements,
-                inputsReady:inputsReady
+                inputsReady:inputsReady,
+                errors:{
+                    ...state.errors,
+                    signalFetchingError:false
+                }
                 })
 
         case FETCH_SIGNAL_RECEIVE:
@@ -411,7 +435,12 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                 })
                 
         case FETCH_SIGNAL_FAILURE:
-            return {...state, ...rest}
+            return Object.assign({},state,{
+                errors:{
+                    ...state.errors,
+                    signalFetchingError:true
+                }
+                })
 
         case FETCH_METHOD_RESULT_REQUEST:
             inputsReady=JSON.parse(JSON.stringify(state.inputsReady))
@@ -453,7 +482,11 @@ export const diagram= (state=initialState, {type, ...rest})=>{
 
             return Object.assign({},state,{
                 elements: elements,
-                inputsReady:inputsReady
+                inputsReady:inputsReady,
+                errors:{
+                    ...state.errors,
+                    methodFetchingError:false
+                }
                 })
 
         case FETCH_METHOD_RESULT_RECEIVE:
@@ -504,7 +537,12 @@ export const diagram= (state=initialState, {type, ...rest})=>{
                 })
                 
         case FETCH_METHOD_RESULT_FAILURE:
-            return {...state, ...rest}
+            return Object.assign({},state,{
+                errors:{
+                    ...state.errors,
+                    methodFetchingError:true
+                }
+                })
         
         case DELETE_ITEM_INPUTS_READY:
             inputsReady=JSON.parse(JSON.stringify(state.inputsReady))

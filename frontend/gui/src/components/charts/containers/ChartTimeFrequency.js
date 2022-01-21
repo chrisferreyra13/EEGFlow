@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import {
 	CCardBody,
 	CCol,
+	CAlert
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {fetchSignal,deleteItemInputsReady} from '../../../redux/actions/Diagram'
@@ -23,7 +24,7 @@ class ChartTimeFrequency extends Component {
 					channels:'prev',
 					epochs:null,
 					size:nodePlot.params.size==null ? 'l' : nodePlot.params.size,
-					dB:nodePlot.params.dB==null ? 'false' : nodePlot.params.dB,
+					dB:nodePlot.params.dB==null ? 'true' : nodePlot.params.dB,
 					average:nodePlot.params.average==null ? 'false' : nodePlot.params.average,
 					itc:nodePlot.params.return_itc==null ? 'false' : nodePlot.params.return_itc,
 
@@ -34,7 +35,7 @@ class ChartTimeFrequency extends Component {
 					channels:'prev',
 					epochs:'1',
 					size:nodePlot.params.size==null ? 'l' : nodePlot.params.size,
-					dB:nodePlot.params.dB==null ? 'false' : nodePlot.params.dB,
+					dB:nodePlot.params.dB==null ? 'true' : nodePlot.params.dB,
 					average:nodePlot.params.average==null ? 'false' : nodePlot.params.average,
 					itc:nodePlot.params.return_itc==null ? 'false' : nodePlot.params.return_itc,
 				}
@@ -43,14 +44,15 @@ class ChartTimeFrequency extends Component {
 			params={
 				...nodePlot.params,
 				size:nodePlot.params.size==null ? 'm' : nodePlot.params.size,
-				dB:nodePlot.params.dB==null ? 'false' : nodePlot.params.dB,
+				dB:nodePlot.params.dB==null ? 'true' : nodePlot.params.dB,
 				average:nodePlot.params.average==null ? 'false' : nodePlot.params.average,
 				itc:nodePlot.params.return_itc==null ? 'false' : nodePlot.params.return_itc,
 
 			}
 		}
-		console.log(nodePlot.params)
+		
 		this.preprocessData=this.preprocessData.bind(this);
+		this.getUnitFromMode=this.getUnitFromMode.bind(this);
 
 		let style={} //Seteando las dimensiones del grafico en base a los parametros
 		
@@ -111,7 +113,7 @@ class ChartTimeFrequency extends Component {
 			}
 
 			let prepareData=false
-			if(signalData!=undefined){
+			if(signalData!=undefined && !fetchSignal){
 				if(this.props.inputsReady.includes(signalData.id)){
 					if(params.channels=='prev'){
 						// if 'prev' (when the user didn't set channels) use signalData as default
@@ -152,11 +154,24 @@ class ChartTimeFrequency extends Component {
 			minIndex:minIndex,
 			maxIndex:maxIndex,
 			outputType:outputType,
-			message:message
+			message:message,
+			signalFetchingError:this.props.signalFetchingError,
 
 		}
 
     }
+	getUnitFromMode(mode){
+		if(mode=='logratio' || mode=='zlogratio'){
+			return 'dB'
+		}else{
+			if(mode=='ratio' || mode=='percent'){
+				return '%'
+			}else{
+				return '\u03BCV²/Hz'
+			}
+		}
+		
+	}
 
 	preprocessData(signalData,plotChannels,plotParams,updating){
 		let data={
@@ -219,6 +234,9 @@ class ChartTimeFrequency extends Component {
 				}
 			}
 		}
+		if(prevProps.signalFetchingError!==this.props.signalFetchingError){
+			this.setState({signalFetchingError:this.props.signalFetchingError})
+		}
 		
 	}
 
@@ -237,13 +255,24 @@ class ChartTimeFrequency extends Component {
 								channels={this.state.params.channels}
 								epoch={this.state.params.epochs}
 								dB={this.state.params.dB=='false' ? false : true}
+								unit={this.getUnitFromMode(this.state.params.mode)}
 								average={this.state.params.average=='false' ? false : true}
 								/> 
 							</div>
 							:
-							<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
-								{this.state.message}
+							<div>
+								{this.state.signalFetchingError ? 
+									<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
+										<CAlert color="danger" style={{marginBottom:'0px',padding:'0.4rem 1.25rem'}}>
+											Error al buscar los resultados!
+										</CAlert>:
+									</div>:
+									<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
+										{this.state.message}
+									</div>
+								}
 							</div>
+							
 						}
 					</CCardBody>
 				</CCol>
@@ -256,7 +285,8 @@ const mapStateToProps = (state) => {
 	return{
 	  elements:state.diagram.elements,
 	  inputsReady: state.diagram.inputsReady,
-	  prevParams:state.plotParams.plots
+	  prevParams:state.plotParams.plots,
+	  signalFetchingError:state.diagram.errors.signalFetchingError,
 	};
 }
   

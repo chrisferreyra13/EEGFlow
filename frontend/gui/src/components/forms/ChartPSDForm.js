@@ -10,6 +10,7 @@ import {
   CInputCheckbox,
   CCard,
   CCardBody,
+  CAlert
 } from '@coreui/react'
 import {
   epochsToOptions,
@@ -30,7 +31,7 @@ class ChartPSDForm extends Component{
         {value:'bartlett',label:'bartlett'},
     ]
     const averageOptions=[ //agregar si es necesario
-        {value:'none',label:'Ninguno'},
+        //{value:'none',label:'Ninguno'},
         {value:'mean',label:'Media'},
         {value:'median',label:'Mediana'},
     ]
@@ -119,10 +120,12 @@ class ChartPSDForm extends Component{
   }
   checkButtonsById(inputId,radioButtonIds){
     radioButtonIds.forEach(id => {
-      if(this.getValue(inputId)==id) // el id tiene que ser igual al valor del button
-        document.getElementById(id).checked=true
-      else
-        document.getElementById(id).checked=false
+      if(document.getElementById(id)!=null){
+        if(this.getValue(inputId)==id) // el id tiene que ser igual al valor del button
+          document.getElementById(id).checked=true
+        else
+          document.getElementById(id).checked=false
+      }
     }) 
   }
 
@@ -164,19 +167,16 @@ class ChartPSDForm extends Component{
       <div>
         {
           this.state.epochsExists==true && this.state.outputType==null ?
-          <CFormGroup row style={{margin:'0', width:'380px'}}>
-            <CCol md="12">
-              <CCard color="danger" className="text-white text-center">
-                <CCardBody>
-                  <header>Advertencia!</header>
-                  <p>
-                    Bloque epocas detectado en el diagrama: 
-                    Tiene que ejecutar el proceso primero.
-                  </p>
-                </CCardBody>
-              </CCard>
-            </CCol>
-          </CFormGroup>: null
+          <CAlert color="danger" style={{marginBottom:'0px',padding:'0.4rem 1.25rem'}}>
+              <center>
+                <header>Advertencia!</header>
+                <p>
+                  Bloque epocas detectado en el diagrama:
+                  <br/>
+                  Tiene que ejecutar el proceso primero.
+                </p>
+                </center>
+          </CAlert>: null
         }
         {
           this.state.outputType=='epochs' ?
@@ -260,7 +260,7 @@ class ChartPSDForm extends Component{
                         <CLabel htmlFor="n_fft">Largo de la FFT usada:</CLabel>
                     </CCol>
                     <CCol md="4">
-                        <CInput id="n_fft" placeholder={"256"} type="number" min="0" step="1" value={this.getValue('n_fft')} onChange={(event) => this.handleChange(event,'n_fft')}/>
+                        <CInput id="n_fft" placeholder={"2048"} type="number" min="0" step="1" value={this.getValue('n_fft')} onChange={(event) => this.handleChange(event,'n_fft')}/>
                     </CCol>
                 </CFormGroup>
                 <CFormGroup row>

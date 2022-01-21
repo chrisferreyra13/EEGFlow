@@ -3,14 +3,21 @@ import {FETCH_EVENTS_RECEIVE, FETCH_EVENTS_REQUEST, FETCH_EVENTS_FORM_FAILURE} f
 const initialState={
     eventId: [],
     eventSamples: [],
-    isFetching: true
+    isFetching: true,
+    errors:{
+        fetchingEvents:false
+    }
 }
 
 export const events = (state=initialState, {type, ...rest}) => {
     switch(type){
         case FETCH_EVENTS_REQUEST:
             return Object.assign({},state,{
-                isFetching: true
+                isFetching: true,
+                errors:{
+                    ...state.errors,
+                    fetchingEvents:false
+                }
             })
         case FETCH_EVENTS_RECEIVE:
             return Object.assign({},state,{
@@ -20,7 +27,11 @@ export const events = (state=initialState, {type, ...rest}) => {
             })
         case FETCH_EVENTS_FORM_FAILURE:
             return Object.assign({},state,{
-                isFetching: true
+                isFetching: false,
+                errors:{
+                    ...state.errors,
+                    fetchingEvents:true
+                }
             })
         default:
             return state

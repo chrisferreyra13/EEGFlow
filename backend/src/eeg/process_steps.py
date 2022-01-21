@@ -16,11 +16,15 @@ def bad_channels(**kwargs):
         return channels  
     
     ch_names=input.info['ch_names']   # Obtengo los nombres de los canales tipo EEG
-    if set(channels).issubset(set(ch_names)):
-        input.info['bads'].extend(channels)  # add a list of channels
-    else:
+    try:
+        if set(channels).issubset(set(ch_names)):
+            input.info['bads'].extend(channels)  # add a list of channels
+        else:
+            return Response('An invalid list of channels has been provided.',
+                        status=status.HTTP_400_BAD_REQUEST)
+    except:
         return Response('An invalid list of channels has been provided.',
-                    status=status.HTTP_400_BAD_REQUEST)
+                        status=status.HTTP_400_BAD_REQUEST)
 
     return input
 
@@ -115,11 +119,14 @@ def set_reference(**kwargs):
         ref_params["anode"]=anode
         ref_params["cathode"]=cathode
 
-    output=set_instance_reference(
-        instance=input,
-        type_of_set_ref=type_of_set_ref,
-        **ref_params
-        )
+    try:
+        output=set_instance_reference(
+            instance=input,
+            type_of_set_ref=type_of_set_ref,
+            **ref_params
+            )
+    except Exception as ex:
+        return ex
     
 
     return output
@@ -210,7 +217,7 @@ def epochs(**kwargs):
 
     try:
         events=get_events(input)
-    except TypeError:
+    except Exception as ex:
         return Response('Invalid file extension',
                     status=status.HTTP_406_NOT_ACCEPTABLE)
     
@@ -223,16 +230,18 @@ def epochs(**kwargs):
             #return Response('An invalid list of event ids has been provided.',
             #            status=status.HTTP_400_BAD_REQUEST
 
-    
-    # build epochs instance for time-frequency plot
-    epochs = mne.Epochs(
-        raw=input, 
-        events=events,
-        event_id=event_id, 
-        tmin=tmin, tmax=tmax,
-        picks=channels_idxs,
-        baseline=baseline
-        )
+    try:
+        # build epochs instance for time-frequency plot
+        epochs = mne.Epochs(
+            raw=input, 
+            events=events,
+            event_id=event_id, 
+            tmin=tmin, tmax=tmax,
+            picks=channels_idxs,
+            baseline=baseline
+            )
+    except Exception as ex:
+        return ex
 
     return {"instance":epochs,"events":events}
 
@@ -282,7 +291,7 @@ def events(**kwargs):
                 new_events=new_events
                 )
 
-        except TypeError:
+        except Exception as ex:
             return Response('Invalid events for add events method.',
                         status=status.HTTP_406_NOT_ACCEPTABLE)
     else:
@@ -315,11 +324,10 @@ def peak_step(**kwargs):
             thresh=peak_params["thresh"]
             )
 
-    except TypeError:
+    except Exception as ex:
         return Response('Invalid data for peak finder method',
                     status=status.HTTP_406_NOT_ACCEPTABLE)
 
-    #TODO: agregar un save_peaks in file
 
     return {"instance":input,"method_result":peaks}
 
@@ -343,7 +351,7 @@ def time_series_step(**kwargs):
     try:
         filepath=os.path.join(tu.upload_id,tu.upload_name)
         instance=get_raw(MEDIA_TEMP,filepath)
-    except TypeError:
+    except Exception as ex:
         return Response('Invalid file extension',
                     status=status.HTTP_406_NOT_ACCEPTABLE)
 
@@ -468,7 +476,7 @@ def filter_step(**kwargs):
                     p_value=sf_params["p_value"],
                     )
 
-            except TypeError:
+            except Exception as ex:
                 return Response('Invalid data for Spectrum fit filter method',
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 
@@ -493,7 +501,7 @@ def filter_step(**kwargs):
                     fir_design=fir_params["fir_design"],
                     )
 
-            except TypeError:
+            except Exception as ex:
                 return Response('Invalid data for FIR filter',
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 
@@ -512,7 +520,7 @@ def filter_step(**kwargs):
                     notch_widths=iir_params["notch_widths"], 
                     )
 
-            except TypeError:
+            except Exception as ex:
                 return Response('Invalid data for IIR filter',
                             status=status.HTTP_406_NOT_ACCEPTABLE)
     
@@ -544,7 +552,7 @@ def filter_step(**kwargs):
                     fir_design=fir_params["fir_design"],
                     )
 
-            except TypeError:
+            except Exception as ex:
                 return Response('Invalid data for FIR filter',
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 
@@ -563,7 +571,7 @@ def filter_step(**kwargs):
                     iir_params=iir_params["iir_params"]
                     )
 
-            except TypeError:
+            except Exception as ex:
                 return Response('Invalid data for IIR filter',
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 

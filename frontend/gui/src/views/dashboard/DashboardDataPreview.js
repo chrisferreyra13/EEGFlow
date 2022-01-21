@@ -30,11 +30,19 @@ class DashboardDataPreview extends Component{
 
     this.setFiles=this.setFiles.bind(this);
     this.vizButton=this.vizButton.bind(this);
+    this.cancelUpload=this.cancelUpload.bind(this);
     
     //this.revertFile=this.revertFile.bind(this);
     this.setInfo=this.setInfo.bind(this);
     this.setServerId=this.setServerId.bind(this);
   }
+  cancelUpload(){
+    this.setState({
+      files:[]
+    })
+    this.props.disableListGroupFileInfo()
+  }
+
   setFiles(fileItems){
     this.setState({
       files: fileItems.map(fileItem => fileItem.file)
@@ -49,7 +57,7 @@ class DashboardDataPreview extends Component{
     if (this.state.files.length==1){
       //this.state.files[0].serverId=ids;
       console.log(ids)
-      /*this.setState({ PROBE ESTO PERO NO FUNCO, PERO POR ACA VAN LOS TIROS
+      /*this.setState({
         files: Object.assign({},this.state.files,{
           '0': Object.assign({},this.state.files[0],{
             serverId:ids
@@ -60,19 +68,6 @@ class DashboardDataPreview extends Component{
       console.log(this.state.files)
     }
     
-    /*else{
-      /*for(let i=0;i<this.state.files.length;i++){
-        this.state.files[i].serverId=ids[i];
-      }*/
-      /*
-      this.setState({
-        files: this.props.files.map((file) =>{ 
-          return Object.assign({},file,{
-            serverId:ids
-          })
-        }
-      })
-    }*/
   }
   revertFile(error,file){
     console.log('holaaaa') //ESTO NO SE SI AL FINAL SE VA A USAR
@@ -113,10 +108,11 @@ class DashboardDataPreview extends Component{
         url: '/load/',
         method: 'GET'
       },
+      /*
       revert:{
         url: '/revert/',
         methos: 'DELETE'
-      }
+      }*/
     }
 
     let listGroup;
@@ -145,7 +141,7 @@ class DashboardDataPreview extends Component{
                 onupdatefiles={this.setFiles} 
                 processFile={this.state.files}
                 removeFile={this.state.files[0]}
-                onremovefile={() => this.props.disableListGroupFileInfo()}
+                onremovefile={() => this.cancelUpload()}
                 allowMultiple={true}
                 maxFiles={3}
                 server={serverConf}

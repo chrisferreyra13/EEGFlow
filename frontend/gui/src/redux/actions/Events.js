@@ -44,11 +44,17 @@ export const fetchEvents = (fileId) => async (dispatch) =>{
       };
 
     dispatch(requestEvents())
-    try{
-        fetch(url,initFetch).
-        then(res => res.json()).
-        then(json => dispatch(receiveEvents(json)))
-    }catch(error){
+    fetch(url,initFetch)
+    .then(res => {
+        if(!res.ok){
+            return res.text().then(text => { throw new Error(text) })
+        }else {return res.json()}
+        })
+    .then(json => dispatch(receiveEvents(json)))
+    .catch(error =>{
         dispatch(errorFetchingEvents(error))
-    }
+    })
+        
+    
+    
 }

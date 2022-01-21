@@ -119,10 +119,13 @@ def get_method_result_data(media_path,filepath=None):
     if filepath is None:
         raise TypeError
 
-    full_filepath=os.path.join(media_path,filepath)
-    method_result_file = open(full_filepath, "rb")
-    method_result_data = pickle.load(method_result_file)
-    method_result_file.close()
+    try:
+        full_filepath=os.path.join(media_path,filepath)
+        method_result_file = open(full_filepath, "rb")
+        method_result_data = pickle.load(method_result_file)
+        method_result_file.close()
+    except Exception as ex:
+        raise ex
 
     return method_result_data
 
@@ -137,14 +140,18 @@ def check_params(query_params,params_names=None,params_values=None):
     for param_name in params_names:
         if param_name in query_params:
             p=query_params[param_name]
-            
+ 
             if p!='' and p!='undefined' and p!=None:
-                if type(params[param_name])==int or params[param_name]==None or type(params[param_name])==float:
+                if type(params[param_name])==int or type(params[param_name])==float or params[param_name]==None:
                     try:
                         if type(params[param_name])==int:
                             p=int(p)
-                        else:
+                        elif type(params[param_name])==float:
                             p=float(p)
+                        elif len(p.split('.'))==2:
+                            p=float(p)
+                        elif len(p.split('.'))==1:
+                            p=int(p)
 
                         params[param_name]=p
                     except:
@@ -162,9 +169,6 @@ def check_params(query_params,params_names=None,params_values=None):
 
                 elif type(params[param_name])==str and p!='none':
                     params[param_name]=p
-
-                elif params[param_name]==None:
-                    params[param_name]=None
     
     return params
 
@@ -259,9 +263,8 @@ def get_request_channels(params, param_key='channels'):
 
         elif type(channels)==list:
             if len(channels)==0:
-                return Response('An invalid list of channels has been provided.',
-                    status=status.HTTP_400_BAD_REQUEST)
-
+                channels=None
+                
     return channels
 
 def get_channels_from_instance(channels,instance):

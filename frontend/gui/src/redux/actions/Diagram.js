@@ -87,6 +87,12 @@ export function runProcessFailure(json){
         process:json
     }
 }
+export const RUN_PROCESS_INIT='RUN_PROCESS_INIT'
+export function runProcessInit(){
+    return{
+        type:RUN_PROCESS_INIT,
+    }
+}
 
 export const PROCESS_TO_START='PROCESS_TO_START'
 export function processToStart(processId){
@@ -164,6 +170,13 @@ export const runProcess= (elements) => async (dispatch) => {
 
         }
     }
+    if(numOutput==0 || diagram.find(e =>e.type=='input')==undefined){
+        dispatch(runProcessFailure({
+            'process_id':0,
+            'process_status':'FAIL',
+        }))
+        return
+    }
     
     i=0
     let saveOutputList=[]
@@ -173,6 +186,10 @@ export const runProcess= (elements) => async (dispatch) => {
     let blacklist=[] //nodo recorridos
     let nodo=null
     let nextNodo=null
+    let incomplete=false
+    let walkedNodes=[];
+    let walkedAllConnectedNodes=false;
+    let multiInput=[];
     //let auxNodo=null
     let checker = (array,target) => array.every(elem => target.includes(elem)) // revisa si TODOS los elementos en 'array' se encuentran en 'target'
     do{
@@ -182,52 +199,85 @@ export const runProcess= (elements) => async (dispatch) => {
         do{ 
 
             nextNodo=diagram.find(n => n.id==nodo.output[i]) //voy al output 'i' de nodo
+            if(nextNodo==undefined){
+                blacklist.push(nodo.id)
+                incomplete=true
+                break
+            }else{
+                if(!walkedNodes.includes(nextNodo.id)){walkedNodes.push(nextNodo.id)}
+                if(nextNodo.output!=null){
+                    // VERIFICACION DE NODOS CON OUTPUT>1  ---> FAVLIST
+                    if(nextNodo.output.length>1 && !saveOutputList.includes(nextNodo.id)){ // me fijo que sea la primera vez que paso por nextNodo
+                        nextNodo["save_output"]=true // pongo true para despues guardar la salida cuando procese en el back
+                        saveOutputList.push(nextNodo.id) // Lo agrego para no volver a pasar
+                    }
+                }
+                
+    
+                if (blacklist.includes(nextNodo.id)){   // Verifico que no haya caminado por ahi
+                    i=i+1 // ya recorri la output 'i' entonces voy al siguiente
+                    if(nextNodo.type=='output' && nextNodo.input.length>1){ //Esto es para registrar un camino incompleto cuando
+                        if(multiInput.includes(nextNodo.id) && !multiInput.includes(nodo.id)){ // el output tiene multiInput
+                            incomplete=true
+                            if(checker(nodo.output, blacklist)){
+                                blacklist.push(nodo.id)
+                            }
+                            multiInput.push(nodo.id)
+                            i=0
+                            break
 
-            if(nextNodo.output!=null){
-                // VERIFICACION DE NODOS CON OUTPUT>1  ---> FAVLIST
-                if(nextNodo.output.length>1 && !saveOutputList.includes(nextNodo.id)){ // me fijo que sea la primera vez que paso por nextNodo
-                    nextNodo["save_output"]=true // pongo true para despues guardar la salida cuando procese en el back
-                    saveOutputList.push(nextNodo.id) // Lo agrego para no volver a pasar
+                        }else{
+                            multiInput.push(nextNodo.id)
+                        }
+                    }
+    
+                    if(checker(nodo.output, blacklist)){ // reviso que no esten todas los outputs en la blacklist
+                        blacklist.push(nodo.id) // si tengo todas las salidas ocupadas, guardar en blacklist
+                        process.pop()   // me equivoque, lo saco del process
+                        if(nodo.id==diagram[0].id){
+                            walkedAllConnectedNodes=true
+                            break
+                        }else{
+                            nodo=process[process.length-1] // regreso al paso anterior
+                            i=0 //reinicio el recorrido de outputs
+                        }
+                        
+                    }
+                }
+                else{
+                    process.push(nextNodo) // guardo en process el step
+    
+                    if(nextNodo.type=='output'){ // verifico que si llegue al final
+                        blacklist.push(nextNodo.id)
+                        //Indico que hay que guardar el resultado del anterior en back para pedirlo
+                        if (nodo.id!="1")
+                            nodo["save_output"]=true
+                    }
+    
+                    nodo=nextNodo // me paro en el siguiente
+                    i=0 // reinicio
                 }
             }
-            
-
-            if (blacklist.includes(nextNodo.id)){   // Verifico que no haya caminado por ahi
-                i=i+1 // ya recorri la output 'i' entonces voy al siguiente
-
-                if(checker(nodo.output, blacklist)){ // reviso que no esten todas los outputs en la blacklist
-                    blacklist.push(nodo.id) // si tengo todas las salidas ocupadas, guardar en blacklist
-                    process.pop()   // me equivoque, lo saco del process
-                    nodo=process[process.length-1] // regreso al paso anterior
-                    i=0 //reinicio el recorrido de outputs
-                }
-            }
-            else{
-                process.push(nextNodo) // guardo en process el step
-
-                if(nextNodo.type=='output'){ // verifico que si llegue al final
-                    blacklist.push(nextNodo.id)
-                    //Indico que hay que guardar el resultado del anterior en back para pedirlo
-                    if (nodo.id!="1")
-                        nodo["save_output"]=true
-                }
-
-                nodo=nextNodo // me paro en el siguiente
-                i=0 // reinicio
-            }
-            
 
         }while(nodo.type!='output') // cuando llegue al final de un process, empiezo de nuevo
-        processes.push(process)
-        process=[]
-        cont+=1
+        if (process.length!=0){
+            processes.push(process)
+            process=[]
+            if(!incomplete){ //contar solo si es un proceso completo
+                cont+=1
+            }else{incomplete=false}
 
-    }while(cont!=numOutput) // cuando ya no tengo mas nodos tipo output, termine de recorrer todo el diagrama
+        }
+        
+    }while(!walkedAllConnectedNodes)
     
+    dispatch(runProcessInit())
+
     //let header= new Headers()
     let url=null
     let initFetch=null
     let process_id=0
+
     url = API_ROOT+'process/?'
     initFetch={
         method: 'POST',
@@ -240,6 +290,14 @@ export const runProcess= (elements) => async (dispatch) => {
     
     for(process of processes){
         process_id=uuidv4() //process[process.length-1].id
+        if(process.find(n => n.type=='output')==undefined){// check if there are incomplete processes
+            dispatch(runProcessFailure({
+                'process_id':process_id, //OJO aca, si hay multiprocess, el process_id no va a ser el correcto, tengo q volver a buscarlo
+                'process_status':'FAIL',
+            }))
+            continue
+        }
+
         dispatch(processToStart(process_id))
         initFetch={...initFetch, body:JSON.stringify({"process": process,"process_id":process_id}),}
         if(process.every((n) => n.processed==true)){
@@ -247,11 +305,13 @@ export const runProcess= (elements) => async (dispatch) => {
         }
         else{
             dispatch(runProcessRequest({'process_id':process_id, 'process_output_id':process[process.length-1].id}))
-            try {
                 fetch(url,initFetch)
-                .then(res => res.json())
+                .then(res => {
+                    if(!res.ok){
+                        return res.text().then(text => { throw new Error(text) })
+                    }else {return res.json()}
+                })
                 .then(json => {
-                    
                     process=processes.filter(p => {
                         if(p.find(n => n.id==json["output_id"])!=undefined)
                             return true
@@ -270,14 +330,13 @@ export const runProcess= (elements) => async (dispatch) => {
                     }))
                     //dispatch(fetchSignal(process[0].params.id))
                     //console.log(process)
+                }).catch (error =>{
+                    dispatch(runProcessFailure({
+                        'process_id':process_id, //OJO aca, si hay multiprocess, el process_id no va a ser el correcto, tengo q volver a buscarlo
+                        'process_status':'FAIL',
+                    }))
                 })
-            }
-            catch (error){
-                dispatch(runProcessFailure({
-                    'process_id':process_id, //OJO aca, si hay multiprocess, el process_id no va a ser el correcto, tengo q volver a buscarlo
-                    'process_status':'FAIL',
-                }))
-            }
+
         }
         
         
@@ -424,10 +483,10 @@ export const fetchSignal = (id, channels, plotParams, nodeId, dataType, plotProc
                 time_window:[plotParams.minTimeWindow,plotParams.maxTimeWindow],
                 freq_window:[plotParams.minFreqWindow,plotParams.maxFreqWindow],
                 channels: channels==undefined ? '': channels,
-                type: plotParams["type"]==undefined ? '': plotParams["type"],
+                type: plotParams["type"]==undefined ? 'welch': plotParams["type"],
                 epochs: plotParams.epochs==null ? '': plotParams.epochs,
             }
-            if(plotParams["type"]=='welch'){
+            if(requestParams["type"]=="welch"){
                 requestParams["n_fft"]=plotParams["n_fft"] == undefined ? '': plotParams["n_fft"]
                 requestParams["n_per_seg"]=plotParams["n_per_seg"] == undefined ? '': plotParams["n_per_seg"]
                 requestParams["n_overlap"]=plotParams["n_overlap"]== undefined ? '': plotParams["n_overlap"]
@@ -505,15 +564,18 @@ export const fetchSignal = (id, channels, plotParams, nodeId, dataType, plotProc
       };
 
     dispatch(requestSignal(nodeId,dataType))
-    try {
-        //await fetcher(url,initFetch)
-        await fetch(url,initFetch)
-        .then(res => res.json())
-        .then(signalData => dispatch(receiveSignal({signalData, 'nodeId':nodeId, 'dataType':dataType, 'processId':plotProcessId})))
-    }
-    catch (error){
+    //await fetcher(url,initFetch)
+    await fetch(url,initFetch)
+    .then(res => {
+        if(!res.ok){
+            return res.text().then(text => { throw new Error(text) })
+        }else {return res.json()}
+        })
+    .then(signalData => dispatch(receiveSignal({signalData, 'nodeId':nodeId, 'dataType':dataType, 'processId':plotProcessId})))
+    .catch(error =>{
         dispatch(errorFetchingSignal({error, 'nodeId':nodeId}))
-    }
+    })
+
     
 }
 
@@ -586,15 +648,19 @@ export const fetchMethodResult = (id, channels, plotParams, nodeId, dataType) =>
       };
 
     dispatch(requestMethodResult(nodeId,dataType))
-    try {
-        //await fetcher(url,initFetch)
-        await fetch(url,initFetch)
-        .then(res => res.json())
-        .then(methodResult => dispatch(receiveMethodResult({methodResult, 'nodeId':nodeId, 'dataType':dataType})))
-    }
-    catch (error){
+
+    //await fetcher(url,initFetch)
+    await fetch(url,initFetch)
+    .then(res => {
+        if(!res.ok){
+            return res.text().then(text => { throw new Error(text) })
+        }else {return res.json()}
+        })
+    .then(methodResult => dispatch(receiveMethodResult({methodResult, 'nodeId':nodeId, 'dataType':dataType})))
+    .catch(error =>{
         dispatch(errorFetchingMethodResult({error, 'nodeId':nodeId}))
-    }
+    })
+
     
 }
 

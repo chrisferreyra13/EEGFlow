@@ -98,7 +98,6 @@ class SetReferenceForm extends Component{
 
   componentDidMount(){
     this.props.onMountForm();
-    this.checkButtons('type',['monopolar','bipolar'])
   }
   getValue(inputId){
     if(Object.keys(this.props.values).length === 0 && this.props.values.constructor === Object){
@@ -117,13 +116,13 @@ class SetReferenceForm extends Component{
         
     return (
       <div>
-        <CFormGroup row>
+        {/*<CFormGroup row>
             <CCol md="2">
                 <CLabel md="6" htmlFor="type">Tipo:</CLabel> 
             </CCol>
             <CCol md="10">
                 <CFormGroup variant="custom-radio" inline> {/* la prop 'name' tiene que ser la misma para todos para que esten en el mismo grupo*/}
-                    <CInputRadio custom id="monopolar" name="reference-type" value="monopolar" onChange={(event) => this.handleChangeInputRadio(event,'monopolar','type')}/>
+                    {/*<CInputRadio custom id="monopolar" name="reference-type" value="monopolar" onChange={(event) => this.handleChangeInputRadio(event,'monopolar','type')}/>
                     <CLabel variant="custom-checkbox" htmlFor="monopolar">Monopolar</CLabel>
                 </CFormGroup>
                 <CFormGroup variant="custom-radio" inline>
@@ -131,7 +130,7 @@ class SetReferenceForm extends Component{
                     <CLabel variant="custom-checkbox" htmlFor="bipolar">Bipolar</CLabel>
                 </CFormGroup>
             </CCol>
-        </CFormGroup>
+        </CFormGroup>*/}
         {
           this.getValue('type')=='monopolar' ?
           <div>

@@ -29,8 +29,8 @@ class ExportDataForm extends Component{
 
     this.state={
       default:{
-        nodeId:null,
-        fileName:null
+        nodeId:'',
+        fileName:''
       },
       nodeOptions:nodeOptions,
       option:null

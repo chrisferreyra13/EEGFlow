@@ -46,7 +46,9 @@ export const file = (state = initialStateFile, { type, ...rest }) => {
               fileInfo: fileInfo,
           })
         case FETCH_FILE_INFO_FAILURE:
-            return {...state, ...rest}
+            return Object.assign({},state, {
+                isFetching: false,
+            })
         default:
           return state
     }

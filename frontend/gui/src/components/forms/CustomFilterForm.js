@@ -56,10 +56,12 @@ class CustomFilterForm extends Component{
   }
   checkRadioButton(inputId,radioButtonIds){
     radioButtonIds.forEach(id => {
-      if(this.getValue(inputId)==id) // el id tiene que ser igual al valor del button
-        document.getElementById(id).checked=true
-      else
-        document.getElementById(id).checked=false
+      if(document.getElementById(id)!=null){
+        if(this.getValue(inputId)==id) // el id tiene que ser igual al valor del button
+          document.getElementById(id).checked=true
+        else
+          document.getElementById(id).checked=false
+      }
     }) 
   }
 

@@ -3,7 +3,8 @@ import {
 	CCard,
 	CCardBody,
 	CCardGroup,
-	CCol
+	CCol,
+	CAlert,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {fetchSignal,deleteItemInputsReady} from '../../../redux/actions/Diagram'
@@ -78,8 +79,9 @@ class ChartSpectrum extends Component {
 		if(nodePlot.inputData.fetchInput){
 			const nodeInput=this.props.elements.find((elem) => elem.id==nodePlot.inputData.inputNodeId)
 
-			if(nodeInput.params.channels==undefined){channels=params.channels;}
-			else{channels=nodeInput.params.channels;}
+			channels=params.channels;
+			/*if(nodeInput.params.channels==undefined){channels=params.channels;}
+			else{channels=nodeInput.params.channels;}*/
 
 			let signalData=nodeInput.signalsData.find(s => {
 				if(s.processId==nodePlot.processParams.processId && s.dataType==dataType)return true;
@@ -113,7 +115,7 @@ class ChartSpectrum extends Component {
 			}
 
 			let prepareData=false
-			if(signalData!=undefined){
+			if(signalData!=undefined && !fetchSignal){
 				if(this.props.inputsReady.includes(signalData.id)){
 					if(params.channels=='prev'){
 						// if 'prev' (when the user didn't set channels) use signalData as default
@@ -124,6 +126,11 @@ class ChartSpectrum extends Component {
 						if(signalData.chNames.some(ch => params.channels.includes(ch))){
 							prepareData=true
 							params.channels=signalData.chNames.filter(ch => params.channels.includes(ch))
+						}else{
+							message=<div>
+										<h4>No hay canales.</h4>
+										<CIcon size= "xl" name="cil-x-circle"/>
+									</div>
 						}
 							
 					}
@@ -153,6 +160,7 @@ class ChartSpectrum extends Component {
 			oldSignalId:oldSignalId,
 			outputType:outputType,
 			message:message,
+			signalFetchingError:this.props.signalFetchingError,
 
 		}
     }
@@ -233,6 +241,9 @@ class ChartSpectrum extends Component {
 				}
 			}
 		}
+		if(prevProps.signalFetchingError!==this.props.signalFetchingError){
+			this.setState({signalFetchingError:this.props.signalFetchingError})
+		}
 		
 	  }
 
@@ -253,8 +264,17 @@ class ChartSpectrum extends Component {
 								/> 
 							</div>
 							:
-							<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
-								{this.state.message}
+							<div >
+								{this.state.signalFetchingError ? 
+									<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
+										<CAlert color="danger" style={{marginBottom:'0px',padding:'0.4rem 1.25rem'}}>
+											Error al buscar los resultados!
+										</CAlert>:
+									</div>:
+									<div style={{alignItems:'center', textAlign:'center', margin:'auto',...this.state.style}}>
+										{this.state.message}
+									</div>
+								}
 							</div>
 						}
 					</CCardBody>
@@ -271,14 +291,15 @@ const mapStateToProps = (state) => {
 	return{
 	  elements:state.diagram.elements,
 	  inputsReady: state.diagram.inputsReady,
-	  prevParams:state.plotParams.plots
+	  prevParams:state.plotParams.plots,
+	  signalFetchingError:state.diagram.errors.signalFetchingError,
 	};
 }
   
 const mapDispatchToProps = (dispatch) => {
 	return {
 		fetchSignal: (id,channels,plotParams,nodeId,type,plotProcessId) => dispatch(fetchSignal(id,channels,plotParams,nodeId,type,plotProcessId)),
-		updatePlotParams: (params) => dispatch(updatePlotParams(params)),
+		updatePlotParams: (id,params) => dispatch(updatePlotParams(id,params)),
 		deleteItemInputsReady: (id) => dispatch(deleteItemInputsReady(id)),
 	};
 };

@@ -27,16 +27,18 @@ const TheSidebar = ({show, addNode, enableForm, diagramView, linkDiagram}) => {
     event.dataTransfer.effectAllowed = 'move';
   };
   const onClick = (formType=null, nodeType=null) => {
-    if(linkDiagram==true){
+    if(linkDiagram==true){ // removed for the first verion of the software
       if(diagramView==false){
         if(nodeType!=null){
           addNode(nodeType)
         }
-        if(formType!=null){
-          enableForm('',formType)
-        }
+        // removed for the first verion of the software, use it just for download
+        if(formType=='ENABLE_EXPORT_DATA_FORM' || formType=='ENABLE_EXPORT_IMAGE_FORM')
+          //if(formType!=null){ 
+            enableForm('',formType)
+          //}
       }
-    }else{
+    }else{ // removed for the first verion of the software
       if(diagramView==false){
         if(formType!=null){
           enableForm('',formType)
@@ -128,7 +130,7 @@ const TheSidebar = ({show, addNode, enableForm, diagramView, linkDiagram}) => {
             <CDropdownItem>Buscar</CDropdownItem>
             <CDropdownDivider/>
             {/*<CDropdownHeader>Frecuentes</CDropdownHeader>*/}
-            <CDropdownItem onClick={() => onClick(null,'ICA')} onDragStart={(event) => onDragStart(event, 'ICA')} draggable>ICA</CDropdownItem>
+            <CDropdownItem onClick={() => onClick(null,'ICA')} onDragStart={(event) => onDragStart(event, 'ICA')} draggable disable="true">ICA</CDropdownItem>
             <CDropdownItem onClick={() => onClick(null,'MAX_PEAK')} onDragStart={(event) => onDragStart(event, 'MAX_PEAK')} draggable>Pico maximo</CDropdownItem>
           </CDropdownMenu>
         </CDropdown>

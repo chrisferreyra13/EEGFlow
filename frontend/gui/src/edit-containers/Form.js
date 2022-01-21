@@ -11,6 +11,7 @@ import {
   CForm,
 } from '@coreui/react'
 import streamSaver from 'streamsaver'
+
 import CIcon from '@coreui/icons-react'
 
 import {okForm, cancelForm, updateForm} from '../redux/actions/Form'
@@ -51,7 +52,7 @@ class Form extends Component{
     this.props.okForm()
   }
   onClickDownloadForm(formData){
-    if(formData.nodeId!=undefined || formData.nodeId!=null){
+    if(formData.nodeId!=undefined || formData.nodeId!=''){
       if(formData.format!=undefined){
         this.props.updateSavePlot(formData.nodeId,formData.fileName,formData.format)
 
@@ -72,7 +73,9 @@ class Form extends Component{
             }else{
               blob = new Blob(mapSignalDataToTxtFormat(signalData.data))
             }
-            
+            if(formData.fileName==''){
+              formData.fileName='data'
+            }
             const fileStream = streamSaver.createWriteStream(formData.fileName+'.txt', {
               size: blob.size // Makes the procentage visiable in the download
             })
@@ -86,20 +89,23 @@ class Form extends Component{
             // more optimized pipe version
             // (Safari may have pipeTo but it's useless without the WritableStream)
             if (window.WritableStream && readableStream.pipeTo) {
-              return readableStream.pipeTo(fileStream)
+              //return readableStream.pipeTo(fileStream)
+              //  .then(() => console.log('done writing'))
+              new Response('StreamSaver is awesome').body
+                .pipeTo(fileStream)
                 .then(() => console.log('done writing'))
+            }else{
+              // Write (pipe) manually
+              window.writer = fileStream.getWriter()
+              const reader = readableStream.getReader()
+              const pump = () => reader.read()
+                .then(res => res.done
+                  ? window.writer.close()
+                  : window.writer.write(res.value).then(pump))
+
+              pump()
             }
-
-            // Write (pipe) manually
-            window.writer = fileStream.getWriter()
-
-            const reader = readableStream.getReader()
-            const pump = () => reader.read()
-              .then(res => res.done
-                ? window.writer.close()
-                : window.writer.write(res.value).then(pump))
-
-            pump()
+            
           }     
         }
       }
@@ -124,7 +130,7 @@ class Form extends Component{
       if(elem.params!=null) params=JSON.parse(JSON.stringify(elem.params)); 
     }
     this.setState({ values: params});*/
-    console.log("hola")
+    console.log("handle mount removed in this version")
     
   }
   componentDidUpdate(prevProps){
@@ -142,9 +148,9 @@ class Form extends Component{
     this.props.updateForm(formData)
     this.props.updateNodePropierties(this.props.nodeId,formData) //{'params':formData}
     const element=this.props.elements.find(element => element.formType==this.props.formType)
-    if(this.props.diagramView==false){
+    /*if(this.props.diagramView==false){
       runSingleProcess({'elementType': element.elementType, 'params':formData})
-    }
+    }*/
     //this.setState({values:{}})
     this.props.okForm()
   }

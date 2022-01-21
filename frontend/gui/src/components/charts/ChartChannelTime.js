@@ -59,7 +59,7 @@ class ChartChannel extends Component {
                         .setName(this.props.channel)
                         .setPointSize(8.0)
         
-                    this.props.methodResult[0]["locations"].forEach(idx =>{
+                    this.props.methodResult.data[0]["locations"].forEach(idx =>{
                         if(idx<this.props.data.length){
                             this.pointSerie.add(this.props.data[idx])  
                         }  
