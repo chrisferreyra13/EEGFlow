@@ -433,7 +433,7 @@ class ChartTFForm extends Component{
                 </CFormGroup>
                 <CFormGroup row>
                     <CCol md="7">
-                        <CLabel htmlFor="time_bandwidth">Ancho de banda de tiempo:</CLabel>
+                        <CLabel htmlFor="time_bandwidth">Tiempo x Ancho de banda:</CLabel>
                     </CCol>
                     <CCol md="5">
                         <CInput id="time_bandwidth" placeholder={"4.0"} type="number" min="0" step="1" value={this.getValue('time_bandwidth')} onChange={(event) => this.handleChange(event,'time_bandwidth')}/>
